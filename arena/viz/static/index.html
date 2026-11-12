@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Snake Arena</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header>
+    <h1>Snake Arena</h1>
+    <span id="status" class="status">loading…</span>
+  </header>
+  <main>
+    <section class="board">
+      <canvas id="board" aria-label="arena board"></canvas>
+      <div id="banner" class="banner hidden"></div>
+      <div class="controls" role="toolbar" aria-label="playback">
+        <button id="play" title="Play / pause (space)">Pause</button>
+        <button id="step" title="Advance one tick (.)">Step</button>
+        <label>Speed
+          <select id="speed">
+            <option value="1">1×</option>
+            <option value="2">2×</option>
+            <option value="5" selected>5×</option>
+            <option value="10">10×</option>
+            <option value="50">50×</option>
+            <option value="max">max</option>
+          </select>
+        </label>
+        <button id="finish" title="Simulate to the end instantly">Finish now</button>
+        <label class="check"><input type="checkbox" id="smooth" checked> Smooth</label>
+        <label class="check"><input type="checkbox" id="grid"> Grid</label>
+      </div>
+    </section>
+
+    <aside>
+      <section>
+        <h2>Leaderboard</h2>
+        <table id="leaderboard">
+          <thead><tr><th></th><th>Snake</th><th>Kills</th><th>Deaths</th><th>K/D</th><th>Life</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Match settings</h2>
+        <form id="settings">
+          <div class="grid2">
+            <label>Seed <input name="seed" type="number" min="0" required></label>
+            <label>Kills to win <input name="score_target" type="number" min="1" required></label>
+            <label>Width <input name="width" type="number" min="10" max="500" required></label>
+            <label>Height <input name="height" type="number" min="10" max="500" required></label>
+            <label>Snakes <input name="num_snakes" type="number" min="1" max="8" required></label>
+            <label>Length <input name="snake_length" type="number" min="3" max="10" required></label>
+            <label>Respawn delay <input name="respawn_delay" type="number" min="1" required></label>
+            <label>Tick cap <input name="max_ticks" type="number" min="1" required></label>
+          </div>
+          <label>Policy <select name="policy"></select></label>
+          <div class="buttons">
+            <button type="submit" title="Start with these settings">Start</button>
+            <button type="button" id="new-seed" title="Start with a random seed">New seed</button>
+          </div>
+        </form>
+        <div class="buttons">
+          <button type="button" id="download">Download replay</button>
+          <label class="file">Load replay <input type="file" id="load" accept=".json,application/json"></label>
+        </div>
+        <p id="form-error" class="error" role="alert"></p>
+      </section>
+
+      <section>
+        <h2>Kill feed</h2>
+        <ol id="feed" class="feed"></ol>
+      </section>
+    </aside>
+  </main>
+  <script src="/static/app.js"></script>
+</body>
+</html>
