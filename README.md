@@ -136,23 +136,150 @@ careful enough that in 4 all-five matches on 100 × 100, all 4 reached the 100,0
 cap with 1 kill between them. `arena/sim/boards.py` adds a labelled 50 × 50
 `experiment` board for phase 4.
 
-## Architecture
+## System design
 
+This section is the map of the code for people and coding agents. It is kept in sync by
+a test (`tests/test_docs.py`) that fails when a module under `arena/` is missing from the
+diagram, and agents are asked to improve it whenever they find it unclear or stale (see
+[`AGENTS.md`](AGENTS.md)). Arrows point from a module to what it uses or produces. The engine, agents, sim and
+viz use only the standard library; `arena/rsi` uses NumPy and never imports the snake
+code.
+
+<!-- system-design:start -->
+```mermaid
+flowchart TB
+  subgraph ENGINE["arena/engine: pure rules"]
+    types["engine/types.py<br/>GameConfig · GameState · events<br/>frozen, JSON round-trip"]
+    rng["engine/rng.py<br/>SplitMix64 · derive_seed"]
+    spawn["engine/spawn.py<br/>seeded spawn + fallback scan"]
+    step["engine/step.py<br/>new_game · step · rank"]
+    step --> spawn --> rng
+    step --> types
+  end
+
+  subgraph AGENTS["arena/agents: policies"]
+    base["agents/base.py<br/>Policy · Observation · legal_moves"]
+    randp["agents/random_policies.py<br/>RandomSafe · RandomUniform"]
+    features["agents/features.py<br/>Board + shared move features"]
+    params["agents/params.py<br/>ParamSpace bounds · load/save"]
+    pjson[("agents/params/*.json<br/>hand-set weights")]
+    scorer["agents/scorer.py<br/>ScoringPolicy: weighted feature sum"]
+    pers["agents/hunter.py · agents/survivor.py · agents/trapper.py<br/>agents/predictor.py · agents/opportunist.py"]
+    registry["agents/registry.py<br/>POLICIES · LINEUPS · STYLES"]
+    randp --> base
+    scorer --> features --> base
+    scorer --> params --> pjson
+    pers --> scorer
+    registry --> pers
+    registry --> randp
+  end
+
+  subgraph SIM["arena/sim: headless games"]
+    match["sim/match.py<br/>Match: policies x engine, fallbacks"]
+    replay["sim/replay.py<br/>save / load / verify"]
+    tournament["sim/tournament.py<br/>seeded matches over processes"]
+    stats["sim/stats.py<br/>summaries · kill matrix"]
+    metrics["sim/metrics.py<br/>behaviour metrics"]
+    bench["sim/bench.py<br/>speed · kill rates · move times"]
+    boards["sim/boards.py<br/>named board configs"]
+    pcheck["sim/personality_check.py<br/>phase 2 acceptance · episode_config"]
+    tournament --> match
+    tournament --> stats
+    replay --> match
+    bench --> match
+    pcheck --> tournament
+    pcheck --> metrics
+  end
+
+  subgraph VIZ["arena/viz: viewer"]
+    server["viz/server.py<br/>Session · App · Roster<br/>frames pulled on demand"]
+    static["viz/static/index.html · app.js · style.css<br/>Canvas page"]
+    static -- "/api/match/:id/frames" --> server
+  end
+
+  subgraph RSI["arena/rsi: generic loop"]
+    rtypes["rsi/types.py<br/>ParamSpec · Candidate · PairedResult<br/>Evaluator / Proposer / AcceptanceRule protocols"]
+    seeds["rsi/seeds.py<br/>disjoint dev / holdout / final pools"]
+    proposers["rsi/proposers.py<br/>random restart · hill climb · coordinate<br/>cross-entropy · archive crossover (dev results only)"]
+    accept["rsi/accept.py<br/>PairedBootstrapRule + guards"]
+    loop["rsi/loop.py<br/>Run: propose → dev screen → holdout → decide"]
+    store["rsi/store.py<br/>run dir · atomic writes · immutable archive"]
+    rreport["rsi/report.py<br/>toy-run report.md"]
+    toys["rsi/toys.py<br/>noisy quadratic · pure noise · test evaluators"]
+    loop --> proposers
+    loop --> accept
+    loop --> seeds
+    loop --> store
+    loop --> rtypes
+    toys --> rtypes
+    rreport --> store
+  end
+
+  subgraph EVO["arena/evolution: snake lineages"]
+    entrants["evolution/entrants.py<br/>Entrant = policy + params + version"]
+    evaluator["evolution/evaluator.py<br/>SnakeEvaluator: paired episodes<br/>opponent mixture · Workers pool"]
+    run["evolution/run.py<br/>Profiles · Lineage · Evolution (lockstep)"]
+    ereport["evolution/report.py<br/>final seeds · cycle check · progress.svg"]
+    dashboard["evolution/dashboard.py<br/>live dashboard.html"]
+    watch["evolution/watch.py<br/>archived champions as a viewer Roster"]
+    run --> evaluator --> entrants
+    run --> entrants
+    ereport --> evaluator
+    dashboard --> ereport
+    watch --> ereport
+  end
+
+  cli["cli.py + __main__.py<br/>run-match · run-tournament · bench · watch<br/>check-personalities · rsi-demo · evolve · report · dashboard"]
+
+  RUNS[("runs/&lt;id&gt;/<br/>evolution.json · lineages/&lt;name&gt;/generations.jsonl<br/>params/&lt;name&gt;/v&lt;k&gt;.json · timing.jsonl<br/>report.md · progress.svg · dashboard.html")]
+
+  AGENTS --> ENGINE
+  match --> step
+  match --> registry
+  server --> match
+  server --> registry
+  entrants --> registry
+  evaluator --> match
+  evaluator --> pcheck
+  run -- "one Run per lineage" --> loop
+  evaluator -. "implements Evaluator" .-> rtypes
+  ereport --> accept
+  watch -- "Roster" --> server
+  run --> RUNS
+  store --> RUNS
+  ereport --> RUNS
+  dashboard --> RUNS
+  cli --> SIM
+  cli --> VIZ
+  cli --> RSI
+  cli --> EVO
 ```
-            ┌──────────────────────── arena/engine ────────────────────────┐
-            │ types · rng (SplitMix64) · spawn · step(state, actions)       │
-            │ pure, deterministic, no I/O                                   │
-            └───────────────▲───────────────────────────▲──────────────────┘
-                            │                           │
-   arena/agents ──► arena/sim/match.py (Match) ──► replay.py, tournament.py, bench.py
-   Policy, RandomSafe,          │                           │
-   RandomUniform                ▼                           ▼
-                      arena/viz/server.py          arena/cli.py
-                      (stdlib HTTP, frames         run-match · run-tournament
-                       pulled on demand)           bench · watch
-                                ▼
-                      arena/viz/static (Canvas page)
+
+One generation of `evolve` (phase 4), for each of the five lineages in a fixed order:
+
+```mermaid
+sequenceDiagram
+  participant E as evolution/run.py Evolution
+  participant L as rsi/loop.py Run (one lineage)
+  participant P as rsi/proposers.py
+  participant V as evolution/evaluator.py
+  participant M as sim/match.py + engine
+  participant A as rsi/accept.py
+  participant S as rsi/store.py
+  E->>E: freeze every champion as of generation g-1 (opponent context)
+  E->>L: step(g)
+  L->>P: propose(champion, dev history only)
+  P-->>L: candidate params (in bounds)
+  L->>V: dev screen: candidate vs champion, paired seeds
+  V->>M: same seeds, seats and opponents, one game each
+  M-->>V: kills / 1k ticks, deaths, self+wall deaths
+  L->>V: holdout pairs (seeds the proposer never sees)
+  L->>A: paired bootstrap CI + guard metrics
+  A-->>L: accept or reject, with the reason
+  E->>S: commit all five records, write params/NAME/vK.json
+  E->>E: timing.jsonl, dashboard.html
 ```
+<!-- system-design:end -->
 
 The viewer and the CLI use the same engine, so a seed plays out identically in both.
 

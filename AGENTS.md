@@ -40,6 +40,22 @@ commit as the code change and say why in the commit body.
 
 ## Architecture
 
+The detailed map is the **system-design diagram in [README.md](README.md#system-design)**
+(Mermaid, between the `system-design:start` / `end` markers): every module, what it uses,
+where run data lands, and the sequence of one evolution generation. Treat it as a living
+document that agents maintain and improve:
+
+- Read it before changing how modules connect.
+- When you add, move, rename or delete a module, or change what it depends on, update the
+  diagram in the same commit. `tests/test_docs.py` fails if a module under `arena/` is
+  missing from it.
+- When you find it unclear, wrong, or missing something you had to discover by reading
+  code (a data flow, an invariant, a file a run writes), improve it, and say what you
+  improved in the commit body. Keep it accurate over complete; check that it still renders
+  (GitHub renders Mermaid; `<` and `>` must be written as `&lt;` / `&gt;` inside labels).
+
+The short file list:
+
 ```
 arena/
   engine/      Pure, deterministic game rules (built).
@@ -68,7 +84,8 @@ arena/
     run.py       Profiles, Lineage, Evolution (lockstep generations, resume), load_champion.
     report.py    The experiment report: progress vs reference, cycle check, chart.
     watch.py     Archived champions as viewer policies and lineups.
-tests/         Mirrors arena/ (tests/engine, tests/sim, tests/viz, tests/rsi, tests/evolution).
+tests/         Mirrors arena/ (tests/engine, tests/sim, tests/viz, tests/rsi, tests/evolution);
+               tests/test_docs.py keeps the README diagram in sync.
 docs/          Screenshots.
 ```
 
