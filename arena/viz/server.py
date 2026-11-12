@@ -19,7 +19,8 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
-from arena.agents import DEFAULT_POLICY, POLICIES, make_policy
+from arena.agents import DEFAULT_POLICY, LINEUPS, POLICIES, make_policy
+from arena.agents.registry import expand_policies, snake_labels
 from arena.engine import Event, GameConfig, GameState, new_game, rank, step
 from arena.sim.match import Match
 from arena.sim.replay import build_replay, check_schema, load_replay
@@ -28,6 +29,7 @@ MAX_SESSIONS = 16
 FRAME_BUFFER = 20_000
 MAX_FRAMES_PER_REQUEST = 5_000
 VIEWER_DEFAULTS = GameConfig(width=20, height=20, score_target=10)
+VIEWER_POLICY = "personalities"
 STATIC_TYPES = {".html": "text/html", ".js": "text/javascript", ".css": "text/css"}
 
 
@@ -128,11 +130,24 @@ class Session:
             "seed": self.seed,
             "config": self.config.to_dict(),
             "snakes": [
-                {"id": sid, "policy": name}
-                for sid, name in zip(self.config.snake_ids, self.policies, strict=True)
+                {"id": sid, "policy": name, "label": label, "color": color}
+                for sid, name, (label, color) in zip(
+                    self.config.snake_ids,
+                    self.policies,
+                    snake_labels(list(self.config.snake_ids), self.policies),
+                    strict=True,
+                )
             ],
+            "lineup": self.lineup(),
             "replay_ticks": len(self.replay_actions) if self.mode == "replay" else None,
         }
+
+    def lineup(self) -> str | None:
+        """The policy spec that recreates these seats, if there is one."""
+        for name in LINEUPS:
+            if expand_policies(name, self.config.num_snakes) == self.policies:
+                return name
+        return self.policies[0] if len(set(self.policies)) == 1 else None
 
     def summary(self) -> dict[str, Any]:
         return {
@@ -179,7 +194,7 @@ class App:
             "defaults": self.defaults.to_dict(),
             "seed": self.seed,
             "policy": self.policy,
-            "policies": sorted(POLICIES),
+            "policies": [*LINEUPS, *sorted(POLICIES)],
             "startup_replay": self.startup_replay is not None,
         }
 
@@ -191,13 +206,10 @@ class App:
         if body.get("mode") == "replay":
             return self.add(replay_session(body["replay"]))
         config = GameConfig.from_dict({**self.defaults.to_dict(), **body.get("config", {})})
-        names = body.get("policies") or [body.get("policy", self.policy)]
-        if len(names) == 1:
-            names = names * config.num_snakes
-        if len(names) != config.num_snakes:
-            raise ValueError(f"need 1 or {config.num_snakes} policies")
-        for name in names:
-            make_policy(name)
+        spec = body.get("policies") or body.get("policy", self.policy)
+        if isinstance(spec, list):
+            spec = ",".join(str(n) for n in spec)
+        names = expand_policies(str(spec), config.num_snakes)
         return self.add(Session(config, int(body.get("seed", self.seed)), policies=names))
 
 
@@ -304,7 +316,7 @@ def make_server(
     port: int = 8000,
     config: GameConfig = VIEWER_DEFAULTS,
     seed: int = 42,
-    policy: str = DEFAULT_POLICY,
+    policy: str = VIEWER_POLICY,
     replay_path: str | None = None,
 ) -> ThreadingHTTPServer:
     replay = load_replay(replay_path) if replay_path else None

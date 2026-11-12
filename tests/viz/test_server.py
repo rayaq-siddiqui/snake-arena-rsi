@@ -15,7 +15,7 @@ from arena.viz.server import make_server
 
 @pytest.fixture
 def base_url() -> Iterator[str]:
-    server = make_server(port=0)
+    server = make_server(port=0, policy="random_safe")
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     yield f"http://127.0.0.1:{server.server_address[1]}"
@@ -61,7 +61,22 @@ def test_index_and_static_files_are_served(base_url: str) -> None:
 def test_info_has_viewer_defaults(base_url: str) -> None:
     info = get(base_url + "/api/info")
     assert info["defaults"]["score_target"] == 10
-    assert "random_safe" in info["policies"]
+    assert "random_safe" in info["policies"] and "personalities" in info["policies"]
+
+
+def test_personality_seats_carry_names_and_colours(base_url: str) -> None:
+    meta = post(base_url + "/api/match", {"seed": 3, "config": SMALL, "policy": "personalities"})
+    assert meta["lineup"] == "personalities"
+    assert [s["label"] for s in meta["snakes"]] == [
+        "Hunter",
+        "Survivor",
+        "Trapper",
+        "Predictor",
+        "Opportunist",
+    ]
+    assert len({s["color"] for s in meta["snakes"]}) == 5
+    meta = post(base_url + "/api/match", {"seed": 3, "config": SMALL, "policy": "random_safe"})
+    assert meta["lineup"] == "random_safe"
 
 
 def test_live_match_matches_headless_simulation(base_url: str) -> None:

@@ -17,6 +17,8 @@ const fail = async (msg) => { console.error("FAIL:", msg, errors); await browser
 await page.goto(url);
 await page.waitForFunction(() => /tick \d/.test(document.querySelector("#status").textContent));
 if ((await page.locator("#leaderboard tbody tr").count()) !== 5) await fail("expected 5 leaderboard rows");
+if (!/Hunter/.test(await page.textContent("#leaderboard"))) await fail("leaderboard lacks personality names");
+if ((await page.inputValue("select[name=policy]")) !== "personalities") await fail("policy select not on the lineup");
 await page.waitForTimeout(1500);
 const t1 = await tickOf();
 if (t1 < 5) await fail(`ticks did not advance (${t1})`);
@@ -39,6 +41,7 @@ await page.fill("input[name=seed]", "7");
 await page.fill("input[name=width]", "16");
 await page.fill("input[name=height]", "16");
 await page.fill("input[name=score_target]", "3");
+await page.selectOption("select[name=policy]", "random_safe");
 await page.click("button[type=submit]");
 await page.waitForFunction(() => /seed 7/.test(document.querySelector("#status").textContent));
 await page.click("#finish");

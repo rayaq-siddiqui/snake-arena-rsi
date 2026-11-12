@@ -31,7 +31,9 @@ const view = {
 };
 
 const fmt = (n) => n.toLocaleString("en-US");
-const colorOf = (id) => COLORS[Number(id.slice(1)) % COLORS.length];
+const seatColor = (id) => COLORS[Number(id.slice(1)) % COLORS.length];
+const snakeMeta = (id) => (view.meta && view.meta.snakes.find((s) => s.id === id)) || null;
+const colorOf = (id) => (snakeMeta(id) && snakeMeta(id).color) || seatColor(id);
 
 async function api(path, body) {
   const options = body === undefined ? {} : {
@@ -92,7 +94,7 @@ async function start(body) {
     summary: null,
     lastTickAt: performance.now(),
   });
-  fillForm(meta.seed, meta.config, meta.snakes[0] && meta.snakes[0].policy);
+  fillForm(meta.seed, meta.config, meta.lineup);
   $("#feed").innerHTML = "";
   $("#banner").classList.add("hidden");
   $("#download").disabled = meta.mode !== "live";
@@ -237,7 +239,8 @@ function isSwapPartner(o, d, frame) {
 }
 
 function label(id) {
-  return id;
+  const m = snakeMeta(id);
+  return (m && m.label) || id;
 }
 
 function showEnd() {
@@ -373,7 +376,7 @@ function updateBoard(force) {
     const kd = s.d ? (s.k / s.d).toFixed(2) : s.k.toFixed(2);
     const life = alive ? `${fmt(s.lt)} t` : s.r > 0 ? `respawn ${s.r}` : "waiting";
     return `<tr class="${alive ? "" : "dead"}"><td><span class="swatch" style="background:${colorOf(s.id)}"></span></td>`
-      + `<td>${s.id}<span class="policy">${policies[s.id] || ""}</span></td>`
+      + `<td>${label(s.id)}<span class="policy">${label(s.id) === s.id ? policies[s.id] || "" : s.id}</span></td>`
       + `<td>${s.k}</td><td>${s.d}</td><td>${kd}</td><td>${life}</td></tr>`;
   }).join("");
   const c = view.meta.config;
