@@ -18,6 +18,7 @@ DEFAULT_SPACE_CAP = 60
 DEFAULT_SEARCH_RADIUS = 12
 DEFAULT_TRAP_MARGIN = 2.0
 DEFAULT_CUT_OFF_LENGTH = 5
+DEFAULT_KEEP_DISTANCE = 0
 
 
 @dataclass(frozen=True)
@@ -156,6 +157,50 @@ def space(board: Board, me: SnakeId, move: Direction, p: Params) -> float:
     return flood_fill(board, [_target(board, me, move)], cap, _radius(p)) / cap
 
 
+def territory(board: Board, me: SnakeId, move: Direction, p: Params) -> float:
+    """Cells my new head reaches strictly before every enemy head (capped), over the cap.
+
+    A breadth-first race: enemies start from their heads now, I start from the new head one
+    tick later, and a cell belongs to whoever arrives first; ties belong to nobody. Unlike
+    ``space`` this sees a corridor an enemy will close before I get through it.
+    """
+    cap, radius = _cap(p), _radius(p)
+    target = _target(board, me, move)
+    if not board.free(target):
+        return 0.0
+    w, h = board.width, board.height
+    blocked = board.blocked
+    ox, oy = target
+
+    def grow(frontier: Iterable[Cell], taken: set[Cell], limit: int) -> set[Cell]:
+        out = set()
+        for x, y in frontier:
+            for dx, dy in ((0, -1), (1, 0), (0, 1), (-1, 0)):
+                c = (x + dx, y + dy)
+                if c in taken or c in blocked or not (0 <= c[0] < w and 0 <= c[1] < h):
+                    continue
+                if abs(c[0] - ox) + abs(c[1] - oy) > limit:
+                    continue
+                out.add(c)
+        return out
+
+    far = 2 * radius
+    taken: set[Cell] = {target}
+    enemy: set[Cell] = {e.body[0] for e in board.enemies(me) if manhattan(e.body[0], target) <= far}
+    taken |= enemy
+    enemy = grow(enemy, taken, far)
+    taken |= enemy
+    mine: set[Cell] = {target}
+    count = 1
+    while mine and count < cap:
+        mine_next = grow(mine, taken, radius)
+        enemy = grow(enemy, taken, far)
+        mine = mine_next - enemy
+        taken |= mine_next | enemy
+        count += len(mine)
+    return min(count, cap) / cap
+
+
 def space_vs_length(board: Board, me: SnakeId, move: Direction, p: Params) -> float:
     """1 if reachable space is at least ``trap_margin`` times my length."""
     need = len(board.snakes[me].body) * p.get("trap_margin", DEFAULT_TRAP_MARGIN)
@@ -173,12 +218,18 @@ def wall_distance(board: Board, me: SnakeId, move: Direction, p: Params) -> floa
 
 
 def nearest_enemy_head(board: Board, me: SnakeId, move: Direction, p: Params) -> float:
-    """Distance from the new head to the nearest enemy head over (width + height); 1 if none."""
+    """Distance from the new head to the nearest enemy head over (width + height); 1 if none.
+
+    Distances below ``keep_distance`` count as ``keep_distance``, so a snake pulled toward
+    heads stops pressing in where every move would risk a head-on crash.
+    """
     target = _target(board, me, move)
     heads = [e.body[0] for e in board.enemies(me)]
     if not heads:
         return 1.0
-    return min(manhattan(target, h) for h in heads) / (board.width + board.height)
+    keep = int(p.get("keep_distance", DEFAULT_KEEP_DISTANCE))
+    d = max(keep, min(manhattan(target, h) for h in heads))
+    return d / (board.width + board.height)
 
 
 def enemy_space_after(board: Board, me: SnakeId, move: Direction, p: Params) -> float:
@@ -244,6 +295,7 @@ FEATURES: dict[str, Feature] = {
         immediate_death,
         head_on_risk,
         space,
+        territory,
         space_vs_length,
         wall_distance,
         nearest_enemy_head,

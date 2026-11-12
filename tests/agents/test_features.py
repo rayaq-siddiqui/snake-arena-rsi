@@ -14,6 +14,7 @@ from arena.agents.features import (
     space,
     space_vs_length,
     straightness,
+    territory,
     wall_distance,
 )
 
@@ -121,3 +122,30 @@ def test_centre_distance_and_straightness() -> None:
 def test_board_is_shared_within_a_tick() -> None:
     obs = observe({"s0": line((10, 10), "DOWN")})
     assert board_of(obs) is board_of(obs)
+
+
+def test_territory_counts_only_cells_i_reach_first() -> None:
+    p = {"space_cap": 400, "search_radius": 12}
+    duel = board_of(observe({"s0": line((10, 10), "DOWN"), "s1": line((10, 5), "UP")}))
+    assert territory(duel, "s0", "UP", p) < space(duel, "s0", "UP", p)
+    alone = board_of(observe({"s0": line((10, 10), "DOWN")}))
+    assert territory(alone, "s0", "UP", p) == space(alone, "s0", "UP", p)
+    assert territory(alone, "s0", "LEFT", p) > 0
+
+
+def test_territory_sees_a_corridor_an_enemy_closes_first() -> None:
+    # s0 runs down the right wall beside s1's body; s1's head is level with the corridor's
+    # exit at the bottom, so it claims the exit cells before s0 gets there.
+    bodies = {"s0": line((19, 14), "UP"), "s1": line((18, 18), "UP", 5)}
+    board = board_of(observe(bodies))
+    p = {"space_cap": 60, "search_radius": 12}
+    assert space(board, "s0", "DOWN", p) == 1.0
+    assert territory(board, "s0", "DOWN", p) < 0.2
+
+
+def test_keep_distance_flattens_the_pull_near_enemies() -> None:
+    board = board_of(observe({"s0": line((5, 5), "DOWN"), "s1": line((5, 2), "UP")}))
+    assert nearest_enemy_head(board, "s0", "UP", P) == pytest.approx(2 / 40)
+    flat = {"keep_distance": 3}
+    assert nearest_enemy_head(board, "s0", "UP", flat) == pytest.approx(3 / 40)
+    assert nearest_enemy_head(board, "s0", "LEFT", flat) == pytest.approx(4 / 40)
