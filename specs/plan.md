@@ -1,0 +1,267 @@
+# Build Plan
+
+The ordered build queue for Snake Arena RSI. Work top to bottom. Each step is sized to
+land as **one to three small commits**, has concrete **targets**, and ends with a
+**Done when** check that must pass before the next step starts.
+
+- Specs are the contract: [phase 1](phase-1-arena.md), [phase 2](phase-2-personalities.md),
+  [phase 3](phase-3-rsi-framework.md), [phase 4](phase-4-snake-rsi.md).
+- Background: [RSI course](rsi/README.md).
+- Tick the box and add the commit hash when a step lands. If a target proves wrong,
+  change it here **and** in the spec in the same commit, and say why.
+- Never claim a number you didn't measure. Record measured numbers in the
+  **Measurements** table at the bottom.
+
+**Legend:** `[ ]` todo · `[~]` in progress · `[x]` done
+
+---
+
+## Step 0 — Scaffold
+
+### 0.1 Python project `[ ]`
+- `pyproject.toml` (Python ≥ 3.12, managed with `uv`), package `arena/` with empty
+  subpackages `engine`, `agents`, `sim`, `rsi`, `evolution`, `viz`.
+- Dev tools: `pytest`, `hypothesis`, `ruff` (lint + format), `mypy --strict` on `arena/`.
+- Runtime deps: `numpy` only (plus `matplotlib` for reports in step 4.4).
+- **Targets:** `uv sync && uv run pytest` passes on a clean clone (one smoke test);
+  `uv run ruff check . && uv run ruff format --check . && uv run mypy arena` are clean.
+- **Done when:** the commands above pass and are documented in `AGENTS.md`.
+
+### 0.2 CLI skeleton `[ ]`
+- `arena/cli.py` with `argparse` subcommands that exist but print "not implemented":
+  `run-match`, `run-tournament`, `watch`, `bench`, `rsi-demo`, `evolve`, `report`.
+- **Targets:** `python -m arena.cli --help` lists all subcommands.
+
+### 0.3 CI `[ ]`
+- `.github/workflows/ci.yml`: on push to `main`, run ruff, mypy and pytest on Python 3.12
+  and 3.13.
+- **Done when:** the first push shows a green run.
+
+---
+
+## Step 1 — The arena (phase 1)
+
+### 1.1 Core types `[ ]`
+- `arena/engine/types.py`: `Cell`, `Direction`, `SnakeId`, `GameConfig`, `SnakeState`,
+  `GameState`, all events (`Death`, `Kill`, `Spawn`, `ActionFallback`, `MatchEnd`),
+  `SnakeView`, `Observation`. Frozen dataclasses; tuples not lists.
+- `GameConfig` validates ranges (length 3–10, board ≥ 10 × 10, five snakes).
+- **Targets:** every type round-trips through `to_dict`/`from_dict` (tested).
+
+### 1.2 Seeded RNG `[ ]`
+- `arena/engine/rng.py`: a small explicit RNG state (PCG64 via NumPy `bit_generator.state`
+  or a hand-rolled xorshift) stored inside `GameState`; helper to derive child seeds from
+  `(match_seed, purpose, snake_id)`.
+- **Targets:** same seed ⇒ same sequence; different purposes ⇒ independent streams;
+  state is JSON-serialisable.
+
+### 1.3 Movement and collisions `[ ]`
+- `arena/engine/step.py`: `step(state, actions) -> (state, events)` implementing phase 1
+  §2 exactly: reversal handling, tail removal snapshot, wall / self / body / head-on /
+  head-swap, simultaneous kill credit, multi-victim credit, commit.
+- **Targets:** one golden test per bullet in phase 1 §11 "Wall" through "Tail race" —
+  each a hand-drawn small board (e.g. 8 × 8) with expected events.
+- **Done when:** all golden tests pass, and a test proves results don't depend on the
+  order snakes are listed in.
+
+### 1.4 Spawning and respawn `[ ]`
+- `arena/engine/spawn.py`: seeded attempts (100) + deterministic row-major fallback,
+  clearance rules, new `life_id`s, 10-tick respawn counter, retry when full.
+- **Targets:** golden tests for respawn timing, score persistence, no-room retry on a
+  crowded tiny board; property test: no spawn ever overlaps a living snake.
+
+### 1.5 Match end and ranking `[ ]`
+- Win at `score_target`, end at `max_ticks`, ranking by kills → deaths → alive ticks →
+  shared rank.
+- **Targets:** tests for single winner, simultaneous crossers, tick-cap end, full ties.
+
+### 1.6 Invariant fuzzing `[ ]`
+- `tests/engine/test_invariants.py` with `hypothesis` + a `RandomUniform` driver:
+  shape invariant, one-cell moves, no reversals, scores == count of `Kill` events.
+- **Targets:** 200 seeds × 2,000 ticks run in < 60 s in CI.
+- **Done when:** M1 of the vision is satisfied: golden tests + invariants pass.
+
+### 1.7 Policies and the match runner `[ ]`
+- `arena/agents/base.py` (`Policy` protocol, per-policy seeded RNG),
+  `arena/agents/random_policies.py` (`RandomUniform`, `RandomSafe`).
+- `arena/sim/match.py`: `simulate_match(policies, seed, config, record=False) ->
+  MatchResult`; builds observations, applies a per-move time budget (fallback +
+  `ActionFallback` event on error/timeout), optional replay recording.
+- **Targets:** determinism test (same seed twice ⇒ identical events);
+  a policy that raises gets the fallback and the match continues.
+
+### 1.8 Replays `[ ]`
+- `arena/sim/replay.py`: write/read the phase 1 §8 schema; `resimulate(replay)`
+  reproduces events from stored actions with no policies.
+- **Targets:** round-trip test on 20 seeds; schema version checked on load.
+
+### 1.9 Headless CLIs `[ ]`
+- `run-match` (prints standings table, optional `--replay`), `run-tournament` (process
+  pool, JSONL per match, summary CSV, 5 × 5 kill matrix).
+- **Targets:** `run-tournament --matches 100` with `RandomSafe` gives byte-identical
+  summaries with `--workers 1` and `--workers 4`.
+
+### 1.10 Benchmark `[ ]`
+- `bench` subcommand: ticks/second for the engine alone and with policies; kills per
+  1,000 ticks for `RandomSafe` on 100 × 100.
+- **Targets:** ≥ 20,000 engine ticks/s single process (phase 1 §10). If missed, profile,
+  fix the top hotspot once, and record the real number either way.
+
+### 1.11 Visualization `[ ]`
+- `arena/viz/server.py` (stdlib `http.server` + SSE) and `arena/viz/static/index.html`
+  (Canvas + vanilla JS): board, five colours, head markers, interpolation, leaderboard,
+  kill feed, play/pause/step/speed/restart/new seed; replay mode loads a JSON file.
+- **Targets:** `watch --seed 42` shows a live match; a Playwright smoke test loads the
+  page, sees five snakes, presses pause and checks the tick counter stops; a test checks
+  the viewer's final standings equal `run-match --seed 42` for a short match.
+- **Done when:** phase 1 acceptance (§11) passes in full; README updated with the real
+  commands, the benchmark number and a screenshot.
+
+---
+
+## Step 2 — Personalities (phase 2)
+
+### 2.1 Feature library `[ ]`
+- `arena/agents/features.py`: every feature in phase 2 §1, each a pure function with its
+  own unit tests on hand-built boards; flood fill bounded by `space_cap` and radius.
+- **Targets:** each feature < 0.3 ms median on a 100 × 100 board.
+
+### 2.2 Param spaces and scorer `[ ]`
+- `arena/agents/params.py` (`ParamSpace`, JSON load/save with bounds checks) and
+  `arena/agents/scorer.py` (weighted-sum move choice, fixed tie-break order).
+- `arena/agents/params/<name>.json` for all five, version 1.
+- **Targets:** out-of-bounds or unknown params are rejected with a clear error.
+
+### 2.3 Hunter, Survivor, Trapper `[ ]`
+- One module each; default weights hand-set.
+- **Targets:** each beats `RandomSafe` on kills/1,000 ticks in a 30-match smoke
+  tournament (full check in 2.6).
+
+### 2.4 Predictor `[ ]`
+- Opponent next-head probability map, `lookahead` (default 2) expected-value scoring.
+- **Targets:** p99 decision time ≤ 20 ms on 100 × 100.
+
+### 2.5 Opportunist `[ ]`
+- Cruise / attack weight sets switched by `attack_threshold`.
+- **Targets:** unit test showing the switch flips when an enemy is boxed in.
+
+### 2.6 Personality tournament and metrics `[ ]`
+- Tournament runner reports behaviour metrics (phase 2 §3); viewer shows names/colours.
+- **Targets:** all phase 2 §5 acceptance criteria, measured on 100 matches; behaviour
+  table recorded under Measurements.
+- **Density check:** record mean ticks to first-to-100 with all five personalities. If
+  > 50,000, record it and add an explicitly labelled `experiment` board config (e.g.
+  50 × 50) for phase 4 runs. Defaults stay unchanged.
+- **Done when:** phase 2 acceptance passes.
+
+---
+
+## Step 3 — Generic RSI framework (phase 3)
+
+### 3.1 Types and storage `[ ]`
+- `arena/rsi/types.py` (`ParamSpec`, `Candidate`, `PairedResult`, `Decision`,
+  `History`, `Budget`), `arena/rsi/store.py` (run directory layout, atomic writes,
+  `generations.jsonl`, immutable archive).
+- **Targets:** an import-graph test proves `arena.rsi` imports nothing from
+  `arena.engine`, `arena.agents`, `arena.sim`.
+
+### 3.2 Seed pools `[ ]`
+- `arena/rsi/seeds.py`: dev / holdout / final pools from a run seed, per-generation dev
+  slices, holdout rotation.
+- **Targets:** pools are disjoint (tested); same run seed ⇒ same pools.
+
+### 3.3 Acceptance rule `[ ]`
+- `arena/rsi/accept.py`: `PairedBootstrapRule` with dev screen, min relative gain,
+  seeded bootstrap CI, guard metrics, one optional extension, rationale text.
+- **Targets:** unit tests on fixed arrays (accept, reject on CI, reject on gain, reject on
+  guard, reject on failures, extension path).
+
+### 3.4 Proposers `[ ]`
+- `arena/rsi/proposers.py`: `RandomRestart`, `GaussianHillClimb` (1/5th rule),
+  `CoordinateSearch`, `CrossEntropy`, `ArchiveCrossover`; normalised/log space mapping.
+- **Targets:** every proposal is within bounds (property test); proposer state
+  round-trips through the checkpoint.
+
+### 3.5 The loop, budgets and resume `[ ]`
+- `arena/rsi/loop.py`: phase 3 §3 loop, budgets, patience, STOP file, checkpoint/resume.
+- **Targets:** kill-and-resume test equals an uninterrupted run; same config ⇒ identical
+  `generations.jsonl`.
+
+### 3.6 Toy problems and demo `[ ]`
+- `arena/rsi/toys.py`: noisy quadratic, pure noise, crashing evaluator; spy evaluator
+  asserting the proposer never sees holdout data; `rsi-demo` CLI.
+- **Targets (phase 3 §11):** quadratic within 10% in ≤ 60 generations on ≥ 9/10 seeds and
+  beats `RandomRestart`; pure-noise false-accept rate ≤ 5% over 200 generations; crashing
+  candidates never accepted.
+- **Done when:** phase 3 acceptance passes.
+
+---
+
+## Step 4 — Snakes that improve themselves (phase 4)
+
+### 4.1 Snake evaluator `[ ]`
+- `arena/evolution/evaluator.py`: fixed-length episodes, paired candidate/champion games
+  with identical spawns and opponents, opponent-mixture sampling, seat rotation, guard
+  metrics, process pool.
+- **Targets:** a candidate identical to the champion yields all-zero paired differences
+  (proves pairing is exact); results identical across worker counts.
+
+### 4.2 Lineages and generations `[ ]`
+- `arena/evolution/lineage.py` and `arena/evolution/run.py`: five lineages, frozen
+  champions per generation, fixed order, joint commit, per-lineage patience; `evolve` CLI
+  with default and `--quick` profiles.
+- **Targets:** `evolve --generations 3 --quick` finishes in < 10 minutes on a laptop and
+  in CI; run touches nothing outside `runs/<id>/` (tested by hashing the repo before and
+  after).
+
+### 4.3 Safety tests `[ ]`
+- Out-of-bounds params, a policy patched to raise, and a proposer that tries to read
+  holdout seeds — none can produce a promotion.
+- **Targets:** all three tests pass.
+
+### 4.4 Reports `[ ]`
+- `arena/evolution/report.py` + `report` CLI: progress chart with bands, fixed-vs-evolved
+  table, all-champions cycle check, 5 × 5 matrix, decision log, behaviour drift.
+- **Targets:** report numbers are recomputed from stored records in a test and match.
+
+### 4.5 Watch evolved snakes `[ ]`
+- `watch --run ... --generation N` and `--vs-generation 0`; leaderboard shows versions.
+- **Targets:** any archived champion loads and plays after later generations exist.
+
+### 4.6 The real experiment `[ ]`
+- Run `evolve --generations 10` with the default profile (or the labelled experiment
+  board from 2.6), generate the report, commit `experiments/<date>-baseline/report.md`
+  and charts.
+- **Targets:** the report states for each lineage whether it improved on final seeds vs
+  generation 0, with intervals. Honest "no improvement" is a valid outcome.
+- **Done when:** phase 4 acceptance passes and the README links the report.
+
+---
+
+## Step 5 — Stretch (only after step 4)
+
+- `[ ]` 5.1 Meta-run: use the RSI framework to tune `GaussianHillClimb`'s own settings
+  (initial σ, growth/shrink factors) on the toy suite — improving the improver, measured.
+- `[ ]` 5.2 MAP-Elites over the behaviour grid (aggression × caution).
+- `[ ]` 5.3 PBT-style parallel candidates per lineage.
+- `[ ]` 5.4 Exploiter snakes trained to beat current champions (AlphaStar-style league).
+- `[ ]` 5.5 Optional `LLMProposer` (numbers-only, bounded, budgeted, audit-logged, never
+  sees holdout/final seeds); compare against `GaussianHillClimb` under equal episode
+  budgets.
+- `[ ]` 5.6 Code-level proposer, review-only, until a real sandbox exists (vision §5).
+- `[ ]` 5.7 Full React dashboard and SQLite storage from the vision.
+
+---
+
+## Measurements
+
+Fill in as steps land. Never estimate here.
+
+| What | Value | Machine | Commit | Step |
+|---|---|---|---|---|
+| Engine ticks/s (5 × RandomSafe, 100 × 100) | — | — | — | 1.10 |
+| RandomSafe kills / 1,000 ticks (100 × 100) | — | — | — | 1.10 |
+| Personality decision time p50 / p99 | — | — | — | 2.6 |
+| Mean ticks to first-to-100 (personalities) | — | — | — | 2.6 |
+| Wall time per generation (default profile) | — | — | — | 4.6 |
+| Lineages improved vs gen 0 (final seeds) | — | — | — | 4.6 |
