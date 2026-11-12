@@ -2,7 +2,9 @@
 
 ```
 runs/<id>/
-  evolution.json                 profile, run seed, lineage order, code hash
+  evolution.json                 profile, run seed, lineage order, and provenance: hashes
+                                 of the framework and of the whole arena package (engine,
+                                 policies, hand-set params, evaluator), Python and NumPy
   lineages/<name>/               one phase 3 run directory per personality
   params/<name>/v<k>.json        every champion as a version-stamped params file
   params/<name>.json             the latest champion
@@ -20,11 +22,14 @@ champion keeps playing as an opponent.
 from __future__ import annotations
 
 import json
+import platform
 import time
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
+
+import numpy
 
 from arena.agents.params import ParamSet, save_params
 from arena.agents.registry import PERSONALITIES
@@ -103,6 +108,17 @@ that fits a single machine and puts snakes close enough to meet: on 40 x 40 boar
 1,000-tick episodes only 0-5 of 40 paired seeds scored any kill, and the default profile
 costs hours per generation here (specs/plan.md, Measurements). ``quick`` is a fast
 end-to-end check whose results are never reported as the experiment."""
+
+
+def provenance() -> dict[str, str]:
+    """What a run's numbers depend on besides its identity (vision section 8)."""
+    package = Path(__file__).resolve().parent.parent
+    return {
+        "code_hash": code_hash(),
+        "arena_hash": code_hash(package, ("*.py", "*.json")),
+        "python": platform.python_version(),
+        "numpy": numpy.__version__,
+    }
 
 
 def lineage_seed(run_seed: int, name: str) -> int:
@@ -199,7 +215,7 @@ class Evolution:
                 )
         else:
             self.dir.mkdir(parents=True, exist_ok=True)
-            write_json(meta, {"identity": self.identity(), "code_hash": code_hash()})
+            write_json(meta, {"identity": self.identity(), **provenance()})
         p = self.profile
         rule = self.rule
         for name in self.names:

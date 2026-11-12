@@ -1,5 +1,6 @@
 import hashlib
 import json
+import shutil
 import subprocess
 from collections.abc import Mapping, Sequence
 from pathlib import Path
@@ -10,9 +11,10 @@ import pytest
 from evo_helpers import TINY, AlwaysAccept, lineage_files, tiny_evolution
 
 from arena.agents.scorer import ScoringPolicy
-from arena.evolution.run import Evolution, load_champion
+from arena.evolution.run import Evolution, load_champion, provenance
 from arena.rsi.loop import Run
 from arena.rsi.proposers import GaussianHillClimb
+from arena.rsi.store import code_hash
 from arena.rsi.types import Candidate, Feedback, History, ParamSpec
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -32,6 +34,23 @@ def test_a_run_writes_lineages_and_versioned_params(tmp_path: Path) -> None:
         assert champion.build().choose_action is not None
     timing = (tmp_path / "timing.jsonl").read_text().splitlines()
     assert [json.loads(t)["generation"] for t in timing] == [1, 2]
+
+
+def test_a_run_records_what_its_numbers_depend_on(tmp_path: Path) -> None:
+    tiny_evolution(tmp_path, generations=1).run()
+    meta = json.loads((tmp_path / "evolution.json").read_text())
+    assert {"code_hash", "arena_hash", "python", "numpy"} <= meta.keys()
+    assert meta["arena_hash"] != meta["code_hash"]
+
+
+def test_the_arena_hash_covers_policies_and_their_params(tmp_path: Path) -> None:
+    copy = tmp_path / "arena"
+    shutil.copytree(ROOT / "arena", copy, ignore=shutil.ignore_patterns("__pycache__"))
+    before = code_hash(copy, ("*.py", "*.json"))
+    assert before == provenance()["arena_hash"]
+    params = copy / "agents" / "params" / "hunter.json"
+    params.write_text(params.read_text() + " ")
+    assert code_hash(copy, ("*.py", "*.json")) != before
 
 
 def test_context_freezes_champions_from_the_previous_generation(tmp_path: Path) -> None:

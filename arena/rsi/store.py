@@ -50,12 +50,14 @@ def read_json(path: Path) -> Any:
     return json.loads(path.read_text())
 
 
-def code_hash() -> str:
-    """Hash of the framework's own source, recorded with every run."""
-    root = Path(__file__).parent
+def code_hash(root: Path | None = None, patterns: tuple[str, ...] = ("*.py",)) -> str:
+    """Hash of the files under ``root`` matching ``patterns`` (default: the framework's own
+    source), recorded with every run."""
+    root = root or Path(__file__).parent
     h = hashlib.sha256()
-    for f in sorted(root.glob("*.py")):
-        h.update(f.name.encode())
+    files = sorted({f for pat in patterns for f in root.rglob(pat) if "__pycache__" not in f.parts})
+    for f in files:
+        h.update(f.relative_to(root).as_posix().encode())
         h.update(f.read_bytes())
     return h.hexdigest()[:16]
 
