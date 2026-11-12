@@ -20,12 +20,16 @@ def write_report(store: RunStore, result: RunResult, space: Sequence[ParamSpec])
     config = store.config()
     ident = config["identity"]
     records = store.records()
+    rule = ident["rule"]
+    detail = (
+        f" (min gain {rule['min_rel_gain']:.0%}, {rule['resamples']:,} bootstrap resamples)"
+        if "min_rel_gain" in rule
+        else ""
+    )
     lines = [
         f"# RSI run: {ident['config']['problem']}",
         "",
-        f"- proposer: `{ident['proposer']}`; rule: `{ident['rule']['rule']}` "
-        f"(min gain {ident['rule']['min_rel_gain']:.0%}, {ident['rule']['resamples']:,} "
-        "bootstrap resamples)",
+        f"- proposer: `{ident['proposer']}`; rule: `{rule['rule']}`{detail}",
         f"- run seed {ident['config']['run_seed']}; framework v{config['framework_version']}, "
         f"code {config['code_hash']}",
         f"- generations: {result.generations}; accepted: {result.accepted}; "
