@@ -15,11 +15,11 @@ not self-modification of any underlying language model.
 
 ## Where things stand
 
-The repository is in the **specification stage**. No engine code exists yet. Read the
-specs before writing code:
+Phase 1 (the arena) is built: the engine, random policies, headless CLIs, replays and the
+browser viewer. Phases 2–4 are still specs. Read the specs before writing code:
 
 ```
-README.md                 Short project summary
+README.md                 Short project summary and how to run it
 AGENTS.md / CLAUDE.md     This guidance (CLAUDE.md only points here)
 specs/
   README.md               Index of the specs and the order to read them in
@@ -36,21 +36,23 @@ specs/
 land. If a step's target turns out wrong, update the spec and the plan in the same
 commit as the code change and say why in the commit body.
 
-## Planned architecture
+## Architecture
 
 ```
 arena/
-  engine/      Pure, deterministic game rules: state, simultaneous tick resolution,
-               collisions, kill credit, respawn, seeded RNG. No I/O, no rendering.
-  agents/      Policy interface, the random baseline, the five personalities.
-  sim/         Headless match runner, tournaments, metrics, replay files.
-  rsi/         The generic RSI framework (knows nothing about snakes).
-  evolution/   The glue that plugs snakes into the RSI framework.
-  viz/         Visualization mode (terminal and/or browser) that plays live
-               matches or saved replays from the same engine.
-  cli.py       `python -m arena.cli ...` entry points.
-tests/         Mirrors arena/ (tests/engine, tests/agents, ...).
-experiments/   Configs, seed lists, champion manifests, reports.
+  engine/      Pure, deterministic game rules (built).
+    types.py     Frozen config, state and event types; JSON round-trips.
+    rng.py       SplitMix64: the engine's only randomness is one int in GameState.
+    spawn.py     Seeded spawn attempts + deterministic fallback scan.
+    step.py      new_game(), step(state, actions), rank().
+  agents/      Policy interface (base.py), RandomSafe / RandomUniform, name registry.
+  sim/         Match runner (match.py), tournaments, replays, bench.
+  viz/         server.py (stdlib HTTP, pull-based frames) + static/ (Canvas page).
+  cli.py       `python -m arena.cli run-match | run-tournament | bench | watch`.
+  rsi/         (phase 3) The generic RSI framework; must not import engine/agents/sim.
+  evolution/   (phase 4) Plugs snakes into the RSI framework.
+tests/         Mirrors arena/ (tests/engine, tests/sim, tests/viz).
+docs/          Screenshots.
 ```
 
 ## Non-negotiable rules
@@ -74,18 +76,22 @@ experiments/   Configs, seed lists, champion manifests, reports.
 
 ## Development
 
-Python 3.12+. Until the scaffold step in `specs/plan.md` lands, there is nothing to run.
-Once it does, the intended commands are:
+Python 3.12+, managed with `uv`. The engine, simulator and viewer use only the standard
+library; dev tools are pytest, hypothesis, ruff and mypy (strict).
 
 ```bash
-uv sync
-uv run pytest
-uv run python -m arena.cli run-match --seed 42
-uv run python -m arena.cli watch --seed 42
-uv run python -m arena.cli evolve --generations 3
+uv sync                                   # install
+uv run pytest                             # all tests (~40 s; includes engine fuzzing)
+uv run ruff check . && uv run ruff format --check . && uv run mypy   # lint, format, types
+uv run python -m arena.cli run-match --seed 42                     # one headless match
+uv run python -m arena.cli run-tournament --matches 100 --workers 4 --out out/t
+uv run python -m arena.cli bench                                  # speed + kill rates
+uv run python -m arena.cli watch                                  # browser viewer
 ```
 
-Keep this section in sync with reality as the scaffold lands.
+CI (`.github/workflows/ci.yml`) runs the lint, type and test commands above. The browser
+smoke test (`tests/viz/smoke.mjs`, run by `tests/viz/test_browser.py`) needs Node with
+Playwright and skips when it isn't installed. Keep this section in sync with reality.
 
 ## Testing
 
