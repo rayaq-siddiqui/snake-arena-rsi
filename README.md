@@ -7,6 +7,9 @@ its rivals and against older versions of everyone, and keeps the change only if 
 really wins more. Repeat that loop and you have a small, watchable lab for
 **recursive self-improvement (RSI)**.
 
+Five personalities play today (Hunter, Survivor, Trapper, Predictor, Opportunist); the
+self-improvement loop is next.
+
 ![The Snake Arena viewer: five random snakes on a 20 × 20 board with the leaderboard and settings](docs/viewer.png)
 
 ## The game in one paragraph
@@ -25,9 +28,9 @@ Needs Python 3.12+ and [uv](https://docs.astral.sh/uv/). No other services or ke
 uv sync
 ```
 
-**Watch a match in the browser** (opens http://127.0.0.1:8000/). It defaults to a
-20 × 20 board and first to 10 kills; every setting can be changed in the page or with
-flags such as `--width 40 --target 25`.
+**Watch a match in the browser** (opens http://127.0.0.1:8000/). It defaults to the
+five personalities on a 20 × 20 board, first to 10 kills; every setting can be changed in
+the page or with flags such as `--width 40 --target 25 --policy random_safe`.
 
 ```bash
 uv run python -m arena.cli watch
@@ -65,11 +68,26 @@ uv run python -m arena.cli run-match --seed 7 --width 20 --height 20 --target 10
 uv run python -m arena.cli watch --replay out/m7.json
 ```
 
-**Measure speed and kill rates:**
+**Measure speed and kill rates,** or each personality's time per move:
 
 ```bash
 uv run python -m arena.cli bench
 ```
+
+```bash
+uv run python -m arena.cli bench --policies all
+```
+
+**Check the personalities** against phase 2's acceptance criteria (seven
+100-match tournaments of 5,000-tick episodes, so it takes a while). The last report is in
+[`docs/phase-2-check.md`](docs/phase-2-check.md).
+
+```bash
+uv run python -m arena.cli check-personalities --workers 4
+```
+
+`--policy` takes one policy for every snake (`random_safe`, `hunter`, …), a comma list
+per snake, or the `personalities` lineup.
 
 Run `uv run python -m arena.cli <command> --help` for every flag.
 
@@ -96,8 +114,15 @@ On this project's cloud container (Python 3.13, x86_64, single process):
 | Default 100-match tournament (100 × 100, cap 100,000) | all 100 hit the cap; ~1 kill per snake per match; 10M ticks in 148 s on 4 workers |
 | Median ticks to 10 kills, `RandomSafe`, 20 × 20 (8 seeds) | ~14,700 |
 
+| Personality time per move, 100 × 100 (median / p99) | 0.44–0.81 ms / 0.94–1.95 ms |
+| Each personality vs 4 × `RandomSafe`: kills per 1,000 ticks (100 matches) | Hunter 1.66, Predictor 1.73, Trapper 0.76, Survivor 0.24, Opportunist 0.15; `RandomSafe` ≤ 0.015 |
+| Deaths per 1,000 alive ticks, all five personalities together | 0–0.034, vs 0.192 for `RandomSafe` |
+
 Random snakes almost never kill on the full board, so default matches end at the tick
-cap. That's expected for phase 1 and is the baseline phase 2's personalities must beat.
+cap. The personalities kill random snakes far more often, but against each other they are
+careful enough that in 4 all-five matches on 100 × 100, all 4 reached the 100,000-tick
+cap with 1 kill between them. `arena/sim/boards.py` adds a labelled 50 × 50
+`experiment` board for phase 4.
 
 ## Architecture
 
@@ -123,7 +148,7 @@ The viewer and the CLI use the same engine, so a seed plays out identically in b
 
 1. **Arena** ✅ — a correct, deterministic engine with a fast headless simulation mode and
    a visualization mode. The snakes move randomly (safely).
-2. **Personalities** — each snake gets its own objective: Hunter, Survivor, Trapper,
+2. **Personalities** ✅ — each snake gets its own objective: Hunter, Survivor, Trapper,
    Predictor, Opportunist.
 3. **RSI framework** — a generic propose → test → keep-or-reject loop that knows nothing
    about snakes, with honest statistics, held-out tests, and a hall of fame.
@@ -140,7 +165,7 @@ The viewer and the CLI use the same engine, so a seed plays out identically in b
 
 ## Limitations
 
-- Phase 1 only: snakes are random; no personalities or self-improvement yet.
+- No self-improvement yet: personality weights are hand-set (phases 3–4 tune them).
 - The viewer is a local development tool (no auth); it binds to 127.0.0.1 by default.
 - The opt-in per-move time budget uses wall-clock time, so it's off by default to keep
   headless runs deterministic.

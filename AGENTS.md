@@ -15,8 +15,9 @@ not self-modification of any underlying language model.
 
 ## Where things stand
 
-Phase 1 (the arena) is built: the engine, random policies, headless CLIs, replays and the
-browser viewer. Phases 2–4 are still specs. Read the specs before writing code:
+Phases 1 and 2 are built: the engine, random policies, headless CLIs, replays, the browser
+viewer, and the five parameterized personalities with their acceptance check. Phases 3–4
+are still specs. Read the specs before writing code:
 
 ```
 README.md                 Short project summary and how to run it
@@ -46,7 +47,11 @@ arena/
     spawn.py     Seeded spawn attempts + deterministic fallback scan.
     step.py      new_game(), step(state, actions), rank().
   agents/      Policy interface (base.py), RandomSafe / RandomUniform, name registry.
-  sim/         Match runner (match.py), tournaments, replays, bench.
+    features.py  Shared move features over a per-tick Board.
+    params.py    Bounded ParamSpace + params/<name>.json (what phase 4 may change).
+    scorer.py    Weighted-sum ScoringPolicy; hunter/survivor/trapper/predictor/opportunist.py.
+  sim/         Match runner (match.py), tournaments, replays, bench, behaviour metrics,
+               personality_check.py (phase 2 acceptance), boards.py (named configs).
   viz/         server.py (stdlib HTTP, pull-based frames) + static/ (Canvas page).
   cli.py       `python -m arena.cli run-match | run-tournament | bench | watch`.
   rsi/         (phase 3) The generic RSI framework; must not import engine/agents/sim.
@@ -81,11 +86,13 @@ library; dev tools are pytest, hypothesis, ruff and mypy (strict).
 
 ```bash
 uv sync                                   # install
-uv run pytest                             # all tests (~55 s; includes engine fuzzing)
+uv run pytest                             # all tests (~85 s; includes engine fuzzing)
 uv run ruff check . && uv run ruff format --check . && uv run mypy   # lint, format, types
 uv run python -m arena.cli run-match --seed 42                     # one headless match
 uv run python -m arena.cli run-tournament --matches 100 --workers 4 --out out/t
 uv run python -m arena.cli bench                                  # speed + kill rates
+uv run python -m arena.cli bench --policies all                   # personality decision times
+uv run python -m arena.cli check-personalities --workers 4        # phase 2 acceptance (slow)
 uv run python -m arena.cli watch                                  # browser viewer
 ```
 

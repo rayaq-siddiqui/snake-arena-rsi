@@ -132,31 +132,38 @@ land as **one to three small commits**, has concrete **targets**, and ends with 
 
 ## Step 2 — Personalities (phase 2)
 
-### 2.1 Feature library `[ ]`
+### 2.1 Feature library `[x]`
 - `arena/agents/features.py`: every feature in phase 2 §1, each a pure function with its
   own unit tests on hand-built boards; flood fill bounded by `space_cap` and radius.
 - **Targets:** each feature < 0.3 ms median on a 100 × 100 board.
+- *As built:* adds `territory` (a head-start race against enemy heads) and the
+  `keep_distance` / `keep_repel` / `pull_radius` shape parameters for
+  `nearest_enemy_head`; phase 2 spec §1 says why. Slowest median is `territory` at
+  0.041 ms (p99 0.15 ms); timed by a script, not a test, since tests never depend on
+  wall-clock time.
 
-### 2.2 Param spaces and scorer `[ ]`
+### 2.2 Param spaces and scorer `[x]`
 - `arena/agents/params.py` (`ParamSpace`, JSON load/save with bounds checks) and
   `arena/agents/scorer.py` (weighted-sum move choice, fixed tie-break order).
 - `arena/agents/params/<name>.json` for all five, version 1.
 - **Targets:** out-of-bounds or unknown params are rejected with a clear error.
 
-### 2.3 Hunter, Survivor, Trapper `[ ]`
+### 2.3 Hunter, Survivor, Trapper `[x]`
 - One module each; default weights hand-set.
 - **Targets:** each beats `RandomSafe` on kills/1,000 ticks in a 30-match smoke
   tournament (full check in 2.6).
+- *Status:* met; `check-personalities --matches 30` passed every phase 2 §5 check.
 
-### 2.4 Predictor `[ ]`
+### 2.4 Predictor `[x]`
 - Opponent next-head probability map, `lookahead` (default 2) expected-value scoring.
 - **Targets:** p99 decision time ≤ 20 ms on 100 × 100.
+- *Status:* met; p99 1.95 ms (`bench --policies all`).
 
-### 2.5 Opportunist `[ ]`
+### 2.5 Opportunist `[x]`
 - Cruise / attack weight sets switched by `attack_threshold`.
 - **Targets:** unit test showing the switch flips when an enemy is boxed in.
 
-### 2.6 Personality tournament and metrics `[ ]`
+### 2.6 Personality tournament and metrics `[x]`
 - Tournament runner reports behaviour metrics (phase 2 §3); viewer shows names/colours.
 - **Targets:** all phase 2 §5 acceptance criteria, measured on 100 matches; behaviour
   table recorded under Measurements.
@@ -164,6 +171,24 @@ land as **one to three small commits**, has concrete **targets**, and ends with 
   > 50,000, record it and add an explicitly labelled `experiment` board config (e.g.
   50 × 50) for phase 4 runs. Defaults stay unchanged.
 - **Done when:** phase 2 acceptance passes.
+- *As built:* `check-personalities` runs every §5 tournament and check and exits
+  non-zero on a failure; `bench --policies all` checks the decision budget. The viewer
+  opens on the `personalities` lineup with names and colours.
+- *Status:* done. The 100-match report, all checks passing, is in
+  `docs/phase-2-check.md`. Density check: first-to-100 is never reached (see
+  Measurements), so `arena/sim/boards.py` adds a labelled 50 × 50 `experiment` board;
+  phase 4 decides whether to use it.
+
+Behaviour table (100 matches, all five together, 5,000-tick episodes on 100 × 100):
+
+| personality | kills/1k alive | deaths/1k alive | enemy distance | reachable space | kills/1k vs 4 × RandomSafe (95% CI of advantage) |
+|---|---|---|---|---|---|
+| Hunter | 0.008 | 0.018 | **4.9** (lowest) | 73.3 | 1.658 (+1.53 … +1.76) |
+| Survivor | 0.000 | **0.000** (fewest) | 6.7 | **76.3** (highest) | 0.242 (+0.18 … +0.29) |
+| Trapper | 0.002 | 0.010 | 14.5 | 68.7 | 0.762 (+0.66 … +0.84) |
+| Predictor | 0.024 | 0.004 | 15.6 | 68.6 | 1.730 (+1.60 … +1.82) |
+| Opportunist | 0.000 | 0.034 | 10.5 | 68.9 | 0.150 (+0.11 … +0.18) |
+| RandomSafe ×5 (baseline) | 0.009 | 0.192 | 35.9 | 77.5 | — |
 
 ---
 
@@ -272,7 +297,7 @@ Fill in as steps land. Never estimate here.
 |---|---|---|---|---|
 | Engine ticks/s (5 × RandomSafe, 100 × 100) | ~45,000 (engine only); ~26,000–30,000 with RandomSafe policies (was ~34,700 and ~18,100 at 94e5abd) | cloud container, Python 3.13, x86_64 | a223d9b | 1.10 |
 | RandomSafe kills / 1,000 ticks (100 × 100) | 0.049 all snakes (≈0.01 per snake); 100/100 default matches hit the 100,000-tick cap with ~1 kill per snake | same; 100-match tournament, 10M ticks in 148 s on 4 workers | 2176c31 | 1.10 |
-| Personality decision time p50 / p99 | — | — | — | 2.6 |
-| Mean ticks to first-to-100 (personalities) | — | — | — | 2.6 |
+| Personality decision time p50 / p99 (100 × 100) | 0.44–0.81 ms / 0.94–1.95 ms across the five (budget 5 / 20 ms) | cloud container, Python 3.13, x86_64; `bench --policies all --ticks 3000` | 308a67b | 2.6 |
+| Mean ticks to first-to-100 (personalities) | Not reached: 4/4 all-five matches on 100 × 100 hit the 100,000-tick cap with 1 kill in total. On 50 × 50, 4/4 hit the cap with 6 kills in total | same; `run-tournament --matches 4 --policy personalities`, ~410 s per 4 matches on 4 workers | 308a67b | 2.6 |
 | Wall time per generation (default profile) | — | — | — | 4.6 |
 | Lineages improved vs gen 0 (final seeds) | — | — | — | 4.6 |
