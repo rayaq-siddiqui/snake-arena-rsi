@@ -13,8 +13,8 @@ from arena.engine import GameConfig
 from arena.sim.match import Match, MatchResult
 
 
-def add_game_options(parser: argparse.ArgumentParser, *, score_target: int = 100) -> None:
-    d = GameConfig()
+def add_game_options(parser: argparse.ArgumentParser, d: GameConfig | None = None) -> None:
+    d = d or GameConfig()
     g = parser.add_argument_group("game settings")
     g.add_argument("--width", type=int, default=d.width, help="board width (default %(default)s)")
     g.add_argument("--height", type=int, default=d.height, help="board height (%(default)s)")
@@ -23,7 +23,7 @@ def add_game_options(parser: argparse.ArgumentParser, *, score_target: int = 100
     )
     g.add_argument("--length", type=int, default=d.snake_length, help="snake length (%(default)s)")
     g.add_argument(
-        "--target", type=int, default=score_target, help="kills needed to win (%(default)s)"
+        "--target", type=int, default=d.score_target, help="kills needed to win (%(default)s)"
     )
     g.add_argument(
         "--max-ticks", type=int, default=d.max_ticks, help="tick cap (default %(default)s)"
@@ -167,6 +167,22 @@ def cmd_bench(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_watch(args: argparse.Namespace) -> int:
+    from arena.viz.server import serve
+
+    config = config_from(args)
+    policy_names(args.policy, config.num_snakes)
+    return serve(
+        host=args.host,
+        port=args.port,
+        config=config,
+        seed=args.seed,
+        policy=args.policy,
+        replay_path=args.replay,
+        open_browser=not args.no_browser,
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="arena", description="Snake Arena RSI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -194,6 +210,16 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--seed", type=int, default=0)
     p.set_defaults(func=cmd_bench)
 
+    p = sub.add_parser("watch", help="open the browser viewer (live match or replay)")
+    from arena.viz.server import VIEWER_DEFAULTS
+
+    add_game_options(p, VIEWER_DEFAULTS)
+    p.add_argument("--seed", type=int, default=42)
+    p.add_argument("--replay", help="open this replay file instead of a live match")
+    p.add_argument("--host", default="127.0.0.1")
+    p.add_argument("--port", type=int, default=8000)
+    p.add_argument("--no-browser", action="store_true", help="do not open a browser tab")
+    p.set_defaults(func=cmd_watch)
     return parser
 
 
