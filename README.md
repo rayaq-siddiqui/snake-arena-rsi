@@ -7,9 +7,11 @@ its rivals and against older versions of everyone, and keeps the change only if 
 really wins more. Repeat that loop and you have a small, watchable lab for
 **recursive self-improvement (RSI)**.
 
-Five personalities play today (Hunter, Survivor, Trapper, Predictor, Opportunist), and a
-generic, snake-agnostic improvement loop (`arena/rsi`) is built and proven on toy
-problems; plugging the snakes into it is next.
+Five personalities play (Hunter, Survivor, Trapper, Predictor, Opportunist). A generic,
+snake-agnostic improvement loop (`arena/rsi`) is proven on toy problems, and each snake
+now runs its own lineage on that loop (`evolve`), with a report and a live dashboard.
+The first experiment's honest result: **no snake improved yet** (see
+[Results](#results)).
 
 ![The Snake Arena viewer: five random snakes on a 20 × 20 board with the leaderboard and settings](docs/viewer.png)
 
@@ -96,6 +98,31 @@ same command again resumes the run; pass a larger `--generations` to extend it.
 uv run python -m arena.cli rsi-demo --problem quadratic --generations 60
 ```
 
+**Let the snakes improve themselves.** Each of the five lineages proposes a change to
+its own parameters every generation and keeps it only if paired games on held-out seeds
+show a real gain without more deaths. `--quick` is a fast end-to-end check (about 8
+minutes on 4 cores). `--profile experiment` is the reduced setting used for the
+baseline, and the default profile is the full specified experiment (hours per
+generation). Re-running the same command resumes the run.
+
+```bash
+uv run python -m arena.cli evolve --quick --generations 3 --run-id demo
+```
+
+Each run keeps `runs/<id>/dashboard.html` up to date while it runs. Open it in a browser
+to watch proposals, intervals, guard metrics and parameters change generation by
+generation. `report` plays the untouched final seeds and writes `report.md`,
+`progress.svg` and the dashboard. `watch --run` loads every archived champion into the
+viewer (`--vs-generation 0` seats evolved and original versions in one game).
+
+```bash
+uv run python -m arena.cli report runs/demo
+```
+
+```bash
+uv run python -m arena.cli watch --run runs/demo --vs-generation 0
+```
+
 `--policy` takes one policy for every snake (`random_safe`, `hunter`, …), a comma list
 per snake, or the `personalities` lineup.
 
@@ -133,8 +160,28 @@ On this project's cloud container (Python 3.13, x86_64, single process):
 Random snakes almost never kill on the full board, so default matches end at the tick
 cap. The personalities kill random snakes far more often, but against each other they are
 careful enough that in 4 all-five matches on 100 × 100, all 4 reached the 100,000-tick
-cap with 1 kill between them. `arena/sim/boards.py` adds a labelled 50 × 50
-`experiment` board for phase 4.
+cap with 1 kill between them. Phase 4 therefore adds a labelled, reduced `experiment`
+profile (24 × 24, 2,000-tick episodes) where snakes meet often enough to measure.
+
+## Results
+
+The first phase 4 experiment is in
+[`experiments/2026-11-12-baseline/`](experiments/2026-11-12-baseline/README.md), with its
+[report](experiments/2026-11-12-baseline/report.md) and
+[dashboard](experiments/2026-11-12-baseline/dashboard.html) (download and open it in a
+browser). It used the reduced experiment profile, not the full specified one.
+
+| | Hunter | Survivor | Trapper | Predictor | Opportunist |
+|---|---|---|---|---|---|
+| Accepted changes (4 generations) | 0 | 0 | 0 | 0 | 0 |
+| Improved vs generation 0 | no | no | no | no | no |
+
+Every lineage ran out of patience after 4 rejected proposals. Kills are rare even on the
+small board, so most paired games differ by zero kills, and 40 + 40 pairs had little
+power to show a 2% gain. The closest proposal (Hunter, +12.3% on holdout) had an interval
+reaching zero and a death rate about 40 times higher, so both rules rejected it. This is
+a valid result of a pre-set protocol and is reported as is. Any follow-up will be a
+separate, pre-registered experiment.
 
 ## System design
 
@@ -291,8 +338,9 @@ The viewer and the CLI use the same engine, so a seed plays out identically in b
    Predictor, Opportunist.
 3. **RSI framework** ✅ — a generic propose → test → keep-or-reject loop that knows nothing
    about snakes, with honest statistics, held-out tests, and a hall of fame.
-4. **Snakes that improve themselves** — each snake plugs into the framework and tunes its
-   own parameters, generation after generation.
+4. **Snakes that improve themselves** ✅ (framework built; first result: no improvement) —
+   each snake plugs into the framework and tunes its own parameters, generation after
+   generation, with a report, a live dashboard and an evolved-vs-original viewer.
 
 ## Read more
 
@@ -304,8 +352,11 @@ The viewer and the CLI use the same engine, so a seed plays out identically in b
 
 ## Limitations
 
-- The snakes don't improve themselves yet: personality weights are hand-set until phase 4
-  plugs them into the loop.
+- The improvement loop runs, but in the first experiment no snake found a change that
+  beat its hand-set self. The full default-profile experiment (100 × 100, 5,000-tick
+  episodes) costs hours per generation and has not been run yet.
+- The improver tunes parameters only. It never edits code, as `specs/vision.md`
+  requires until a real sandbox exists.
 - The viewer is a local development tool (no auth); it binds to 127.0.0.1 by default.
 - The opt-in per-move time budget uses wall-clock time, so it's off by default to keep
   headless runs deterministic.
