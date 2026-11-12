@@ -51,14 +51,29 @@ def snake_views(state: GameState) -> tuple[SnakeView, ...]:
     )
 
 
+_LEGAL: dict[Direction, tuple[Direction, ...]] = {
+    h: tuple(d for d in DIRECTIONS if d != OPPOSITE[h]) for h in DIRECTIONS
+}
+
+
 def legal_moves(heading: Direction) -> tuple[Direction, ...]:
     """The three moves that are not a reversal, in fixed order."""
-    return tuple(d for d in DIRECTIONS if d != OPPOSITE[heading])
+    return _LEGAL[heading]
 
 
-def hazards(obs: Observation) -> set[Cell]:
-    """Cells that will still be occupied after every snake vacates its tail."""
-    return {cell for s in obs.snakes if s.alive for cell in s.body[:-1]}
+_hazard_cache: list[tuple[tuple[SnakeView, ...], frozenset[Cell]]] = []
+
+
+def hazards(obs: Observation) -> frozenset[Cell]:
+    """Cells that will still be occupied after every snake vacates its tail.
+
+    Every policy in a tick shares one ``snakes`` tuple, so the set is computed once per tick.
+    """
+    if _hazard_cache and _hazard_cache[0][0] is obs.snakes:
+        return _hazard_cache[0][1]
+    cells = frozenset(cell for s in obs.snakes if s.alive for cell in s.body[:-1])
+    _hazard_cache[:] = [(obs.snakes, cells)]
+    return cells
 
 
 def next_cell(head: Cell, direction: Direction) -> Cell:

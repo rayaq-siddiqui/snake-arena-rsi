@@ -68,9 +68,14 @@ def step(state: GameState, actions: Mapping[SnakeId, object]) -> tuple[GameState
     new_heads: dict[SnakeId, Cell] = {}
     for s in alive:
         raw = actions.get(s.id)
-        if as_direction(raw) is None:
+        heading = s.heading
+        assert heading is not None
+        chosen = as_direction(raw)
+        if chosen is None:
             events.append(ActionFallback(tick, s.id, "missing" if raw is None else "invalid"))
-        d = resolve_direction(s, raw)
+            d = heading
+        else:
+            d = heading if chosen == OPPOSITE[heading] else chosen
         directions[s.id] = d
         dx, dy = DELTAS[d]
         new_heads[s.id] = (s.body[0][0] + dx, s.body[0][1] + dy)
@@ -122,28 +127,36 @@ def step(state: GameState, actions: Mapping[SnakeId, object]) -> tuple[GameState
     for s in state.snakes:
         gained = kills.get(s.id, 0)
         if s.alive and s.id in deaths:
-            s = replace(
-                s,
-                body=(),
-                alive=False,
-                kills=s.kills + gained,
-                deaths=s.deaths + 1,
-                respawn_in=config.respawn_delay,
-                life_ticks=0,
+            s = SnakeState(
+                s.id,
+                (),
+                s.heading,
+                False,
+                s.life_id,
+                s.kills + gained,
+                s.deaths + 1,
+                config.respawn_delay,
+                s.alive_ticks,
+                0,
             )
         elif s.alive:
             body = (new_heads[s.id], *s.body[:-1])
             occupied.update(body)
-            s = replace(
-                s,
-                body=body,
-                heading=directions[s.id],
-                kills=s.kills + gained,
-                alive_ticks=s.alive_ticks + 1,
-                life_ticks=s.life_ticks + 1,
+            s = SnakeState(
+                s.id,
+                body,
+                directions[s.id],
+                True,
+                s.life_id,
+                s.kills + gained,
+                s.deaths,
+                0,
+                s.alive_ticks + 1,
+                s.life_ticks + 1,
             )
         else:
-            s = replace(s, kills=s.kills + gained, respawn_in=max(0, s.respawn_in - 1))
+            if gained or s.respawn_in:
+                s = replace(s, kills=s.kills + gained, respawn_in=max(0, s.respawn_in - 1))
             if s.respawn_in == 0:
                 to_spawn.append(len(committed))
         committed.append(s)
