@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import json
 import time
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
@@ -78,6 +78,12 @@ class Profile:
         d["settings"] = self.settings.to_dict()
         return d
 
+    @staticmethod
+    def from_dict(d: Mapping[str, Any]) -> Profile:
+        s = d["settings"]
+        settings = EvalSettings(s["width"], s["height"], s["ticks"], tuple(s["shares"].values()))
+        return Profile(**{**d, "settings": settings})
+
 
 PROFILES: dict[str, Profile] = {
     "default": Profile("default", EvalSettings(100, 100, 5000)),
@@ -117,6 +123,24 @@ class EvolutionResult:
     generations: int
     stop_reason: str
     lineages: dict[str, RunResult] = field(default_factory=dict)
+
+
+def make_context(halls: Mapping[str, Sequence[Candidate]]) -> Context:
+    """The opponent context for halls of fame given oldest first; a personality without
+    a lineage plays as its hand-set self."""
+    champions: list[Entrant] = []
+    hall_entrants: list[tuple[Entrant, ...]] = []
+    reference: list[Entrant] = []
+    for name in PERSONALITIES:
+        ref = Entrant.personality(name, hand_set(name), 1)
+        hall = tuple(
+            Entrant.personality(name, c.params, v)
+            for v, c in enumerate(halls.get(name) or (), start=1)
+        ) or (ref,)
+        champions.append(hall[-1])
+        hall_entrants.append(hall)
+        reference.append(ref)
+    return Context(tuple(champions), tuple(hall_entrants), tuple(reference))
 
 
 class Evolution:
@@ -197,24 +221,7 @@ class Evolution:
 
     def context(self, upto: int) -> Context:
         """Every lineage frozen as it stood after generation ``upto``."""
-        champions: list[Entrant] = []
-        halls: list[tuple[Entrant, ...]] = []
-        reference: list[Entrant] = []
-        for name in PERSONALITIES:
-            ref = Entrant.personality(name, hand_set(name), 1)
-            lin = self.lineages.get(name)
-            if lin is None:
-                champions.append(ref)
-                halls.append((ref,))
-            else:
-                hall = tuple(
-                    Entrant.personality(name, c.params, v)
-                    for v, c in enumerate(lin.hall(upto), start=1)
-                )
-                champions.append(hall[-1])
-                halls.append(hall)
-            reference.append(ref)
-        return Context(tuple(champions), tuple(halls), tuple(reference))
+        return make_context({name: lin.hall(upto) for name, lin in self.lineages.items()})
 
     def _set_context(self, upto: int) -> None:
         ctx = self.context(upto)
@@ -272,6 +279,22 @@ class Evolution:
             results = {}
             for name, lin in self.lineages.items():
                 results[name] = lin.run.finish(lin.run.stop_reason() or reason)
+            write_json(
+                self.dir / "final.json",
+                {
+                    "generation": final_g,
+                    "stop_reason": reason,
+                    "lineages": {
+                        name: {
+                            "accepted": r.accepted,
+                            "version": r.accepted + 1,
+                            "stop_reason": r.stop_reason,
+                            "final": r.final,
+                        }
+                        for name, r in results.items()
+                    },
+                },
+            )
             return EvolutionResult(final_g, reason, results)
         finally:
             self.workers.close()

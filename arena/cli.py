@@ -274,6 +274,14 @@ def cmd_evolve(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_report(args: argparse.Namespace) -> int:
+    from arena.evolution.report import write
+
+    path = write(args.run, args.workers, rebuild=args.rebuild)
+    print(f"Wrote {path} and {path.with_name('progress.svg')}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="arena", description="Snake Arena RSI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -343,6 +351,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--run-seed", type=int, default=0)
     p.add_argument("--workers", type=int, default=None, help="processes (default: all cores)")
     p.set_defaults(func=cmd_evolve)
+
+    p = sub.add_parser("report", help="phase 4: write report.md and charts for an evolve run")
+    p.add_argument("run", help="run directory, e.g. runs/demo")
+    p.add_argument("--workers", type=int, default=None, help="processes (default: all cores)")
+    p.add_argument("--rebuild", action="store_true", help="replay the report games again")
+    p.set_defaults(func=cmd_report)
 
     p = sub.add_parser("watch", help="open the browser viewer (live match or replay)")
     from arena.viz.server import VIEWER_DEFAULTS, VIEWER_POLICY
