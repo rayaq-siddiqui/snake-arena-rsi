@@ -311,6 +311,7 @@ Fill in as steps land. Never estimate here.
 | Engine ticks/s (5 × RandomSafe, 100 × 100) | ~45,000 (engine only); ~26,000–30,000 with RandomSafe policies (was ~34,700 and ~18,100 at 94e5abd) | cloud container, Python 3.13, x86_64 | a223d9b | 1.10 |
 | RandomSafe kills / 1,000 ticks (100 × 100) | 0.049 all snakes (≈0.01 per snake); 100/100 default matches hit the 100,000-tick cap with ~1 kill per snake | same; 100-match tournament, 10M ticks in 148 s on 4 workers | 2176c31 | 1.10 |
 | Personality decision time p50 / p99 (100 × 100) | 0.44–0.81 ms / 0.94–1.95 ms across the five (budget 5 / 20 ms) | cloud container, Python 3.13, x86_64; `bench --policies all --ticks 3000` | 308a67b | 2.6 |
+| Personality decision time p50 / p99 after the grid search rewrite | 0.21–0.42 ms / 0.41–0.82 ms; all five together on 100 × 100: ~510–610 ticks/s (was ~260) with identical games (golden digests) | same; `bench --policies all --ticks 3000` | (this commit) | 4 (speed) |
 | Mean ticks to first-to-100 (personalities) | Not reached: 4/4 all-five matches on 100 × 100 hit the 100,000-tick cap with 1 kill in total. On 50 × 50, 4/4 hit the cap with 6 kills in total | same; `run-tournament --matches 4 --policy personalities`, ~410 s per 4 matches on 4 workers | 308a67b | 2.6 |
 | Wall time per generation (default profile) | — | — | — | 4.6 |
 | Lineages improved vs gen 0 (final seeds) | — | — | — | 4.6 |
