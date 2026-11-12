@@ -81,7 +81,7 @@ library; dev tools are pytest, hypothesis, ruff and mypy (strict).
 
 ```bash
 uv sync                                   # install
-uv run pytest                             # all tests (~40 s; includes engine fuzzing)
+uv run pytest                             # all tests (~55 s; includes engine fuzzing)
 uv run ruff check . && uv run ruff format --check . && uv run mypy   # lint, format, types
 uv run python -m arena.cli run-match --seed 42                     # one headless match
 uv run python -m arena.cli run-tournament --matches 100 --workers 4 --out out/t

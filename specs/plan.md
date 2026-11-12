@@ -96,6 +96,8 @@ land as **one to three small commits**, has concrete **targets**, and ends with 
 - `arena/sim/replay.py`: write/read the phase 1 §8 schema; `resimulate(replay)`
   reproduces events from stored actions with no policies.
 - **Targets:** round-trip test on 20 seeds; schema version checked on load.
+- *As built:* each snake's policy is stored with a source hash, and verification also
+  recounts kills and deaths from the stored events and checks them against the standings.
 
 ### 1.9 Headless CLIs `[x]`
 - `run-match` (prints standings table, optional `--replay`), `run-tournament` (process
@@ -121,6 +123,10 @@ land as **one to three small commits**, has concrete **targets**, and ends with 
   for every game parameter, "finish now", and replay download/upload.
 - **Done when:** phase 1 acceptance (§11) passes in full; README updated with the real
   commands, the benchmark number and a screenshot.
+- *Status:* done. Every §11 check has an automated test (golden collision boards,
+  20 × 10,000-tick invariant matches with per-spawn safety checks, simultaneous target
+  crossers, replay and determinism tests); README has the commands, measured speed and
+  the viewer screenshot.
 
 ---
 
