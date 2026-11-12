@@ -191,18 +191,29 @@ def cmd_check_personalities(args: argparse.Namespace) -> int:
 
 
 def cmd_watch(args: argparse.Namespace) -> int:
-    from arena.viz.server import serve
+    from arena.viz.server import NO_ROSTER, VIEWER_POLICY, serve
 
     config = config_from(args)
-    policy_names(args.policy, config.num_snakes)
+    roster, policy = NO_ROSTER, args.policy
+    if args.run:
+        from arena.evolution.watch import run_roster
+
+        roster, first = run_roster(args.run, args.generation, args.vs_generation)
+        policy = args.policy if args.policy != VIEWER_POLICY else first
+        roster.expand(policy, len(roster.lineups.get(policy, [])) or config.num_snakes)
+    elif args.generation is not None or args.vs_generation is not None:
+        raise ValueError("--generation and --vs-generation need --run")
+    else:
+        policy_names(args.policy, config.num_snakes)
     return serve(
         host=args.host,
         port=args.port,
         config=config,
         seed=args.seed,
-        policy=args.policy,
+        policy=policy,
         replay_path=args.replay,
         open_browser=not args.no_browser,
+        roster=roster,
     )
 
 
@@ -367,6 +378,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=8000)
     p.add_argument("--no-browser", action="store_true", help="do not open a browser tab")
+    p.add_argument("--run", help="an evolve run directory: watch its archived champions")
+    p.add_argument("--generation", type=int, help="with --run: the champions after this generation")
+    p.add_argument(
+        "--vs-generation", type=int, help="with --run: also seat each lineage's earlier version"
+    )
     p.set_defaults(func=cmd_watch)
     return parser
 

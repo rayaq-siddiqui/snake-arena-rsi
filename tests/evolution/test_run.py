@@ -7,37 +7,15 @@ from typing import Any, ClassVar
 
 import numpy as np
 import pytest
-from evo_helpers import TINY, lineage_files, tiny_evolution
+from evo_helpers import TINY, AlwaysAccept, lineage_files, tiny_evolution
 
 from arena.agents.scorer import ScoringPolicy
 from arena.evolution.run import Evolution, load_champion
 from arena.rsi.loop import Run
 from arena.rsi.proposers import GaussianHillClimb
-from arena.rsi.types import Candidate, Decision, Feedback, History, PairedResult, ParamSpec
+from arena.rsi.types import Candidate, Feedback, History, ParamSpec
 
 ROOT = Path(__file__).resolve().parents[2]
-
-
-class AlwaysAccept:
-    """Accepts every valid candidate, so a test can exercise champion changes."""
-
-    def passes_dev(self, dev: PairedResult) -> Decision | None:
-        return None
-
-    def wants_extension(self, holdout: PairedResult, rng: np.random.Generator) -> bool:
-        return False
-
-    def decide(
-        self,
-        dev: PairedResult,
-        holdout: PairedResult,
-        rng: np.random.Generator,
-        extended: bool = False,
-    ) -> Decision:
-        return Decision(True, "holdout", "accepted: test rule")
-
-    def to_dict(self) -> dict[str, Any]:
-        return {"rule": "AlwaysAccept"}
 
 
 def test_a_run_writes_lineages_and_versioned_params(tmp_path: Path) -> None:

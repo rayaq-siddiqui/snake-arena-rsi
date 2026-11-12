@@ -273,9 +273,15 @@ Behaviour table (100 matches, all five together, 5,000-tick episodes on 100 × 1
   table, all-champions cycle check, 5 × 5 matrix, decision log, behaviour drift.
 - **Targets:** report numbers are recomputed from stored records in a test and match.
 
-### 4.5 Watch evolved snakes `[ ]`
+### 4.5 Watch evolved snakes `[x]`
 - `watch --run ... --generation N` and `--vs-generation 0`; leaderboard shows versions.
 - **Targets:** any archived champion loads and plays after later generations exist.
+- *As built:* `arena/evolution/watch.py` turns every archived version into a viewer
+  policy (`hunter@v4`, labelled "Hunter v4") and adds lineups: the champions after
+  generation N, and with `--vs-generation K` one six-seat lineup per lineage in which its
+  generation N and K versions meet the other four generation N champions (a lineup sets
+  the seat count). `tests/evolution/test_watch.py` plays every archived version of a
+  three-generation run and checks a viewed game against the headless one.
 
 ### 4.6 The real experiment `[ ]`
 - Run `evolve --generations 10` with the default profile (or the labelled experiment

@@ -12,6 +12,8 @@ import json
 import secrets
 import threading
 import webbrowser
+from collections.abc import Callable
+from dataclasses import dataclass, field
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from importlib import resources
@@ -19,7 +21,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
-from arena.agents import DEFAULT_POLICY, LINEUPS, POLICIES, make_policy
+from arena.agents import DEFAULT_POLICY, LINEUPS, POLICIES, Policy, make_policy
 from arena.agents.registry import expand_policies, snake_labels
 from arena.engine import Event, GameConfig, GameState, new_game, rank, step
 from arena.sim.match import Match
@@ -31,6 +33,48 @@ MAX_FRAMES_PER_REQUEST = 5_000
 VIEWER_DEFAULTS = GameConfig(width=20, height=20, score_target=10)
 VIEWER_POLICY = "personalities"
 STATIC_TYPES = {".html": "text/html", ".js": "text/javascript", ".css": "text/css"}
+
+
+@dataclass(frozen=True)
+class Roster:
+    """Extra named policies and lineups for the viewer, such as archived champions.
+
+    ``lineups`` may have any seat count; picking one sets the number of snakes.
+    """
+
+    policies: dict[str, Callable[[], Policy]] = field(default_factory=dict)
+    labels: dict[str, tuple[str, str | None]] = field(default_factory=dict)
+    lineups: dict[str, list[str]] = field(default_factory=dict)
+
+    def make(self, name: str) -> Policy:
+        factory = self.policies.get(name)
+        return factory() if factory is not None else make_policy(name)
+
+    def expand(self, spec: str, count: int) -> list[str]:
+        spec = spec.strip()
+        if spec in self.lineups:
+            return list(self.lineups[spec])
+        names = [n.strip() for n in spec.split(",") if n.strip()]
+        if not names or any(n in LINEUPS or n not in self.policies for n in names):
+            return expand_policies(spec, count)
+        names = names * count if len(names) == 1 else names
+        if len(names) != count:
+            raise ValueError(f"need 1 or {count} policy names, got {len(names)}")
+        return names
+
+    def snake_labels(
+        self, snake_ids: list[str], policies: list[str]
+    ) -> list[tuple[str, str | None]]:
+        out = snake_labels(snake_ids, policies)
+        counts = {p: policies.count(p) for p in policies}
+        for i, (sid, name) in enumerate(zip(snake_ids, policies, strict=True)):
+            if name in self.labels:
+                label, colour = self.labels[name]
+                out[i] = (label if counts[name] == 1 else f"{label} {sid}", colour)
+        return out
+
+
+NO_ROSTER = Roster()
 
 
 def frame(state: GameState, events: list[Event]) -> dict[str, Any]:
@@ -62,11 +106,13 @@ class Session:
         seed: int,
         policies: list[str] | None = None,
         replay: dict[str, Any] | None = None,
+        roster: Roster = NO_ROSTER,
     ) -> None:
         self.id = secrets.token_hex(6)
         self.lock = threading.Lock()
         self.config = config
         self.seed = seed
+        self.roster = roster
         self.match: Match | None = None
         self.replay_actions: list[list[str | None]] = []
         if replay is not None:
@@ -78,7 +124,7 @@ class Session:
         else:
             self.mode = "live"
             self.policies = policies or [DEFAULT_POLICY] * config.num_snakes
-            self.match = Match([make_policy(n) for n in self.policies], seed, config, record=True)
+            self.match = Match([roster.make(n) for n in self.policies], seed, config, record=True)
             self.state = self.match.state
             events = list(self.match.events)
         self.frames: collections.deque[dict[str, Any]] = collections.deque(maxlen=FRAME_BUFFER)
@@ -134,7 +180,7 @@ class Session:
                 for sid, name, (label, color) in zip(
                     self.config.snake_ids,
                     self.policies,
-                    snake_labels(list(self.config.snake_ids), self.policies),
+                    self.roster.snake_labels(list(self.config.snake_ids), self.policies),
                     strict=True,
                 )
             ],
@@ -144,6 +190,9 @@ class Session:
 
     def lineup(self) -> str | None:
         """The policy spec that recreates these seats, if there is one."""
+        for name, seats in self.roster.lineups.items():
+            if seats == self.policies:
+                return name
         for name in LINEUPS:
             if expand_policies(name, self.config.num_snakes) == self.policies:
                 return name
@@ -166,8 +215,14 @@ class Session:
 
 class App:
     def __init__(
-        self, defaults: GameConfig, seed: int, policy: str, startup_replay: dict[str, Any] | None
+        self,
+        defaults: GameConfig,
+        seed: int,
+        policy: str,
+        startup_replay: dict[str, Any] | None,
+        roster: Roster = NO_ROSTER,
     ) -> None:
+        self.roster = roster
         self.defaults = defaults
         self.seed = seed
         self.policy = policy
@@ -194,7 +249,7 @@ class App:
             "defaults": self.defaults.to_dict(),
             "seed": self.seed,
             "policy": self.policy,
-            "policies": [*LINEUPS, *sorted(POLICIES)],
+            "policies": [*self.roster.lineups, *LINEUPS, *sorted(POLICIES), *self.roster.policies],
             "startup_replay": self.startup_replay is not None,
         }
 
@@ -205,12 +260,16 @@ class App:
             return self.add(replay_session(self.startup_replay))
         if body.get("mode") == "replay":
             return self.add(replay_session(body["replay"]))
-        config = GameConfig.from_dict({**self.defaults.to_dict(), **body.get("config", {})})
+        overrides = dict(body.get("config", {}))
         spec = body.get("policies") or body.get("policy", self.policy)
         if isinstance(spec, list):
             spec = ",".join(str(n) for n in spec)
-        names = expand_policies(str(spec), config.num_snakes)
-        return self.add(Session(config, int(body.get("seed", self.seed)), policies=names))
+        if str(spec).strip() in self.roster.lineups:
+            overrides["num_snakes"] = len(self.roster.lineups[str(spec).strip()])
+        config = GameConfig.from_dict({**self.defaults.to_dict(), **overrides})
+        names = self.roster.expand(str(spec), config.num_snakes)
+        seed = int(body.get("seed", self.seed))
+        return self.add(Session(config, seed, policies=names, roster=self.roster))
 
 
 def replay_session(replay: dict[str, Any]) -> Session:
@@ -318,9 +377,10 @@ def make_server(
     seed: int = 42,
     policy: str = VIEWER_POLICY,
     replay_path: str | None = None,
+    roster: Roster = NO_ROSTER,
 ) -> ThreadingHTTPServer:
     replay = load_replay(replay_path) if replay_path else None
-    app = App(config, seed, policy, replay)
+    app = App(config, seed, policy, replay, roster)
     server = ThreadingHTTPServer((host, port), make_handler(app))
     server.daemon_threads = True
     return server
@@ -334,8 +394,9 @@ def serve(
     policy: str,
     replay_path: str | None = None,
     open_browser: bool = True,
+    roster: Roster = NO_ROSTER,
 ) -> int:
-    server = make_server(host, port, config, seed, policy, replay_path)
+    server = make_server(host, port, config, seed, policy, replay_path, roster)
     url = f"http://{host}:{server.server_address[1]}/"
     print(f"Snake Arena viewer running at {url}  (Ctrl+C to stop)")
     if open_browser:
