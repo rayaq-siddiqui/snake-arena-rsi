@@ -83,6 +83,7 @@ class Match:
         self.kill_matrix = {k: {v: 0 for v in ids} for k in ids}
         self.death_causes: dict[str, dict[str, int]] = {sid: {} for sid in ids}
         self.fallbacks = 0
+        self.fallbacks_by: dict[str, int] = {sid: 0 for sid in ids}
         self.behaviour = {sid: Behaviour() for sid in ids}
         self.actions: list[list[Direction | None]] = []
         self.events: list[Event] = []
@@ -159,6 +160,7 @@ class Match:
                 causes[e.cause] = causes.get(e.cause, 0) + 1
             elif isinstance(e, ActionFallback):
                 self.fallbacks += 1
+                self.fallbacks_by[e.snake] += 1
         if self.record:
             self.events.extend(events)
 
