@@ -4,7 +4,9 @@ version = "0.1.0"
 description = "A five-snake battle arena used as a lab for recursive self-improvement of agent policies."
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "numpy>=2.0",
+]
 
 [dependency-groups]
 dev = [
