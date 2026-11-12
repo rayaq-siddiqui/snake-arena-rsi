@@ -42,6 +42,26 @@ All features are deterministic functions of `(observation, my_id, move)`:
 Expensive features (flood fill) are bounded by `space_cap` and a search radius so a
 tick stays well under the decision budget.
 
+*As built,* one feature and three shared parameters were added while tuning, because the
+table above was not enough to pass §5:
+
+- `territory`: cells my new head reaches strictly before every enemy head (a lockstep
+  breadth-first race, ties go to nobody), capped and over the cap. `space` cannot see a
+  corridor an enemy will close before I get through it; in all-five matches the snakes
+  kept dying in such corridors until this feature was added (deaths fell roughly
+  tenfold in a small all-five comparison run).
+- `keep_distance` k (int): a nearest-enemy distance d < k counts as k, so a snake pulled
+  toward heads stops at k instead of pressing into head-on range.
+- `keep_repel`: with it, d < k counts as `k + keep_repel × (k − d)`, so cautious snakes
+  back away from a close enemy rather than idling at the floor.
+- `pull_radius` r: enemies farther than r count as absent. Without it the non-hunters
+  drifted toward each other from across the board and, since a chased snake's nearest
+  distance is never larger than the chaser's, out-closed the Hunter on the distance
+  metric (§5).
+
+Every snake also has a small `straightness` weight (0.01): it only breaks near-ties, and
+stops snakes curling in place.
+
 ### Parameters
 
 Each personality declares a `ParamSpace`: a list of named parameters with a default, a
@@ -65,6 +85,26 @@ touching code. Phase 4 writes new versions of exactly these files and nothing el
 | 2 | **Trapper** | yellow | Shrink enemies' safe space until they have nowhere to go | Minimises `enemy_space_after` and `enemy_escape_moves`; likes to run parallel to enemies and turn across them |
 | 3 | **Predictor** | blue | Out-think opponents by simulating their next move | Builds a probability map of every enemy's next head (assuming each enemy picks among its safe moves) and scores moves by expected kills minus expected death, looking `lookahead` ticks ahead |
 | 4 | **Opportunist** | purple | Balance: safe by default, aggressive only when a kill is likely | Switches between a "cruise" weight set and an "attack" weight set when an enemy's escape moves drop to ≤ `attack_threshold` |
+
+*As built* (version 1 params in `arena/agents/params/`):
+
+| Name | Main weights | Shared params |
+|---|---|---|
+| Hunter | `nearest_enemy_head` −30, `cut_off` 12, `head_on_risk` −40, `territory` 20, `space_vs_length` 20, `space` 6 | `keep_distance` 1 |
+| Survivor | `head_on_risk` −100, `territory` 40, `space_vs_length` 40, `space` 20, `nearest_enemy_head` −8, `enemy_escape_moves` −3, `wall_distance` 1 | `keep_distance` 3, `keep_repel` 1, `pull_radius` 15 |
+| Trapper | `enemy_space_after` −15, `enemy_escape_moves` −10, `nearest_enemy_head` −20, `cut_off` 4, `head_on_risk` −40, `territory` 20, `space_vs_length` 20, `space` 6 | same as Survivor |
+| Predictor | `w_expected_kills` 300, `w_pressure` 10, `w_expected_death` −300, `lookahead` 2, `discount` 0.5, plus `nearest_enemy_head` −20, `territory` 20, `space_vs_length` 20, `space` 6 | same as Survivor |
+| Opportunist | cruise: `head_on_risk` −100, `territory` 30, `space_vs_length` 30, `space` 15, `nearest_enemy_head` −20; attack: Trapper-like squeeze weights; `attack_threshold` 1 | `keep_distance` 4, `keep_repel` 1, `pull_radius` 15 |
+
+Changes from the sketch above, and why:
+
+- Survivor's `wall_distance` weight is small (1), not heavy: a strong pull to the centre
+  packed it into the middle of the board with everyone else. Opportunist's cruise set
+  dropped `wall_distance` for the same reason: snakes clustered in the centre sat closer
+  to each other than the Hunter sat to them, failing the enemy-distance check (§5).
+- Every non-hunter has a positive `nearest_enemy_head` pull limited by `pull_radius` 15
+  and `keep_distance` with `keep_repel`: it lets them take kills when an enemy blunders
+  nearby (§5 asks each to out-kill RandomSafe) without seeking enemies out.
 
 All five start from the same `immediate_death` weight (a large negative) so none of them
 is suicidal on day one. Everything else is personality-specific.
