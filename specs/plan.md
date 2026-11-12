@@ -248,12 +248,16 @@ Behaviour table (100 matches, all five together, 5,000-tick episodes on 100 × 1
 
 ## Step 4 — Snakes that improve themselves (phase 4)
 
-### 4.1 Snake evaluator `[ ]`
+### 4.1 Snake evaluator `[x]`
 - `arena/evolution/evaluator.py`: fixed-length episodes, paired candidate/champion games
   with identical spawns and opponents, opponent-mixture sampling, seat rotation, guard
   metrics, process pool.
 - **Targets:** a candidate identical to the champion yields all-zero paired differences
   (proves pairing is exact); results identical across worker counts.
+- *As built:* `SnakeEvaluator` plays each seed's lineup twice in one worker task, so the
+  candidate and champion games share spawns, seats and opponents exactly. Evaluation runs
+  without the wall-clock move budget (phase 4 spec, As built). Both targets are tests in
+  `tests/evolution/test_evaluator.py`.
 
 ### 4.2 Lineages and generations `[ ]`
 - `arena/evolution/lineage.py` and `arena/evolution/run.py`: five lineages, frozen
@@ -263,15 +267,24 @@ Behaviour table (100 matches, all five together, 5,000-tick episodes on 100 × 1
   in CI; run touches nothing outside `runs/<id>/` (tested by hashing the repo before and
   after).
 
-### 4.3 Safety tests `[ ]`
+### 4.3 Safety tests `[x]`
 - Out-of-bounds params, a policy patched to raise, and a proposer that tries to read
   holdout seeds — none can produce a promotion.
 - **Targets:** all three tests pass.
+- *As built:* `tests/evolution/test_run.py` covers out-of-bounds params, a policy patched
+  to raise, and a spy proposer that records every seed it is shown (none come from the
+  holdout or final pools). It also checks that a run changes nothing outside its run
+  directory.
 
-### 4.4 Reports `[ ]`
+### 4.4 Reports `[x]`
 - `arena/evolution/report.py` + `report` CLI: progress chart with bands, fixed-vs-evolved
   table, all-champions cycle check, 5 × 5 matrix, decision log, behaviour drift.
 - **Targets:** report numbers are recomputed from stored records in a test and match.
+- *As built:* `report` writes `report.md`, `report.json` and an SVG `progress.svg`
+  (no plotting dependency) and refreshes `dashboard.html`, the live per-run dashboard
+  that `evolve` also rewrites after every generation. `tests/evolution/test_report.py`
+  recomputes the numbers from the records; `test_dashboard.py` checks the page against
+  them.
 
 ### 4.5 Watch evolved snakes `[x]`
 - `watch --run ... --generation N` and `--vs-generation 0`; leaderboard shows versions.
