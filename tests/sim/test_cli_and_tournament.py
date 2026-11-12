@@ -55,3 +55,25 @@ def test_bench_reports_rates(capsys: pytest.CaptureFixture[str]) -> None:
     assert main(["bench", "--ticks", "500", "--width", "20", "--height", "20"]) == 0
     out = capsys.readouterr().out
     assert "engine only" in out and "kills per 1,000 ticks" in out
+
+
+def test_bench_times_every_personality(capsys: pytest.CaptureFixture[str]) -> None:
+    main(["bench", "--policies", "all", "--ticks", "60", "--width", "30", "--height", "30"])
+    out = capsys.readouterr().out
+    for name in ("hunter", "survivor", "trapper", "predictor", "opportunist"):
+        assert name in out
+    assert "median ms" in out
+
+
+def test_personalities_lineup_expands_in_seat_order(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["run-match", *SMALL, "--policy", "personalities", "--max-ticks", "50"]) == 0
+    out = capsys.readouterr().out
+    assert "hunter" in out and "opportunist" in out
+
+
+def test_check_personalities_writes_a_report(tmp_path: Path) -> None:
+    out = tmp_path / "report.md"
+    args = ["check-personalities", "--matches", "2", "--ticks", "200", "--width", "20"]
+    main([*args, "--height", "20", "--out", str(out)])
+    text = out.read_text()
+    assert "## Acceptance" in text and text.count("PASS") + text.count("FAIL") >= 13

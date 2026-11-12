@@ -8,12 +8,15 @@ import time
 from collections.abc import Sequence
 from pathlib import Path
 
-from arena.agents import DEFAULT_POLICY, POLICIES, make_policy
+from arena.agents import DEFAULT_POLICY, LINEUPS, POLICIES, make_policy
+from arena.agents.registry import expand_policies
 from arena.engine import GameConfig
 from arena.sim.match import Match, MatchResult
 
 
-def add_game_options(parser: argparse.ArgumentParser, d: GameConfig | None = None) -> None:
+def add_game_options(
+    parser: argparse.ArgumentParser, d: GameConfig | None = None, policy: str = DEFAULT_POLICY
+) -> None:
     d = d or GameConfig()
     g = parser.add_argument_group("game settings")
     g.add_argument("--width", type=int, default=d.width, help="board width (default %(default)s)")
@@ -33,8 +36,9 @@ def add_game_options(parser: argparse.ArgumentParser, d: GameConfig | None = Non
     )
     g.add_argument(
         "--policy",
-        default=DEFAULT_POLICY,
-        help=f"one policy for every snake, or a comma list per snake ({', '.join(POLICIES)})",
+        default=policy,
+        help="one policy for every snake, a comma list per snake, or a lineup "
+        f"({', '.join([*POLICIES, *LINEUPS])})",
     )
 
 
@@ -51,14 +55,7 @@ def config_from(args: argparse.Namespace) -> GameConfig:
 
 
 def policy_names(spec: str, count: int) -> list[str]:
-    names = [n.strip() for n in spec.split(",") if n.strip()]
-    if len(names) == 1:
-        names *= count
-    if len(names) != count:
-        raise ValueError(f"--policy needs 1 or {count} names, got {len(names)}")
-    for n in names:
-        make_policy(n)
-    return names
+    return expand_policies(spec, count)
 
 
 def describe(config: GameConfig) -> str:
@@ -160,11 +157,37 @@ def cmd_run_tournament(args: argparse.Namespace) -> int:
 
 
 def cmd_bench(args: argparse.Namespace) -> int:
-    from arena.sim.bench import run_bench
+    from arena.sim.bench import decision_report, decision_times, run_bench
 
     config = config_from(args)
+    if args.policies:
+        spec = "personalities" if args.policies == "all" else args.policies
+        names = policy_names(spec, config.num_snakes)
+        report, ok = decision_report(decision_times(config, args.ticks, args.seed, names))
+        print(report)
+        return 0 if ok else 1
     print(run_bench(config, args.ticks, args.seed, policy_names(args.policy, config.num_snakes)))
     return 0
+
+
+def cmd_check_personalities(args: argparse.Namespace) -> int:
+    from arena.sim.personality_check import episode_config, run_check
+
+    config = episode_config(args.width, args.height, args.ticks)
+    report = run_check(
+        args.matches,
+        config,
+        args.workers,
+        args.seed_start,
+        progress=lambda msg: print(msg, file=sys.stderr),
+    )
+    text = report.to_markdown()
+    print(text)
+    if args.out:
+        Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.out).write_text(text)
+        print(f"report written to {args.out}", file=sys.stderr)
+    return 0 if report.passed else 1
 
 
 def cmd_watch(args: argparse.Namespace) -> int:
@@ -208,12 +231,29 @@ def build_parser() -> argparse.ArgumentParser:
     add_game_options(p)
     p.add_argument("--ticks", type=int, default=20_000)
     p.add_argument("--seed", type=int, default=0)
+    p.add_argument(
+        "--policies",
+        help="time each policy's decisions instead: 'all' for the five personalities, "
+        "or a lineup / comma list as for --policy",
+    )
     p.set_defaults(func=cmd_bench)
 
-    p = sub.add_parser("watch", help="open the browser viewer (live match or replay)")
-    from arena.viz.server import VIEWER_DEFAULTS
+    p = sub.add_parser(
+        "check-personalities", help="run the phase 2 acceptance tournaments and report"
+    )
+    p.add_argument("--matches", type=int, default=100)
+    p.add_argument("--ticks", type=int, default=5000, help="episode length (%(default)s)")
+    p.add_argument("--width", type=int, default=100)
+    p.add_argument("--height", type=int, default=100)
+    p.add_argument("--seed-start", type=int, default=0)
+    p.add_argument("--workers", type=int, default=1, help="processes (results do not change)")
+    p.add_argument("--out", help="also write the markdown report to this file")
+    p.set_defaults(func=cmd_check_personalities)
 
-    add_game_options(p, VIEWER_DEFAULTS)
+    p = sub.add_parser("watch", help="open the browser viewer (live match or replay)")
+    from arena.viz.server import VIEWER_DEFAULTS, VIEWER_POLICY
+
+    add_game_options(p, VIEWER_DEFAULTS, VIEWER_POLICY)
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--replay", help="open this replay file instead of a live match")
     p.add_argument("--host", default="127.0.0.1")
