@@ -92,7 +92,8 @@ On this project's cloud container (Python 3.13, x86_64, single process):
 |---|---|
 | Engine only, 100 × 100, 5 snakes | ~34,700 ticks/s |
 | Full match with `RandomSafe` policies | ~18,000 ticks/s (a 100,000-tick match in ~5.5 s) |
-| `RandomSafe` kills per 1,000 ticks, 100 × 100 (all snakes) | 0.02 |
+| `RandomSafe` kills per 1,000 ticks, 100 × 100 (all snakes, 100 matches) | 0.049 |
+| Default 100-match tournament (100 × 100, cap 100,000) | all 100 hit the cap; ~1 kill per snake per match; 10M ticks in 148 s on 4 workers |
 | Median ticks to 10 kills, `RandomSafe`, 20 × 20 (8 seeds) | ~14,700 |
 
 Random snakes almost never kill on the full board, so default matches end at the tick

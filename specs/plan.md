@@ -18,21 +18,23 @@ land as **one to three small commits**, has concrete **targets**, and ends with 
 
 ## Step 0 — Scaffold
 
-### 0.1 Python project `[ ]`
+### 0.1 Python project `[x]`
 - `pyproject.toml` (Python ≥ 3.12, managed with `uv`), package `arena/` with empty
   subpackages `engine`, `agents`, `sim`, `rsi`, `evolution`, `viz`.
 - Dev tools: `pytest`, `hypothesis`, `ruff` (lint + format), `mypy --strict` on `arena/`.
-- Runtime deps: `numpy` only (plus `matplotlib` for reports in step 4.4).
+- Runtime deps: none so far (standard library only). `numpy` arrives with phase 3 and
+  `matplotlib` with reports in step 4.4.
 - **Targets:** `uv sync && uv run pytest` passes on a clean clone (one smoke test);
   `uv run ruff check . && uv run ruff format --check . && uv run mypy arena` are clean.
 - **Done when:** the commands above pass and are documented in `AGENTS.md`.
 
-### 0.2 CLI skeleton `[ ]`
-- `arena/cli.py` with `argparse` subcommands that exist but print "not implemented":
-  `run-match`, `run-tournament`, `watch`, `bench`, `rsi-demo`, `evolve`, `report`.
+### 0.2 CLI skeleton `[x]`
+- `arena/cli.py` with `argparse` subcommands. *As built:* `run-match`, `run-tournament`,
+  `bench` and `watch` exist; `rsi-demo`, `evolve` and `report` are added by the steps that
+  implement them rather than as stubs.
 - **Targets:** `python -m arena.cli --help` lists all subcommands.
 
-### 0.3 CI `[ ]`
+### 0.3 CI `[x]`
 - `.github/workflows/ci.yml`: on push to `main`, run ruff, mypy and pytest on Python 3.12
   and 3.13.
 - **Done when:** the first push shows a green run.
@@ -41,21 +43,21 @@ land as **one to three small commits**, has concrete **targets**, and ends with 
 
 ## Step 1 — The arena (phase 1)
 
-### 1.1 Core types `[ ]`
+### 1.1 Core types `[x]`
 - `arena/engine/types.py`: `Cell`, `Direction`, `SnakeId`, `GameConfig`, `SnakeState`,
   `GameState`, all events (`Death`, `Kill`, `Spawn`, `ActionFallback`, `MatchEnd`),
   `SnakeView`, `Observation`. Frozen dataclasses; tuples not lists.
 - `GameConfig` validates ranges (length 3–10, board ≥ 10 × 10, five snakes).
 - **Targets:** every type round-trips through `to_dict`/`from_dict` (tested).
 
-### 1.2 Seeded RNG `[ ]`
-- `arena/engine/rng.py`: a small explicit RNG state (PCG64 via NumPy `bit_generator.state`
-  or a hand-rolled xorshift) stored inside `GameState`; helper to derive child seeds from
+### 1.2 Seeded RNG `[x]`
+- `arena/engine/rng.py`: a small explicit RNG state stored inside `GameState`
+  (*as built:* SplitMix64, one integer); helper to derive child seeds from
   `(match_seed, purpose, snake_id)`.
 - **Targets:** same seed ⇒ same sequence; different purposes ⇒ independent streams;
   state is JSON-serialisable.
 
-### 1.3 Movement and collisions `[ ]`
+### 1.3 Movement and collisions `[x]`
 - `arena/engine/step.py`: `step(state, actions) -> (state, events)` implementing phase 1
   §2 exactly: reversal handling, tail removal snapshot, wall / self / body / head-on /
   head-swap, simultaneous kill credit, multi-victim credit, commit.
@@ -64,24 +66,24 @@ land as **one to three small commits**, has concrete **targets**, and ends with 
 - **Done when:** all golden tests pass, and a test proves results don't depend on the
   order snakes are listed in.
 
-### 1.4 Spawning and respawn `[ ]`
+### 1.4 Spawning and respawn `[x]`
 - `arena/engine/spawn.py`: seeded attempts (100) + deterministic row-major fallback,
   clearance rules, new `life_id`s, 10-tick respawn counter, retry when full.
 - **Targets:** golden tests for respawn timing, score persistence, no-room retry on a
   crowded tiny board; property test: no spawn ever overlaps a living snake.
 
-### 1.5 Match end and ranking `[ ]`
+### 1.5 Match end and ranking `[x]`
 - Win at `score_target`, end at `max_ticks`, ranking by kills → deaths → alive ticks →
   shared rank.
 - **Targets:** tests for single winner, simultaneous crossers, tick-cap end, full ties.
 
-### 1.6 Invariant fuzzing `[ ]`
+### 1.6 Invariant fuzzing `[x]`
 - `tests/engine/test_invariants.py` with `hypothesis` + a `RandomUniform` driver:
   shape invariant, one-cell moves, no reversals, scores == count of `Kill` events.
 - **Targets:** 200 seeds × 2,000 ticks run in < 60 s in CI.
 - **Done when:** M1 of the vision is satisfied: golden tests + invariants pass.
 
-### 1.7 Policies and the match runner `[ ]`
+### 1.7 Policies and the match runner `[x]`
 - `arena/agents/base.py` (`Policy` protocol, per-policy seeded RNG),
   `arena/agents/random_policies.py` (`RandomUniform`, `RandomSafe`).
 - `arena/sim/match.py`: `simulate_match(policies, seed, config, record=False) ->
@@ -90,30 +92,33 @@ land as **one to three small commits**, has concrete **targets**, and ends with 
 - **Targets:** determinism test (same seed twice ⇒ identical events);
   a policy that raises gets the fallback and the match continues.
 
-### 1.8 Replays `[ ]`
+### 1.8 Replays `[x]`
 - `arena/sim/replay.py`: write/read the phase 1 §8 schema; `resimulate(replay)`
   reproduces events from stored actions with no policies.
 - **Targets:** round-trip test on 20 seeds; schema version checked on load.
 
-### 1.9 Headless CLIs `[ ]`
+### 1.9 Headless CLIs `[x]`
 - `run-match` (prints standings table, optional `--replay`), `run-tournament` (process
   pool, JSONL per match, summary CSV, 5 × 5 kill matrix).
 - **Targets:** `run-tournament --matches 100` with `RandomSafe` gives byte-identical
   summaries with `--workers 1` and `--workers 4`.
 
-### 1.10 Benchmark `[ ]`
+### 1.10 Benchmark `[x]`
 - `bench` subcommand: ticks/second for the engine alone and with policies; kills per
   1,000 ticks for `RandomSafe` on 100 × 100.
 - **Targets:** ≥ 20,000 engine ticks/s single process (phase 1 §10). If missed, profile,
   fix the top hotspot once, and record the real number either way.
 
-### 1.11 Visualization `[ ]`
-- `arena/viz/server.py` (stdlib `http.server` + SSE) and `arena/viz/static/index.html`
+### 1.11 Visualization `[x]`
+- `arena/viz/server.py` (stdlib `http.server`; *as built:* the page pulls frames in
+  chunks instead of SSE, so pause/speed stay client-side) and `arena/viz/static/index.html`
   (Canvas + vanilla JS): board, five colours, head markers, interpolation, leaderboard,
   kill feed, play/pause/step/speed/restart/new seed; replay mode loads a JSON file.
 - **Targets:** `watch --seed 42` shows a live match; a Playwright smoke test loads the
   page, sees five snakes, presses pause and checks the tick counter stops; a test checks
   the viewer's final standings equal `run-match --seed 42` for a short match.
+- *As built:* the viewer defaults to 20 × 20 and first to 10 kills, with a settings form
+  for every game parameter, "finish now", and replay download/upload.
 - **Done when:** phase 1 acceptance (§11) passes in full; README updated with the real
   commands, the benchmark number and a screenshot.
 
@@ -259,8 +264,8 @@ Fill in as steps land. Never estimate here.
 
 | What | Value | Machine | Commit | Step |
 |---|---|---|---|---|
-| Engine ticks/s (5 × RandomSafe, 100 × 100) | — | — | — | 1.10 |
-| RandomSafe kills / 1,000 ticks (100 × 100) | — | — | — | 1.10 |
+| Engine ticks/s (5 × RandomSafe, 100 × 100) | ~34,700 (engine only); ~18,100 with RandomSafe policies | cloud container, Python 3.13, x86_64 | 94e5abd | 1.10 |
+| RandomSafe kills / 1,000 ticks (100 × 100) | 0.049 all snakes (≈0.01 per snake); 100/100 default matches hit the 100,000-tick cap with ~1 kill per snake | same; 100-match tournament, 10M ticks in 148 s on 4 workers | 2176c31 | 1.10 |
 | Personality decision time p50 / p99 | — | — | — | 2.6 |
 | Mean ticks to first-to-100 (personalities) | — | — | — | 2.6 |
 | Wall time per generation (default profile) | — | — | — | 4.6 |
