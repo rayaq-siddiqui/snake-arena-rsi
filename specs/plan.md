@@ -303,18 +303,22 @@ Behaviour table (100 matches, all five together, 5,000-tick episodes on 100 × 1
   the seat count). `tests/evolution/test_watch.py` plays every archived version of a
   three-generation run and checks a viewed game against the headless one.
 
-### 4.6 The real experiment `[ ]`
+### 4.6 The real experiment `[x]`
 - Run `evolve --generations 10` with the default profile (or the labelled experiment
   board from 2.6), generate the report, commit `experiments/<date>-baseline/report.md`
   and charts.
 - **Targets:** the report states for each lineage whether it improved on final seeds vs
   generation 0, with intervals. Honest "no improvement" is a valid outcome.
 - **Done when:** phase 4 acceptance passes and the README links the report.
-- *Status:* the experiment-profile baseline is in `experiments/2026-11-12-baseline/`
-  (README, report, dashboard, full run directory), linked from the README. Result: 0 of 5
-  lineages improved, and every lineage ran out of patience after 4 generations. The
-  default-profile run (`evolve --generations 3`, part of the acceptance criteria) is still
-  to do.
+- *Status:* done, with two runs, both linked from the README:
+  - `experiments/2026-11-12-default/`: the default profile, `evolve --generations 3`,
+    which completed with no human input. 1 of 5 lineages improved: Trapper
+    (+0.053 kills / 1k ticks on final seeds, 95% CI [+0.024, +0.087]); the other four
+    are unchanged.
+  - `experiments/2026-11-12-baseline/`: the reduced experiment profile. 0 of 5 improved,
+    and every lineage ran out of patience after 4 generations.
+  The specified 10-generation default run has not been done: at about 50 minutes per
+  generation it is a resume of the default run with `--generations 10`.
 
 ---
 
@@ -347,5 +351,5 @@ Fill in as steps land. Never estimate here.
 | Wall time per generation (experiment profile, 24 × 24, 2,000 ticks, 40 + 40 pairs) | 747, 755, 712, 434 s for generations 1-4 (640, 720, 640, 400 episodes); report 12 min | cloud container, 4 cores, 4 workers | 35f7d75 | 4.6 |
 | Wall time, `evolve --quick --generations 3` | 466 s in total (145, 162, 159 s per generation) | same, 4 workers (default) | 152c9a0 | 4.2 |
 | Paired seeds with any kill, reference context, 40 seeds per lineage | 40 × 40, 1,000 ticks: 0-5; 24 × 24, 2,000 ticks: 1-12 | same, 4 workers | 35f7d75 | 4.6 |
-| Wall time per generation (default profile) | — | — | — | 4.6 |
-| Lineages improved vs gen 0 (final seeds) | Experiment profile: 0 / 5 (0 accepts in 4 generations; see `experiments/2026-11-12-baseline/`). Default profile: — | same | 35f7d75 | 4.6 |
+| Wall time per generation (default profile, 100 × 100, 5,000 ticks, 100 + 100 pairs) | 2,885, 3,224, 2,132 s for generations 1-3 (1,600, 1,800, 1,200 episodes; about 7.2 s per episode per worker); report 58 min | cloud container, 4 cores, 4 workers | 3cfed63 | 4.6 |
+| Lineages improved vs gen 0 (final seeds) | Default profile, 3 generations: 1 / 5 (Trapper +0.053 kills / 1k, 95% CI [+0.024, +0.087]; `experiments/2026-11-12-default/`). Experiment profile: 0 / 5 (0 accepts in 4 generations; `experiments/2026-11-12-baseline/`) | same | 3cfed63 / 35f7d75 | 4.6 |
