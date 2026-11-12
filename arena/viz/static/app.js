@@ -7,6 +7,9 @@ const COLORS = ["#f7768e", "#9ece6a", "#e0af68", "#7aa2f7", "#bb9af7", "#7dcfff"
 const BASE_TPS = 10;
 const MAX_TICKS_PER_FRAME = 400;
 const FEED_LIMIT = 150;
+// At max speed a request asks for about this many seconds of the server's measured
+// output, so slow policies stream in small batches instead of stalling playback.
+const MAX_BATCH_SECONDS = 0.25;
 
 const $ = (sel) => document.querySelector(sel);
 const canvas = $("#board");
@@ -22,6 +25,7 @@ const view = {
   nextTick: 1,
   serverDone: false,
   fetching: false,
+  batch: 100,
   playing: true,
   speed: "5",
   lastTickAt: 0,
@@ -90,6 +94,7 @@ async function start(body) {
     nextTick: 1,
     serverDone: false,
     fetching: false,
+    batch: 100,
     effects: [],
     summary: null,
     lastTickAt: performance.now(),
@@ -105,14 +110,21 @@ async function start(body) {
 
 async function fill() {
   if (view.fetching || view.serverDone || !view.meta) return;
-  const want = view.speed === "max" ? 4000 : Math.max(60, BASE_TPS * Number(view.speed) * 3);
+  const max = view.speed === "max";
+  const want = max ? view.batch * 2 : Math.max(60, BASE_TPS * Number(view.speed) * 3);
   if (view.queue.length >= want / 2) return;
   view.fetching = true;
   const gen = view.gen;
-  const count = Math.min(5000, want);
+  const count = Math.min(5000, max ? view.batch : want);
+  const asked = performance.now();
   try {
     const data = await api(`/api/match/${view.meta.id}/frames?from=${view.nextTick}&count=${count}`);
     if (gen !== view.gen) return;
+    const seconds = Math.max(0.001, (performance.now() - asked) / 1000);
+    if (max && data.frames.length) {
+      const rate = data.frames.length / seconds;
+      view.batch = Math.round(Math.min(5000, Math.max(20, rate * MAX_BATCH_SECONDS)));
+    }
     if (data.frames.length) {
       view.queue.push(...data.frames);
       view.nextTick = data.frames[data.frames.length - 1].t + 1;
