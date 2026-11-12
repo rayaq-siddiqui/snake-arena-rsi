@@ -19,6 +19,7 @@ DEFAULT_SEARCH_RADIUS = 12
 DEFAULT_TRAP_MARGIN = 2.0
 DEFAULT_CUT_OFF_LENGTH = 5
 DEFAULT_KEEP_DISTANCE = 0
+DEFAULT_KEEP_REPEL = 0.0
 
 
 @dataclass(frozen=True)
@@ -220,15 +221,23 @@ def wall_distance(board: Board, me: SnakeId, move: Direction, p: Params) -> floa
 def nearest_enemy_head(board: Board, me: SnakeId, move: Direction, p: Params) -> float:
     """Distance from the new head to the nearest enemy head over (width + height); 1 if none.
 
-    Distances below ``keep_distance`` count as ``keep_distance``, so a snake pulled toward
-    heads stops pressing in where every move would risk a head-on crash.
+    A distance d below ``keep_distance`` k counts as ``k + keep_repel * (k - d)``. A snake
+    pulled toward heads (negative weight) therefore stops at distance k instead of pressing
+    in to where every move risks a head-on crash; with ``keep_repel`` > 0 it also backs off
+    when an enemy comes closer than k. With ``pull_radius`` r > 0, enemies farther than r
+    count as absent (1.0), so the pull only acts on snakes already nearby.
     """
     target = _target(board, me, move)
     heads = [e.body[0] for e in board.enemies(me)]
     if not heads:
         return 1.0
     keep = int(p.get("keep_distance", DEFAULT_KEEP_DISTANCE))
-    d = max(keep, min(manhattan(target, h) for h in heads))
+    d: float = min(manhattan(target, h) for h in heads)
+    reach = int(p.get("pull_radius", 0))
+    if reach and d > reach:
+        return 1.0
+    if d < keep:
+        d = keep + p.get("keep_repel", DEFAULT_KEEP_REPEL) * (keep - d)
     return d / (board.width + board.height)
 
 

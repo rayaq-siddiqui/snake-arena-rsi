@@ -143,9 +143,16 @@ def test_territory_sees_a_corridor_an_enemy_closes_first() -> None:
     assert territory(board, "s0", "DOWN", p) < 0.2
 
 
-def test_keep_distance_flattens_the_pull_near_enemies() -> None:
-    board = board_of(observe({"s0": line((5, 5), "DOWN"), "s1": line((5, 2), "UP")}))
-    assert nearest_enemy_head(board, "s0", "UP", P) == pytest.approx(2 / 40)
-    flat = {"keep_distance": 3}
-    assert nearest_enemy_head(board, "s0", "UP", flat) == pytest.approx(3 / 40)
-    assert nearest_enemy_head(board, "s0", "LEFT", flat) == pytest.approx(4 / 40)
+def test_keep_distance_stops_or_repels_the_pull() -> None:
+    board = board_of(observe({"s0": line((5, 5), "DOWN"), "s1": line((5, 1), "LEFT")}))
+    assert nearest_enemy_head(board, "s0", "UP", P) == pytest.approx(3 / 40)
+    floor = {"keep_distance": 4}
+    assert nearest_enemy_head(board, "s0", "UP", floor) == pytest.approx(4 / 40)
+    keep = {"keep_distance": 4, "keep_repel": 1.0}
+    assert nearest_enemy_head(board, "s0", "UP", keep) == pytest.approx(5 / 40)
+    assert nearest_enemy_head(board, "s0", "LEFT", keep) == pytest.approx(5 / 40)
+    assert nearest_enemy_head(board, "s0", "DOWN", keep) == pytest.approx(5 / 40)
+    far = board_of(observe({"s0": line((5, 15), "DOWN"), "s1": line((5, 1), "LEFT")}))
+    assert nearest_enemy_head(far, "s0", "UP", keep) == pytest.approx(13 / 40)
+    assert nearest_enemy_head(far, "s0", "UP", {"pull_radius": 12}) == 1.0
+    assert nearest_enemy_head(far, "s0", "UP", {"pull_radius": 13}) == pytest.approx(13 / 40)

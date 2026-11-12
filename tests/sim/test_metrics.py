@@ -1,7 +1,7 @@
 from arena.agents import make_policy
 from arena.engine import GameConfig, GameState, SnakeState
 from arena.sim.match import Match
-from arena.sim.metrics import SPACE_CAP, Behaviour, sample
+from arena.sim.metrics import SPACE_CAP, SPACE_RADIUS, Behaviour, sample
 from arena.sim.tournament import run_matches, summarise
 
 
@@ -18,8 +18,16 @@ def test_sample_measures_enemy_distance_and_reachable_space() -> None:
     totals = {"s0": Behaviour(), "s1": Behaviour()}
     sample(two_snakes(), totals)
     assert totals["s0"].mean_enemy_distance == 4
-    # 100 cells minus the four non-tail body cells; tails are free next tick.
-    assert totals["s0"].mean_space == 96 <= SPACE_CAP
+    # Cells within SPACE_RADIUS of the cell straight ahead, (2, 1), minus non-tail body cells
+    # (tails move away next tick).
+    blocked = {(2, 2), (2, 3), (6, 2), (6, 3)}
+    within = {
+        (x, y)
+        for x in range(10)
+        for y in range(10)
+        if abs(x - 2) + abs(y - 1) <= SPACE_RADIUS and (x, y) not in blocked
+    }
+    assert totals["s0"].mean_space == len(within) <= SPACE_CAP
     sample(two_snakes(), totals)
     assert totals["s0"].distance_samples == 2 and totals["s0"].mean_enemy_distance == 4
 

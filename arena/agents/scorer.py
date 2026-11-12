@@ -31,8 +31,20 @@ COMMON_PARAMS: tuple[Param, ...] = (
     Param("search_radius", 12, 4, 30, "int"),
     Param("trap_margin", 2.0, 1.0, 5.0),
     Param("keep_distance", 0, 0, 10, "int"),
+    Param("keep_repel", 0.0, 0.0, 5.0),
+    Param("pull_radius", 0, 0, 200, "int"),
     Param("random_tiebreak", 1, 0, 1, "int"),
 )
+
+
+def common_params(**defaults: float) -> tuple[Param, ...]:
+    """``COMMON_PARAMS`` with some defaults changed for one personality (bounds stay)."""
+    unknown = set(defaults) - {p.name for p in COMMON_PARAMS}
+    if unknown:
+        raise ValueError(f"unknown common parameters: {', '.join(sorted(unknown))}")
+    return tuple(
+        Param(p.name, defaults.get(p.name, p.default), p.low, p.high, p.kind) for p in COMMON_PARAMS
+    )
 
 
 def feature_weights(params: Mapping[str, float], prefix: str = "w_") -> dict[str, float]:

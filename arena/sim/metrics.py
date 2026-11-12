@@ -2,7 +2,8 @@
 
 The same measurement is used for every snake whatever its policy, so the numbers compare
 personalities fairly: Manhattan distance from the head to the nearest enemy head
-(aggression) and cells reachable from the head (caution), capped and radius-bounded.
+(aggression) and cells reachable from the head within ``SPACE_RADIUS`` steps (caution).
+A small radius keeps the number local: a wide one saturates on an open 100 x 100 board.
 """
 
 from __future__ import annotations
@@ -13,8 +14,8 @@ from arena.agents.base import Observation, legal_moves, next_cell, snake_views
 from arena.agents.features import board_of, flood_fill, manhattan
 from arena.engine import GameState
 
-SPACE_CAP = 200
-SPACE_RADIUS = 15
+SPACE_CAP = 1000
+SPACE_RADIUS = 6
 
 
 @dataclass
