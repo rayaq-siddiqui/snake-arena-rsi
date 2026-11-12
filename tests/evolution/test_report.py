@@ -2,8 +2,7 @@ import json
 from pathlib import Path
 
 import numpy as np
-from evo_helpers import tiny_evolution
-from test_run import AlwaysAccept
+from evo_helpers import AlwaysAccept, tiny_evolution
 
 from arena.cli import main
 from arena.evolution.report import load_lineage, verdict

@@ -286,10 +286,19 @@ def cmd_evolve(args: argparse.Namespace) -> int:
 
 
 def cmd_report(args: argparse.Namespace) -> int:
+    from arena.evolution.dashboard import write as write_dashboard
     from arena.evolution.report import write
 
     path = write(args.run, args.workers, rebuild=args.rebuild)
-    print(f"Wrote {path} and {path.with_name('progress.svg')}")
+    page = write_dashboard(args.run)
+    print(f"Wrote {path}, {path.with_name('progress.svg')} and {page}")
+    return 0
+
+
+def cmd_dashboard(args: argparse.Namespace) -> int:
+    from arena.evolution.dashboard import write
+
+    print(f"Wrote {write(args.run)}")
     return 0
 
 
@@ -368,6 +377,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--workers", type=int, default=None, help="processes (default: all cores)")
     p.add_argument("--rebuild", action="store_true", help="replay the report games again")
     p.set_defaults(func=cmd_report)
+
+    p = sub.add_parser(
+        "dashboard", help="phase 4: write dashboard.html for an evolve run (cheap; no games)"
+    )
+    p.add_argument("run", help="run directory, e.g. runs/demo")
+    p.set_defaults(func=cmd_dashboard)
 
     p = sub.add_parser("watch", help="open the browser viewer (live match or replay)")
     from arena.viz.server import VIEWER_DEFAULTS, VIEWER_POLICY

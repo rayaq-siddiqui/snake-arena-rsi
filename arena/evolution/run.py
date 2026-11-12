@@ -286,6 +286,7 @@ class Evolution:
                     self._write_params(lin, lin.hall(g))
                 seconds = time.monotonic() - started
                 self._log_generation(g, pending, seconds, episodes)
+                self._dashboard()
             final_g = max(lin.run.generation for lin in self.lineages.values())
             self._set_context(final_g)
             results = {}
@@ -307,9 +308,19 @@ class Evolution:
                     },
                 },
             )
+            self._dashboard()
             return EvolutionResult(final_g, reason, results)
         finally:
             self.workers.close()
+
+    def _dashboard(self) -> None:
+        """Rewrite dashboard.html; a broken page must never stop a long run."""
+        from arena.evolution import dashboard
+
+        try:
+            dashboard.write(self.dir)
+        except Exception as exc:
+            self.log(f"  dashboard not updated: {exc!r}")
 
     def _log_generation(
         self, g: int, pending: list[tuple[Lineage, Pending]], seconds: float, episodes: int
