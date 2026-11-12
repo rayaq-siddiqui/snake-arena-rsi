@@ -264,7 +264,7 @@ Fill in as steps land. Never estimate here.
 
 | What | Value | Machine | Commit | Step |
 |---|---|---|---|---|
-| Engine ticks/s (5 × RandomSafe, 100 × 100) | ~34,700 (engine only); ~18,100 with RandomSafe policies | cloud container, Python 3.13, x86_64 | 94e5abd | 1.10 |
+| Engine ticks/s (5 × RandomSafe, 100 × 100) | ~45,000 (engine only); ~26,000–30,000 with RandomSafe policies (was ~34,700 and ~18,100 at 94e5abd) | cloud container, Python 3.13, x86_64 | a223d9b | 1.10 |
 | RandomSafe kills / 1,000 ticks (100 × 100) | 0.049 all snakes (≈0.01 per snake); 100/100 default matches hit the 100,000-tick cap with ~1 kill per snake | same; 100-match tournament, 10M ticks in 148 s on 4 workers | 2176c31 | 1.10 |
 | Personality decision time p50 / p99 | — | — | — | 2.6 |
 | Mean ticks to first-to-100 (personalities) | — | — | — | 2.6 |

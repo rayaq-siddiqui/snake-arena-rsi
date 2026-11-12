@@ -48,7 +48,7 @@ rank  snake  policy          kills deaths    K/D alive ticks
    1  s4     random_safe         2     20   0.10      99,780
    2  s0     random_safe         1     22   0.05      99,758
    ...
-100,000 ticks in 5.54s (18,058 ticks/s)
+100,000 ticks in 3.65s (27,367 ticks/s)
 ```
 
 **Run a tournament** of seeded matches over several processes (results don't depend on
@@ -90,8 +90,8 @@ On this project's cloud container (Python 3.13, x86_64, single process):
 
 | What | Result |
 |---|---|
-| Engine only, 100 × 100, 5 snakes | ~34,700 ticks/s |
-| Full match with `RandomSafe` policies | ~18,000 ticks/s (a 100,000-tick match in ~5.5 s) |
+| Engine only, 100 × 100, 5 snakes | ~45,000 ticks/s |
+| Full match with `RandomSafe` policies | ~26,000–30,000 ticks/s (a 100,000-tick match in ~3.5 s) |
 | `RandomSafe` kills per 1,000 ticks, 100 × 100 (all snakes, 100 matches) | 0.049 |
 | Default 100-match tournament (100 × 100, cap 100,000) | all 100 hit the cap; ~1 kill per snake per match; 10M ticks in 148 s on 4 workers |
 | Median ticks to 10 kills, `RandomSafe`, 20 × 20 (8 seeds) | ~14,700 |
