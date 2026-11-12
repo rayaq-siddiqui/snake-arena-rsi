@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-from helpers import quadratic_run
+from rsi_helpers import quadratic_run
 
 from arena.rsi import Budget, PairedBootstrapRule, Run, RunConfig, make_proposer
 from arena.rsi.store import read_json

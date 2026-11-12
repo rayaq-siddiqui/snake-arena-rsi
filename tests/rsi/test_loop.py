@@ -3,7 +3,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from helpers import quadratic_run
+from rsi_helpers import quadratic_run
 
 from arena.rsi.store import Archive, read_json
 from arena.rsi.toys import NoisyQuadratic
