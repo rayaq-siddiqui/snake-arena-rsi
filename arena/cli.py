@@ -159,6 +159,14 @@ def cmd_run_tournament(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_bench(args: argparse.Namespace) -> int:
+    from arena.sim.bench import run_bench
+
+    config = config_from(args)
+    print(run_bench(config, args.ticks, args.seed, policy_names(args.policy, config.num_snakes)))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="arena", description="Snake Arena RSI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -179,6 +187,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--out", help="directory for matches.jsonl, summary.csv, kill_matrix.csv")
     p.add_argument("-v", "--verbose", action="store_true")
     p.set_defaults(func=cmd_run_tournament)
+
+    p = sub.add_parser("bench", help="measure engine and match speed")
+    add_game_options(p)
+    p.add_argument("--ticks", type=int, default=20_000)
+    p.add_argument("--seed", type=int, default=0)
+    p.set_defaults(func=cmd_bench)
 
     return parser
 

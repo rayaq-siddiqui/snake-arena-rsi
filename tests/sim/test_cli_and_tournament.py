@@ -49,3 +49,9 @@ def test_summary_counts_add_up() -> None:
     assert sum(s.wins for s in summaries) <= 5
     assert all(s.matches == 5 for s in summaries)
     assert summary_csv(summaries).startswith("snake,policy,matches,wins")
+
+
+def test_bench_reports_rates(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["bench", "--ticks", "500", "--width", "20", "--height", "20"]) == 0
+    out = capsys.readouterr().out
+    assert "engine only" in out and "kills per 1,000 ticks" in out
