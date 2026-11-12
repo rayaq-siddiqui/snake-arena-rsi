@@ -55,6 +55,17 @@ class RunConfig:
         return d
 
 
+@dataclass(frozen=True)
+class Pending:
+    """One computed but not yet committed generation of a run."""
+
+    generation: int
+    champion: Candidate
+    record: dict[str, Any]
+    state: dict[str, Any]
+    feedback: list[Feedback]
+
+
 @dataclass
 class RunResult:
     champion: Candidate
@@ -281,7 +292,6 @@ class Run:
 
         if decision.accept and best is not None:
             champion = best[0]
-            self.store.archive.add(champion)
             state["accepted"] += 1
             state["since_accept"] = 0
         else:
@@ -300,34 +310,80 @@ class Run:
         }
         return champion, record
 
-    # -- the run ------------------------------------------------------------------
+    # -- stepping, for drivers that run several lineages in lockstep -----------------
 
-    def run(self, on_generation: Callable[[dict[str, Any]], None] | None = None) -> RunResult:
-        pools, state = self._open()
-        champion = next(m for m in self.store.archive.members if m.id == state["champion"])
-        feedback = self._feedback()
-        started, seconds0 = self.clock(), state["seconds"]
-        state["stop_reason"] = None
-        while (reason := self._stop_reason(state)) is None:
-            g = state["generation"] + 1
-            champion, record = self._generation(g, pools, state, champion, feedback)
-            state["generation"] = g
-            state["champion"] = champion.id
-            state["archive"] = [m.id for m in self.store.archive.members]
-            state["proposer"] = self.proposer.state()
-            state["seconds"] = seconds0 + self.clock() - started
-            self.store.append_record(record)
-            self.store.save_checkpoint(state, champion)
-            if on_generation is not None:
-                on_generation(record)
+    def open(self) -> None:
+        """Create or resume the run directory; ``step``/``commit``/``finish`` need it."""
+        self._pools, self._state = self._open()
+        self._champion = next(
+            m for m in self.store.archive.members if m.id == self._state["champion"]
+        )
+        self._history = self._feedback()
+        self._started, self._seconds0 = self.clock(), self._state["seconds"]
+        self._state["stop_reason"] = None
+
+    @property
+    def generation(self) -> int:
+        return int(self._state["generation"])
+
+    @property
+    def champion(self) -> Candidate:
+        return self._champion
+
+    @property
+    def state(self) -> Mapping[str, Any]:
+        return self._state
+
+    def stop_reason(self) -> str | None:
+        return self._stop_reason(self._state)
+
+    def step(self, g: int) -> Pending:
+        """Run generation ``g`` without writing anything; ``commit`` makes it stick.
+
+        The proposer's in-memory state moves on, but its checkpoint does not, so a crash
+        before ``commit`` resumes from the last committed generation.
+        """
+        state = dict(self._state)
+        feedback = list(self._history)
+        champion, record = self._generation(g, self._pools, state, self._champion, feedback)
+        state["generation"] = g
+        state["champion"] = champion.id
+        members = [m.id for m in self.store.archive.members]
+        state["archive"] = members + ([champion.id] if champion.id not in members else [])
+        state["proposer"] = self.proposer.state()
+        state["seconds"] = self._seconds0 + self.clock() - self._started
+        return Pending(g, champion, record, state, feedback)
+
+    def commit(self, pending: Pending) -> None:
+        if all(m.id != pending.champion.id for m in self.store.archive.members):
+            self.store.archive.add(pending.champion)
+        self.store.append_record(pending.record)
+        self.store.save_checkpoint(pending.state, pending.champion)
+        self._state, self._champion = pending.state, pending.champion
+        self._history = pending.feedback
+
+    def finish(self, reason: str) -> RunResult:
+        """Record why the run stopped, check the champion on final seeds, write the report."""
+        state = self._state
         state["stop_reason"] = reason
-        self.store.save_checkpoint(state, champion)
-        final = self._final(pools, champion)
+        self.store.save_checkpoint(state, self._champion)
+        final = self._final(self._pools, self._champion)
         result = RunResult(
-            champion, self.baseline, state["generation"], state["accepted"], reason, final
+            self._champion, self.baseline, state["generation"], state["accepted"], reason, final
         )
         write_report(self.store, result, self.space)
         return result
+
+    # -- the run ------------------------------------------------------------------
+
+    def run(self, on_generation: Callable[[dict[str, Any]], None] | None = None) -> RunResult:
+        self.open()
+        while (reason := self.stop_reason()) is None:
+            pending = self.step(self.generation + 1)
+            self.commit(pending)
+            if on_generation is not None:
+                on_generation(pending.record)
+        return self.finish(reason)
 
     def _final(self, pools: SeedPools, champion: Candidate) -> dict[str, Any] | None:
         """Champion vs baseline on the final seeds, which nothing saw during the run."""
@@ -335,4 +391,8 @@ class Run:
             return None
         r = self._evaluate(champion, self.baseline, pools.final)
         lo, hi = bootstrap_ci(r.diffs, rng_for(self.config.run_seed, 0, "final"))
-        return {**r.summary(), "ci": [lo, hi]}
+        return {
+            **r.summary(),
+            "ci": [lo, hi],
+            "guards": {k: list(v) for k, v in r.guards().items()},
+        }

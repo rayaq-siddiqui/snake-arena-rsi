@@ -138,3 +138,19 @@ def test_a_crashing_evaluator_counts_as_failures(tmp_path: Path) -> None:
         json.loads(line) for line in (tmp_path / "generations.jsonl").read_text().splitlines()
     ]
     assert all("failures" in rec["decision"]["rationale"] for rec in records)
+
+
+def test_an_uncommitted_step_leaves_no_trace(tmp_path: Path) -> None:
+    whole = quadratic_run(tmp_path / "whole", generations=6).run()
+    run = quadratic_run(tmp_path / "cut", generations=6)
+    run.open()
+    for g in (1, 2, 3):
+        run.commit(run.step(g))
+    run.step(4)  # computed, then the process "dies" before commit
+    archived = sorted(p.stem for p in (tmp_path / "cut" / "archive").glob("*.json"))
+    assert archived == sorted(run.state["archive"])
+    assert len((tmp_path / "cut" / "generations.jsonl").read_text().splitlines()) == 3
+    resumed = quadratic_run(tmp_path / "cut", generations=6).run()
+    for name in ("generations.jsonl", "champion.json"):
+        assert (tmp_path / "whole" / name).read_text() == (tmp_path / "cut" / name).read_text()
+    assert resumed.champion == whole.champion
