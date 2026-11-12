@@ -12,7 +12,7 @@ match live or replay a saved one). In this phase every snake is a simple random 
 | Setting | Default | Notes |
 |---|---|---|
 | Board | 100 × 100, bounded, no wrap | `(0,0)` is top-left; `x` grows right, `y` grows down |
-| Snakes | Exactly 5 persistent identities | ids `s0`…`s4` until phase 2 names them |
+| Snakes | 5 persistent identities | ids `s0`…`s4` until phase 2 names them; configurable 1–8 |
 | Snake length | Fixed **5** cells, no growth | configurable 3–10 |
 | Directions | `UP`, `DOWN`, `LEFT`, `RIGHT` | a 180° reversal is treated as "continue straight" |
 | Movement | Simultaneous: every alive snake moves one cell per tick | |
@@ -20,10 +20,11 @@ match live or replay a saved one). In this phase every snake is a simple random 
 | Respawn delay | 10 ticks after death | retried every tick until a safe spot exists |
 | Score | +1 per credited kill | deaths cost no points |
 | Win | First snake to **100 kills** | checked at the end of each tick |
-| Tick cap | 200,000 ticks | safety net; the match then ends by ranking (§5) |
+| Tick cap | 100,000 ticks | safety net; the match then ends by ranking (§5) |
 
 The win target and the tick cap are both configurable so tests and experiments can use
-short matches (for example first to 10 on a 40 × 40 board).
+short matches. The viewer defaults to a 20 × 20 board and first to 10 kills (§9), because
+random snakes on 100 × 100 almost never reach 100 kills before the cap (§10).
 
 ## 2. One tick, step by step
 
@@ -145,7 +146,7 @@ also exists as a control.
 
 ```bash
 python -m arena.cli run-match --seed 42 [--width 100 --height 100 --length 5 \
-    --target 100 --max-ticks 200000] [--replay out/match-42.json]
+    --target 100 --max-ticks 100000] [--replay out/match-42.json]
 python -m arena.cli run-tournament --matches 100 --seed-start 0 --out out/tournament/
 ```
 
@@ -185,17 +186,22 @@ python -m arena.cli watch --replay out/match-42.json
 ```
 
 - A single static page (`arena/viz/static/index.html`, plain HTML + Canvas + JS, no build
-  step) served by a tiny standard-library HTTP server. Live mode streams ticks with
-  Server-Sent Events; replay mode loads the JSON.
+  step) served by a tiny standard-library HTTP server. The page fetches frames in order
+  in chunks (`GET /api/match/<id>/frames?from=N&count=K`); the server computes ticks only
+  when asked. (This replaced the earlier Server-Sent Events idea: pull-based chunks make
+  pause and speed purely client-side.) Replay mode re-runs a replay's stored actions.
+- Settings form: seed, board size, snake count and length, kills to win (default 10),
+  respawn delay, tick cap and policy. "Finish now" runs the match to the end instantly.
+  Replays can be downloaded from a live match and loaded back.
 - Dark board, five clearly different colours, a distinct head marker, smooth
   interpolation between ticks.
 - Side panel leaderboard: snake, kills, deaths, K/D, current life length, respawn
   countdown.
 - Kill feed: `s2 eliminated s4`; head-on crashes show `s1 × s3 — head-on, no killer`.
-- Controls: play/pause, step one tick, speed 1× / 2× / 5× / 10× / max, restart, new seed.
+- Controls: play/pause, step one tick, speed 1× / 2× / 5× / 10× / 50× / max, start, new seed.
 - **Speed and pause only change playback.** The live server computes ticks on demand at
   the requested rate; the result of a seed never depends on how fast it was watched.
-- Default live rate: 10 ticks per second.
+- Base rate: 10 ticks per second at 1×; the page opens at 5× (50 ticks/s).
 
 ## 10. Performance
 
