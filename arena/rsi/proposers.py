@@ -28,9 +28,9 @@ def describe_change(
     old: Mapping[str, float], new: Mapping[str, float], space: Sequence[ParamSpec]
 ) -> str:
     parts = [
-        f"{p.name} {old[p.name]:.4g}->{new[p.name]:.4g}"
+        f"{p.name} {a}->{b}"
         for p in space
-        if old[p.name] != new[p.name]
+        if (a := f"{old[p.name]:.4g}") != (b := f"{new[p.name]:.4g}")
     ]
     return ", ".join(parts) if parts else "no change"
 

@@ -3,7 +3,7 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from arena.rsi.proposers import PROPOSERS, make_proposer
+from arena.rsi.proposers import PROPOSERS, describe_change, make_proposer
 from arena.rsi.types import Candidate, Feedback, History, PairedResult, ParamSpec, validate
 
 
@@ -117,3 +117,10 @@ def test_coordinate_search_halves_delta_after_a_fruitless_cycle() -> None:
 def test_unknown_proposers_are_rejected() -> None:
     with pytest.raises(ValueError, match="unknown proposer"):
         make_proposer("telepathy")
+
+
+def test_a_change_note_ignores_round_trip_noise() -> None:
+    space = [ParamSpec("a", "float", 0.0, 100.0, 20.0), ParamSpec("b", "float", 0.0, 1.0, 0.5)]
+    note = describe_change({"a": 20.0, "b": 0.5}, {"a": 20.00000000000003, "b": 0.75}, space)
+    assert note == "b 0.5->0.75"
+    assert describe_change({"a": 20.0, "b": 0.5}, {"a": 20.0, "b": 0.5}, space) == "no change"
