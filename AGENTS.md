@@ -125,6 +125,7 @@ uv run python -m arena.cli check-personalities --workers 4        # phase 2 acce
 uv run python -m arena.cli watch                                  # browser viewer
 uv run python -m arena.cli rsi-demo --problem quadratic           # RSI loop on a toy
 uv run python -m arena.cli evolve --quick --generations 3 --run-id demo   # snakes tune themselves
+uv run python -m arena.cli evolve --generations 10 --max-hours 12 --run-id long  # capped long run
 uv run python -m arena.cli report runs/demo                       # report.md + progress.svg
 uv run python -m arena.cli watch --run runs/demo --vs-generation 0   # evolved vs original
 ```

@@ -261,6 +261,8 @@ def cmd_evolve(args: argparse.Namespace) -> int:
         args.generations,
         args.run_seed,
         args.workers,
+        max_seconds=None if args.max_hours is None else args.max_hours * 3600,
+        max_episodes=args.max_episodes,
         log=lambda m: print(m, flush=True),
     )
     started = time.monotonic()
@@ -370,6 +372,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--runs-dir", default="runs")
     p.add_argument("--run-seed", type=int, default=0)
     p.add_argument("--workers", type=int, default=None, help="processes (default: all cores)")
+    p.add_argument(
+        "--max-hours",
+        type=float,
+        help="stop after the generation that passes this much run time, summed over resumes",
+    )
+    p.add_argument(
+        "--max-episodes", type=int, help="stop a lineage once it has played this many episodes"
+    )
     p.set_defaults(func=cmd_evolve)
 
     p = sub.add_parser("report", help="phase 4: write report.md and charts for an evolve run")

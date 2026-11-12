@@ -53,6 +53,21 @@ def test_the_arena_hash_covers_policies_and_their_params(tmp_path: Path) -> None
     assert code_hash(copy, ("*.py", "*.json")) != before
 
 
+def test_a_time_budget_counts_every_generation_over_resumes(tmp_path: Path) -> None:
+    tiny_evolution(tmp_path, generations=1).run()
+    spent = Evolution.seconds(tiny_evolution(tmp_path))
+    r = tiny_evolution(tmp_path, generations=3, max_seconds=spent).run()
+    assert r.generations == 1 and r.stop_reason == "time budget"
+    assert {x.stop_reason for x in r.lineages.values()} == {"time budget"}
+    r = tiny_evolution(tmp_path, generations=2, max_seconds=spent + 1e9).run()
+    assert r.generations == 2 and r.stop_reason == "generation budget"
+
+
+def test_an_episode_budget_stops_every_lineage(tmp_path: Path) -> None:
+    r = tiny_evolution(tmp_path, generations=5, max_episodes=1).run()
+    assert r.generations == 1 and r.stop_reason == "episode budget"
+
+
 def test_context_freezes_champions_from_the_previous_generation(tmp_path: Path) -> None:
     evo = tiny_evolution(tmp_path, generations=2, rule=AlwaysAccept())
     evo.run()

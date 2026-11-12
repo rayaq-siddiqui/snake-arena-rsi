@@ -104,7 +104,11 @@ its own parameters every generation and keeps it only if paired games on held-ou
 show a real gain without more deaths. `--quick` is a fast end-to-end check (about 8
 minutes on 4 cores). `--profile experiment` is the reduced setting used for the
 baseline, and the default profile is the full specified experiment (hours per
-generation). Re-running the same command resumes the run.
+generation). Re-running the same command resumes the run. For long runs, `--max-hours H`
+stops after the generation in which the run's total time, summed over resumes, reaches
+H hours. `--max-episodes N` stops each lineage after N episodes. Creating a file named
+`STOP` in the run directory stops the run after the current generation. Any of these
+stops can be resumed later with a larger budget.
 
 ```bash
 uv run python -m arena.cli evolve --quick --generations 3 --run-id demo

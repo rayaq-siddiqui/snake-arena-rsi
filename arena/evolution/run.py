@@ -182,6 +182,8 @@ class Evolution:
         run_seed: int = 0,
         workers: int | None = None,
         lineages: tuple[str, ...] = PERSONALITIES,
+        max_seconds: float | None = None,
+        max_episodes: int | None = None,
         proposer: Callable[[str], Proposer] | None = None,
         rule: AcceptanceRule | None = None,
         log: Callable[[str], None] = lambda _: None,
@@ -192,6 +194,8 @@ class Evolution:
         self.run_seed = run_seed
         self.workers = Workers(workers)
         self.names = lineages
+        self.max_seconds = max_seconds
+        self.max_episodes = max_episodes
         self.make_proposer = proposer or (lambda _: make_proposer(profile.proposer))
         self.rule = rule or profile.rule()
         self.log = log
@@ -230,7 +234,7 @@ class Evolution:
                 dev_pool=p.dev_pool,
                 final_pairs=p.final_pairs,
                 patience=p.patience,
-                budget=Budget(generations=self.generations),
+                budget=Budget(self.generations, self.max_episodes),
             )
             evaluator = SnakeEvaluator(name, p.settings, self.workers)
             run = Run(
@@ -271,14 +275,21 @@ class Evolution:
     def active(self) -> list[Lineage]:
         return [lin for lin in self.lineages.values() if lin.run.stop_reason() is None]
 
+    def seconds(self) -> float:
+        """Wall time of every finished generation, summed over resumes."""
+        path = self.dir / "timing.jsonl"
+        if not path.exists():
+            return 0.0
+        return sum(float(json.loads(line)["seconds"]) for line in path.read_text().splitlines())
+
     def stop_reason(self) -> str | None:
         if (self.dir / "STOP").exists():
             return "stop file"
+        if self.max_seconds is not None and self.seconds() >= self.max_seconds:
+            return "time budget"
         if not self.active():
             reasons = {lin.run.stop_reason() for lin in self.lineages.values()}
-            return (
-                "generation budget" if reasons == {"generation budget"} else "every lineage stopped"
-            )
+            return str(reasons.pop()) if len(reasons) == 1 else "every lineage stopped"
         return None
 
     def run(self) -> EvolutionResult:
