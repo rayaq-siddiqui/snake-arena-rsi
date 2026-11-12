@@ -2,10 +2,12 @@
 
 from arena.agents.base import Observation, Policy, SnakeView
 from arena.agents.random_policies import RandomSafe, RandomUniform
-from arena.agents.registry import DEFAULT_POLICY, POLICIES, make_policy
+from arena.agents.registry import DEFAULT_POLICY, LINEUPS, PERSONALITIES, POLICIES, make_policy
 
 __all__ = [
     "DEFAULT_POLICY",
+    "LINEUPS",
+    "PERSONALITIES",
     "POLICIES",
     "Observation",
     "Policy",
