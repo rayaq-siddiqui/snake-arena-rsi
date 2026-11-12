@@ -15,9 +15,10 @@ not self-modification of any underlying language model.
 
 ## Where things stand
 
-Phases 1 and 2 are built: the engine, random policies, headless CLIs, replays, the browser
-viewer, and the five parameterized personalities with their acceptance check. Phases 3–4
-are still specs. Read the specs before writing code:
+Phases 1–3 are built: the engine, random policies, headless CLIs, replays, the browser
+viewer, the five parameterized personalities with their acceptance check, and the generic
+RSI framework proven on toy problems. Phase 4
+is still a spec. Read the specs before writing code:
 
 ```
 README.md                 Short project summary and how to run it
@@ -54,7 +55,13 @@ arena/
                personality_check.py (phase 2 acceptance), boards.py (named configs).
   viz/         server.py (stdlib HTTP, pull-based frames) + static/ (Canvas page).
   cli.py       `python -m arena.cli run-match | run-tournament | bench | watch`.
-  rsi/         (phase 3) The generic RSI framework; must not import engine/agents/sim.
+  rsi/         The generic RSI framework (NumPy); must not import engine/agents/sim.
+    types.py     ParamSpec, Candidate, PairedResult, Decision, Feedback, Budget, protocols.
+    seeds.py     Disjoint dev / holdout / final seed pools; rng_for(seed, gen, purpose).
+    accept.py    PairedBootstrapRule and guard metrics.
+    proposers.py Five built-in proposers working in normalised parameter space.
+    loop.py      Run: propose -> dev screen -> holdout -> accept; budgets, resume.
+    store.py     Run directory, atomic writes, immutable archive; report.py, toys.py.
   evolution/   (phase 4) Plugs snakes into the RSI framework.
 tests/         Mirrors arena/ (tests/engine, tests/sim, tests/viz).
 docs/          Screenshots.
@@ -86,7 +93,7 @@ library; dev tools are pytest, hypothesis, ruff and mypy (strict).
 
 ```bash
 uv sync                                   # install
-uv run pytest                             # all tests (~85 s; includes engine fuzzing)
+uv run pytest                             # all tests (~105 s; includes engine fuzzing)
 uv run ruff check . && uv run ruff format --check . && uv run mypy   # lint, format, types
 uv run python -m arena.cli run-match --seed 42                     # one headless match
 uv run python -m arena.cli run-tournament --matches 100 --workers 4 --out out/t
@@ -94,6 +101,7 @@ uv run python -m arena.cli bench                                  # speed + kill
 uv run python -m arena.cli bench --policies all                   # personality decision times
 uv run python -m arena.cli check-personalities --workers 4        # phase 2 acceptance (slow)
 uv run python -m arena.cli watch                                  # browser viewer
+uv run python -m arena.cli rsi-demo --problem quadratic           # RSI loop on a toy
 ```
 
 CI (`.github/workflows/ci.yml`) runs the lint, type and test commands above. The browser

@@ -194,42 +194,55 @@ Behaviour table (100 matches, all five together, 5,000-tick episodes on 100 × 1
 
 ## Step 3 — Generic RSI framework (phase 3)
 
-### 3.1 Types and storage `[ ]`
+### 3.1 Types and storage `[x]`
 - `arena/rsi/types.py` (`ParamSpec`, `Candidate`, `PairedResult`, `Decision`,
   `History`, `Budget`), `arena/rsi/store.py` (run directory layout, atomic writes,
   `generations.jsonl`, immutable archive).
 - **Targets:** an import-graph test proves `arena.rsi` imports nothing from
   `arena.engine`, `arena.agents`, `arena.sim`.
+  *As built:* `Feedback` added (what proposers may see); `store.py` also holds the `Archive` with
+  opponent sampling (`latest`/`baseline`/`uniform`/`milestones`). `tests/rsi/test_imports.py`
+  walks the AST.
 
-### 3.2 Seed pools `[ ]`
+### 3.2 Seed pools `[x]`
 - `arena/rsi/seeds.py`: dev / holdout / final pools from a run seed, per-generation dev
   slices, holdout rotation.
 - **Targets:** pools are disjoint (tested); same run seed ⇒ same pools.
+  *As built:* pools drawn without repeats; holdout blocks hold the sample plus its one
+  extension; `tests/rsi/test_seeds.py`.
 
-### 3.3 Acceptance rule `[ ]`
+### 3.3 Acceptance rule `[x]`
 - `arena/rsi/accept.py`: `PairedBootstrapRule` with dev screen, min relative gain,
   seeded bootstrap CI, guard metrics, one optional extension, rationale text.
 - **Targets:** unit tests on fixed arrays (accept, reject on CI, reject on gain, reject on
   guard, reject on failures, extension path).
+  *As built:* `tests/rsi/test_accept.py` covers every path listed.
 
-### 3.4 Proposers `[ ]`
+### 3.4 Proposers `[x]`
 - `arena/rsi/proposers.py`: `RandomRestart`, `GaussianHillClimb` (1/5th rule),
   `CoordinateSearch`, `CrossEntropy`, `ArchiveCrossover`; normalised/log space mapping.
 - **Targets:** every proposal is within bounds (property test); proposer state
   round-trips through the checkpoint.
+  *As built:* proposers learn from `Feedback` (dev results + accept bit), never a
+  `Decision`; a `batch` attribute lets `CrossEntropy` screen 6 per generation.
 
-### 3.5 The loop, budgets and resume `[ ]`
+### 3.5 The loop, budgets and resume `[x]`
 - `arena/rsi/loop.py`: phase 3 §3 loop, budgets, patience, STOP file, checkpoint/resume.
 - **Targets:** kill-and-resume test equals an uninterrupted run; same config ⇒ identical
   `generations.jsonl`.
+  *As built:* kill-resume tested after 1, 7 and 16 generations plus a half-written
+  line; a fake clock tests the time budget.
 
-### 3.6 Toy problems and demo `[ ]`
+### 3.6 Toy problems and demo `[x]`
 - `arena/rsi/toys.py`: noisy quadratic, pure noise, crashing evaluator; spy evaluator
   asserting the proposer never sees holdout data; `rsi-demo` CLI.
 - **Targets (phase 3 §11):** quadratic within 10% in ≤ 60 generations on ≥ 9/10 seeds and
   beats `RandomRestart`; pure-noise false-accept rate ≤ 5% over 200 generations; crashing
   candidates never accepted.
 - **Done when:** phase 3 acceptance passes.
+  *As built:* "within 10%" means remaining regret ≤ 10% of the baseline's (the
+  optimum scores 0). Hill climb 10/10, random restart 0/10; pure noise 1.4% (14/1,000);
+  151/151 worse candidates rejected. Numbers in `specs/phase-3-rsi-framework.md`.
 
 ---
 

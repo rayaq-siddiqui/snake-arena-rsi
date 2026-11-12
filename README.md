@@ -7,8 +7,9 @@ its rivals and against older versions of everyone, and keeps the change only if 
 really wins more. Repeat that loop and you have a small, watchable lab for
 **recursive self-improvement (RSI)**.
 
-Five personalities play today (Hunter, Survivor, Trapper, Predictor, Opportunist); the
-self-improvement loop is next.
+Five personalities play today (Hunter, Survivor, Trapper, Predictor, Opportunist), and a
+generic, snake-agnostic improvement loop (`arena/rsi`) is built and proven on toy
+problems; plugging the snakes into it is next.
 
 ![The Snake Arena viewer: five random snakes on a 20 × 20 board with the leaderboard and settings](docs/viewer.png)
 
@@ -86,6 +87,15 @@ uv run python -m arena.cli bench --policies all
 uv run python -m arena.cli check-personalities --workers 4
 ```
 
+**Run the improvement loop on a toy problem** (a noisy 5-D quadratic with a known best).
+It prints each generation's decision and writes a run directory (`config.json`,
+`generations.jsonl`, `archive/`, `champion.json`, `report.md`) under `runs/`. Running the
+same command again resumes the run; pass a larger `--generations` to extend it.
+
+```bash
+uv run python -m arena.cli rsi-demo --problem quadratic --generations 60
+```
+
 `--policy` takes one policy for every snake (`random_safe`, `hunter`, …), a comma list
 per snake, or the `personalities` lineup.
 
@@ -113,10 +123,12 @@ On this project's cloud container (Python 3.13, x86_64, single process):
 | `RandomSafe` kills per 1,000 ticks, 100 × 100 (all snakes, 100 matches) | 0.049 |
 | Default 100-match tournament (100 × 100, cap 100,000) | all 100 hit the cap; ~1 kill per snake per match; 10M ticks in 148 s on 4 workers |
 | Median ticks to 10 kills, `RandomSafe`, 20 × 20 (8 seeds) | ~14,700 |
-
 | Personality time per move, 100 × 100 (median / p99) | 0.44–0.81 ms / 0.94–1.95 ms |
 | Each personality vs 4 × `RandomSafe`: kills per 1,000 ticks (100 matches) | Hunter 1.66, Predictor 1.73, Trapper 0.76, Survivor 0.24, Opportunist 0.15; `RandomSafe` ≤ 0.015 |
 | Deaths per 1,000 alive ticks, all five personalities together | 0–0.034, vs 0.192 for `RandomSafe` |
+
+| Improvement loop, 5-D noisy quadratic, 60 generations (10 seeds) | `gaussian_hill_climb` within 10% of the optimum on 10/10, `random_restart` on 0/10 |
+| Improvement loop on pure noise (5 × 200 generations) | 14 accepts in 1,000 (1.4%) |
 
 Random snakes almost never kill on the full board, so default matches end at the tick
 cap. The personalities kill random snakes far more often, but against each other they are
@@ -150,7 +162,7 @@ The viewer and the CLI use the same engine, so a seed plays out identically in b
    a visualization mode. The snakes move randomly (safely).
 2. **Personalities** ✅ — each snake gets its own objective: Hunter, Survivor, Trapper,
    Predictor, Opportunist.
-3. **RSI framework** — a generic propose → test → keep-or-reject loop that knows nothing
+3. **RSI framework** ✅ — a generic propose → test → keep-or-reject loop that knows nothing
    about snakes, with honest statistics, held-out tests, and a hall of fame.
 4. **Snakes that improve themselves** — each snake plugs into the framework and tunes its
    own parameters, generation after generation.
@@ -165,7 +177,8 @@ The viewer and the CLI use the same engine, so a seed plays out identically in b
 
 ## Limitations
 
-- No self-improvement yet: personality weights are hand-set (phases 3–4 tune them).
+- The snakes don't improve themselves yet: personality weights are hand-set until phase 4
+  plugs them into the loop.
 - The viewer is a local development tool (no auth); it binds to 127.0.0.1 by default.
 - The opt-in per-move time budget uses wall-clock time, so it's off by default to keep
   headless runs deterministic.

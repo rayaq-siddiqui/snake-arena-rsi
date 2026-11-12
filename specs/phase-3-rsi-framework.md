@@ -198,3 +198,46 @@ Before any snake uses it, the framework is tested on toy problems in `tests/rsi/
   on the same budget.
 - `python -m arena.cli rsi-demo --problem quadratic` runs a full loop and writes a run
   directory with the layout in §9.
+
+## As built
+
+Phase 3 is done; all of §11 passes (`tests/rsi/`). Where the code differs from the text
+above, the code is the reference:
+
+- **Dependency.** NumPy (`numpy>=2.0`) is the first runtime dependency. Only `arena/rsi`
+  uses it; the engine, simulator and viewer stay standard-library only.
+- **What a proposer sees.** `observe()` takes a sequence of `Feedback` (the candidate,
+  its dev `PairedResult`, its stage and the accept bit), not the `Decision`, because a
+  decision's stats hold holdout numbers. `History` carries the same feedback plus the
+  archive.
+- **Batches.** A proposer may set `batch > 1` (`CrossEntropy` uses 6). Each candidate is
+  screened on its own fresh dev slice, and only the best by dev mean difference goes on
+  to holdout, so a batch costs dev episodes but never extra holdout looks.
+- **Seeds.** `rng_for(run_seed, generation, purpose)` seeds every random choice. Pools are
+  drawn without repeats: a 10,000-seed dev pool, holdout blocks of twice
+  `holdout_pairs` (the decision sample plus its one extension) rotated every
+  `holdout_rotate` generations, and 200 final seeds.
+- **Resume.** The checkpoint is written after each generation's record is appended. On
+  resume, uncommitted lines are truncated, and only the budget may differ from the
+  stored config.
+- **"Within 10% of the optimum's score".** The optimum scores 0, so a relative 10% is
+  undefined. As built, it means the champion's remaining regret is at most 10% of the
+  baseline's.
+- **Toy noise.** Toy scores add a shared per-seed part (sd 5), which pairing cancels, and
+  a per-candidate part (sd 1).
+- **Not built.** `LLMProposer` (optional, off by default; now plan step 5.5) and the
+  meta-run (plan step 5.1).
+
+Measured (cloud container, Python 3.13, 5-D quadratic, 60 generations, 10 run seeds; time
+is for all 10 runs):
+
+| Proposer | Seeds within 10% | Time |
+|---|---|---|
+| `gaussian_hill_climb` | 10/10 | 8.5 s |
+| `coordinate_search` | 10/10 | 7 s |
+| `cross_entropy` | 10/10 | 35 s |
+| `archive_crossover` | 3/10 | 7.5 s |
+| `random_restart` | 0/10 | 5.7 s |
+
+Pure noise: 14 accepts in 1,000 generations (5 seeds × 200), 1.4%. Worse candidates
+from `random_restart` (4 seeds × 40 generations): 151 of 151 rejected.
