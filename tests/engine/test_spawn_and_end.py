@@ -103,3 +103,24 @@ def test_ranking_tie_breakers_and_shared_rank() -> None:
     )
     got = [(s.snake, s.rank) for s in rank(snakes)]
     assert got == [("s1", 1), ("s0", 2), ("s4", 3), ("s2", 4), ("s3", 4)]
+
+
+def test_two_snakes_reaching_the_target_together_are_ranked_by_tie_breakers() -> None:
+    config = GameConfig(width=10, height=10, snake_length=3, score_target=1)
+    state = make_state(
+        {
+            "s0": line((2, 5), "LEFT", 3),
+            "s1": line((3, 4), "DOWN", 3),
+            "s2": line((6, 5), "LEFT", 3),
+            "s3": line((7, 4), "DOWN", 3),
+        },
+        config=config,
+        s1={"deaths": 2},
+        s3={"deaths": 1},
+    )
+    state, events = step(state, {"s0": "RIGHT", "s1": "UP", "s2": "RIGHT", "s3": "UP"})
+    assert state.finished and state.end_reason == "score_target"
+    assert state.snake("s1").kills == 1 and state.snake("s3").kills == 1
+    end = events[-1]
+    assert isinstance(end, MatchEnd)
+    assert [(s.snake, s.rank) for s in end.standings[:2]] == [("s3", 1), ("s1", 2)]
