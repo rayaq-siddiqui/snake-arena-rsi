@@ -70,7 +70,7 @@ class Session:
         if replay is not None:
             check_schema(replay)
             self.mode = "replay"
-            self.policies = [p["name"] for p in replay["policies"]]
+            self.policies = [replay["policies"][sid]["name"] for sid in config.snake_ids]
             self.replay_actions = replay["actions"]
             self.state, events = new_game(config, seed)
         else:

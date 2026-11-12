@@ -6,7 +6,15 @@ import pytest
 from arena.agents import make_policy
 from arena.engine import GameConfig
 from arena.sim.match import Match
-from arena.sim.replay import build_replay, load_replay, resimulate, save_replay, verify_replay
+from arena.sim.replay import (
+    build_replay,
+    load_replay,
+    policy_hash,
+    resimulate,
+    save_replay,
+    scores_from_events,
+    verify_replay,
+)
 
 CONFIG = GameConfig(width=16, height=16, score_target=5, max_ticks=1500)
 
@@ -47,3 +55,28 @@ def test_unrecorded_match_cannot_build_a_replay() -> None:
     m = Match([make_policy("random_safe") for _ in range(5)], 1, CONFIG)
     with pytest.raises(ValueError):
         build_replay(m)
+
+
+def test_replay_names_each_snakes_policy_with_a_source_hash() -> None:
+    replay = build_replay(recorded(2))
+    assert list(replay["policies"]) == ["s0", "s1", "s2", "s3", "s4"]
+    entry = replay["policies"]["s0"]
+    assert entry["name"] == "random_safe"
+    assert entry["hash"] == policy_hash(make_policy("random_safe"))
+    assert policy_hash(make_policy("random_safe")) != policy_hash(make_policy("random_uniform"))
+
+
+@pytest.mark.parametrize("seed", range(10))
+def test_scores_recomputed_from_events_match_standings(seed: int) -> None:
+    replay = build_replay(recorded(seed))
+    counted = scores_from_events(replay["events"])
+    for s in replay["final_standings"]:
+        assert counted.get(s["snake"], (0, 0)) == (s["kills"], s["deaths"])
+
+
+def test_dropping_a_kill_event_fails_verification() -> None:
+    replay = json.loads(json.dumps(build_replay(recorded(0))))
+    kills = [i for i, e in enumerate(replay["events"]) if e["type"] == "kill"]
+    assert kills
+    del replay["events"][kills[0]]
+    assert not verify_replay(replay)

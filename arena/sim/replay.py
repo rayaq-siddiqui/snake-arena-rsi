@@ -2,15 +2,28 @@
 
 from __future__ import annotations
 
+import hashlib
+import inspect
 import json
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
 import arena
+from arena.agents import Policy
 from arena.engine import Event, GameConfig, GameState, new_game, rank, step
 from arena.sim.match import Match
 
 SCHEMA_VERSION = 1
+
+
+def policy_hash(policy: Policy) -> str:
+    """Short sha256 of the policy class's source, so a replay names the exact code it ran."""
+    try:
+        source = inspect.getsource(type(policy))
+    except (OSError, TypeError):
+        source = f"{type(policy).__module__}.{type(policy).__qualname__}"
+    return hashlib.sha256(source.encode()).hexdigest()[:16]
 
 
 def build_replay(match: Match) -> dict[str, Any]:
@@ -22,10 +35,10 @@ def build_replay(match: Match) -> dict[str, Any]:
         "engine_version": arena.__version__,
         "config": config.to_dict(),
         "seed": match.seed,
-        "policies": [
-            {"snake": sid, "name": p.name, "version": p.version}
+        "policies": {
+            sid: {"name": p.name, "version": p.version, "hash": policy_hash(p)}
             for sid, p in zip(config.snake_ids, match.policies, strict=True)
-        ],
+        },
         "initial_state": match.initial_state.to_dict(),
         "actions": match.actions,
         "events": [e.to_dict() for e in match.events],
@@ -67,12 +80,26 @@ def resimulate(replay: dict[str, Any]) -> tuple[GameState, list[Event]]:
     return state, events
 
 
+def scores_from_events(events: list[dict[str, Any]]) -> dict[str, tuple[int, int]]:
+    """(kills, deaths) per snake, counted from Kill and Death events alone."""
+    kills = Counter(e["killer"] for e in events if e["type"] == "kill")
+    deaths = Counter(e["victim"] for e in events if e["type"] == "death")
+    return {sid: (kills[sid], deaths[sid]) for sid in kills.keys() | deaths.keys()}
+
+
 def verify_replay(replay: dict[str, Any]) -> bool:
-    """True when re-simulation reproduces the stored engine events and standings exactly."""
+    """True when re-simulation reproduces the stored events and standings exactly, and the
+    kills and deaths counted from the stored events match the stored standings."""
     try:
         state, events = resimulate(replay)
     except ValueError:
         return False
     stored = [e for e in replay["events"] if e["type"] != "action_fallback"]
     standings = [s.to_dict() for s in rank(state.snakes)]
-    return [e.to_dict() for e in events] == stored and standings == replay["final_standings"]
+    if [e.to_dict() for e in events] != stored or standings != replay["final_standings"]:
+        return False
+    counted = scores_from_events(replay["events"])
+    return all(
+        counted.get(s["snake"], (0, 0)) == (s["kills"], s["deaths"])
+        for s in replay["final_standings"]
+    )
