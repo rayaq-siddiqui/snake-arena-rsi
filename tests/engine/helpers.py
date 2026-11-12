@@ -27,7 +27,7 @@ def make_state(bodies: Bodies, config: GameConfig | None = None, **snake_extra: 
                 SnakeState(id=sid, body=body, heading=heading_of(list(body)), alive=True, **extra)
             )
         else:
-            snakes.append(SnakeState(id=sid, respawn_in=10**9, **extra))
+            snakes.append(SnakeState(id=sid, **{"respawn_in": 10**9, **extra}))
     return GameState(config=config, snakes=tuple(snakes), rng_state=12345)
 
 
