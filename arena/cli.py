@@ -206,6 +206,39 @@ def cmd_watch(args: argparse.Namespace) -> int:
     )
 
 
+def cmd_rsi_demo(args: argparse.Namespace) -> int:
+    from arena.rsi import Budget, PairedBootstrapRule, Run, RunConfig, make_proposer
+    from arena.rsi.toys import PROBLEMS
+
+    problem = PROBLEMS[args.problem](dim=args.dim, problem_seed=args.run_seed)
+    out = Path(args.out or f"runs/{args.problem}-{args.proposer}-{args.run_seed}")
+    config = RunConfig(
+        run_seed=args.run_seed,
+        problem=f"toy {args.problem} ({args.dim} dims)",
+        patience=args.patience,
+        budget=Budget(generations=args.generations),
+    )
+    run = Run(
+        out, problem.space, problem, make_proposer(args.proposer), PairedBootstrapRule(), config
+    )
+
+    def show(record: dict[str, object]) -> None:
+        d = record["decision"]
+        assert isinstance(d, dict)
+        mark = "ACCEPT" if d["accept"] else "reject"
+        print(f"gen {record['generation']:>3}  {mark}  {d['rationale']}")
+
+    result = run.run(on_generation=show)
+    best = problem.true_score(result.champion.params)
+    start = problem.true_score(result.baseline.params)
+    print(
+        f"\n{result.generations} generations, {result.accepted} accepted, stopped by "
+        f"{result.stop_reason}.\nTrue score (best possible 0): baseline {start:.3f}, "
+        f"champion {best:.3f}.\nRun directory: {out} (report.md has the summary)"
+    )
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="arena", description="Snake Arena RSI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -249,6 +282,19 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--workers", type=int, default=1, help="processes (results do not change)")
     p.add_argument("--out", help="also write the markdown report to this file")
     p.set_defaults(func=cmd_check_personalities)
+
+    p = sub.add_parser(
+        "rsi-demo",
+        help="run the generic RSI loop on a toy problem (re-running the same --out resumes)",
+    )
+    p.add_argument("--problem", choices=["quadratic", "noise"], default="quadratic")
+    p.add_argument("--proposer", default="gaussian_hill_climb")
+    p.add_argument("--generations", type=int, default=60)
+    p.add_argument("--dim", type=int, default=5)
+    p.add_argument("--run-seed", type=int, default=0)
+    p.add_argument("--patience", type=int, default=None)
+    p.add_argument("--out", help="run directory (default runs/<problem>-<proposer>-<seed>)")
+    p.set_defaults(func=cmd_rsi_demo)
 
     p = sub.add_parser("watch", help="open the browser viewer (live match or replay)")
     from arena.viz.server import VIEWER_DEFAULTS, VIEWER_POLICY
