@@ -239,6 +239,41 @@ def cmd_rsi_demo(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_evolve(args: argparse.Namespace) -> int:
+    from arena.evolution.run import PROFILES, Evolution
+
+    profile = PROFILES["quick" if args.quick else args.profile]
+    out = Path(args.runs_dir) / (args.run_id or f"{profile.name}-{args.run_seed}")
+    evo = Evolution(
+        out,
+        profile,
+        args.generations,
+        args.run_seed,
+        args.workers,
+        log=lambda m: print(m, flush=True),
+    )
+    started = time.monotonic()
+    result = evo.run()
+    print(
+        f"\nStopped after generation {result.generations}: {result.stop_reason} "
+        f"({time.monotonic() - started:.0f} s)."
+    )
+    for name, r in result.lineages.items():
+        final = r.final
+        vs = (
+            f"final seeds vs generation 0: {final['diff']:+.3f} kills/1k ticks, "
+            f"95% CI [{final['ci'][0]:+.3f}, {final['ci'][1]:+.3f}]"
+            if final
+            else "champion is still generation 0"
+        )
+        print(f"  {name}: {r.accepted} accepted; {vs}")
+    label = (
+        "" if profile.name == "default" else f" ({profile.name} profile, not the real experiment)"
+    )
+    print(f"Run directory: {out}{label}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="arena", description="Snake Arena RSI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -295,6 +330,19 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--patience", type=int, default=None)
     p.add_argument("--out", help="run directory (default runs/<problem>-<proposer>-<seed>)")
     p.set_defaults(func=cmd_rsi_demo)
+
+    p = sub.add_parser(
+        "evolve",
+        help="phase 4: every personality tunes itself with the RSI loop (re-running resumes)",
+    )
+    p.add_argument("--generations", type=int, default=10)
+    p.add_argument("--profile", choices=["default", "quick", "experiment"], default="default")
+    p.add_argument("--quick", action="store_true", help="same as --profile quick")
+    p.add_argument("--run-id", help="run directory name under --runs-dir")
+    p.add_argument("--runs-dir", default="runs")
+    p.add_argument("--run-seed", type=int, default=0)
+    p.add_argument("--workers", type=int, default=None, help="processes (default: all cores)")
+    p.set_defaults(func=cmd_evolve)
 
     p = sub.add_parser("watch", help="open the browser viewer (live match or replay)")
     from arena.viz.server import VIEWER_DEFAULTS, VIEWER_POLICY
