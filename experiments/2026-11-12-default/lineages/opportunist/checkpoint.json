@@ -1,0 +1,21 @@
+{
+  "accepted": 0,
+  "archive": [
+    "9be0df7e19f18624"
+  ],
+  "champion": "9be0df7e19f18624",
+  "episodes": 1000,
+  "generation": 3,
+  "proposer": {
+    "sigma": 0.10935000000000002,
+    "weights": {}
+  },
+  "rejected": [
+    "424316000f02b688",
+    "7ecdc02d3273ae0e",
+    "9d6e7bc636d1f8b0"
+  ],
+  "seconds": 8240.649836472,
+  "since_accept": 3,
+  "stop_reason": "generation budget"
+}

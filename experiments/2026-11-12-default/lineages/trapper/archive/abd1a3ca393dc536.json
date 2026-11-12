@@ -1,0 +1,26 @@
+{
+  "generation": 3,
+  "id": "abd1a3ca393dc536",
+  "note": "sigma 0.122: keep_distance 3->2, w_space 6->4.897",
+  "params": {
+    "keep_distance": 2.0,
+    "keep_repel": 1.0,
+    "pull_radius": 15.0,
+    "random_tiebreak": 1.0,
+    "search_radius": 12.0,
+    "space_cap": 60.0,
+    "trap_margin": 2.0,
+    "w_cut_off": 4.0,
+    "w_enemy_escape_moves": -10.0,
+    "w_enemy_space_after": -15.0,
+    "w_head_on_risk": -40.0,
+    "w_immediate_death": -1000.0,
+    "w_nearest_enemy_head": -20.0,
+    "w_space": 4.896594784861065,
+    "w_space_vs_length": 20.00000000000003,
+    "w_straightness": 0.00999999999999801,
+    "w_territory": 20.00000000000003
+  },
+  "parent_id": "cdb47bf58afe956c",
+  "proposer": "gaussian_hill_climb"
+}

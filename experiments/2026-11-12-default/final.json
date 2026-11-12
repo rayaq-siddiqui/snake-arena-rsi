@@ -1,0 +1,56 @@
+{
+  "generation": 3,
+  "lineages": {
+    "hunter": {
+      "accepted": 0,
+      "final": null,
+      "stop_reason": "generation budget",
+      "version": 1
+    },
+    "opportunist": {
+      "accepted": 0,
+      "final": null,
+      "stop_reason": "generation budget",
+      "version": 1
+    },
+    "predictor": {
+      "accepted": 0,
+      "final": null,
+      "stop_reason": "generation budget",
+      "version": 1
+    },
+    "survivor": {
+      "accepted": 0,
+      "final": null,
+      "stop_reason": "generation budget",
+      "version": 1
+    },
+    "trapper": {
+      "accepted": 1,
+      "final": {
+        "ci": [
+          0.024,
+          0.087
+        ],
+        "diff": 0.053000000000000005,
+        "failures": 0,
+        "guards": {
+          "deaths_per_1k_alive": [
+            0.021004852120839915,
+            0.01400215633207514
+          ],
+          "self_wall_deaths": [
+            0.06,
+            0.045
+          ]
+        },
+        "mean_cand": 0.128,
+        "mean_champ": 0.075,
+        "n": 200
+      },
+      "stop_reason": "generation budget",
+      "version": 2
+    }
+  },
+  "stop_reason": "generation budget"
+}
