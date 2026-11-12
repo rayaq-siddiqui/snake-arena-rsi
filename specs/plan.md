@@ -259,13 +259,20 @@ Behaviour table (100 matches, all five together, 5,000-tick episodes on 100 × 1
   without the wall-clock move budget (phase 4 spec, As built). Both targets are tests in
   `tests/evolution/test_evaluator.py`.
 
-### 4.2 Lineages and generations `[ ]`
+### 4.2 Lineages and generations `[x]`
 - `arena/evolution/lineage.py` and `arena/evolution/run.py`: five lineages, frozen
   champions per generation, fixed order, joint commit, per-lineage patience; `evolve` CLI
   with default and `--quick` profiles.
 - **Targets:** `evolve --generations 3 --quick` finishes in < 10 minutes on a laptop and
   in CI; run touches nothing outside `runs/<id>/` (tested by hashing the repo before and
   after).
+- *As built:* there is no `lineage.py`. `Lineage` is a small dataclass in `run.py`
+  around one phase 3 `Run`, and a generation reads its frozen opponents back from the
+  records (phase 4 spec, As built). `evolve --quick --generations 3` took 466 s on the
+  4-core cloud container (Measurements). CI runs the tiny evolution tests rather than
+  the quick profile, so the CI half of the target is covered by those tests, not by a
+  timed quick run. `test_a_run_touches_nothing_outside_its_directory` hashes the
+  repository.
 
 ### 4.3 Safety tests `[x]`
 - Out-of-bounds params, a policy patched to raise, and a proposer that tries to read
@@ -303,6 +310,11 @@ Behaviour table (100 matches, all five together, 5,000-tick episodes on 100 × 1
 - **Targets:** the report states for each lineage whether it improved on final seeds vs
   generation 0, with intervals. Honest "no improvement" is a valid outcome.
 - **Done when:** phase 4 acceptance passes and the README links the report.
+- *Status:* the experiment-profile baseline is in `experiments/2026-11-12-baseline/`
+  (README, report, dashboard, full run directory), linked from the README. Result: 0 of 5
+  lineages improved, and every lineage ran out of patience after 4 generations. The
+  default-profile run (`evolve --generations 3`, part of the acceptance criteria) is still
+  to do.
 
 ---
 
@@ -332,5 +344,8 @@ Fill in as steps land. Never estimate here.
 | Personality decision time p50 / p99 (100 × 100) | 0.44–0.81 ms / 0.94–1.95 ms across the five (budget 5 / 20 ms) | cloud container, Python 3.13, x86_64; `bench --policies all --ticks 3000` | 308a67b | 2.6 |
 | Personality decision time p50 / p99 after the grid search rewrite | 0.21–0.42 ms / 0.41–0.82 ms; all five together on 100 × 100: ~510–610 ticks/s (was ~260) with identical games (golden digests) | same; `bench --policies all --ticks 3000` | 0847bbb | 4 (speed) |
 | Mean ticks to first-to-100 (personalities) | Not reached: 4/4 all-five matches on 100 × 100 hit the 100,000-tick cap with 1 kill in total. On 50 × 50, 4/4 hit the cap with 6 kills in total | same; `run-tournament --matches 4 --policy personalities`, ~410 s per 4 matches on 4 workers | 308a67b | 2.6 |
+| Wall time per generation (experiment profile, 24 × 24, 2,000 ticks, 40 + 40 pairs) | 747, 755, 712, 434 s for generations 1-4 (640, 720, 640, 400 episodes); report 12 min | cloud container, 4 cores, 4 workers | 35f7d75 | 4.6 |
+| Wall time, `evolve --quick --generations 3` | 466 s in total (145, 162, 159 s per generation) | same, 4 workers (default) | 152c9a0 | 4.2 |
+| Paired seeds with any kill, reference context, 40 seeds per lineage | 40 × 40, 1,000 ticks: 0-5; 24 × 24, 2,000 ticks: 1-12 | same, 4 workers | 35f7d75 | 4.6 |
 | Wall time per generation (default profile) | — | — | — | 4.6 |
-| Lineages improved vs gen 0 (final seeds) | — | — | — | 4.6 |
+| Lineages improved vs gen 0 (final seeds) | Experiment profile: 0 / 5 (0 accepts in 4 generations; see `experiments/2026-11-12-baseline/`). Default profile: — | same | 35f7d75 | 4.6 |
