@@ -131,3 +131,44 @@ archived champion, so every historical version stays watchable.
 - **Honest outcome:** the report states whether each lineage improved on final seeds
   versus its generation-0 self, with the interval. "No significant improvement" is a
   valid, reportable result; it is never hidden or re-run until it looks better.
+
+## As built
+
+Where the code differs from the text above, the code is the reference:
+
+- **Modules.** `arena/evolution/entrants.py` (a policy with its parameters and version),
+  `evaluator.py`, `run.py` (profiles, lineages, the lockstep `Evolution`), `report.py`
+  and `watch.py`. There is no separate `lineage.py`; a `Lineage` is a small dataclass in
+  `run.py` around one phase 3 `Run`.
+- **Where params live.** A run never writes `arena/agents/params/`. Each accepted
+  champion is written to `runs/<id>/params/<name>/v<k>.json` (v1 is the hand-set start)
+  and the latest to `runs/<id>/params/<name>.json`. The repository-hash test checks that a
+  run changes nothing outside its run directory.
+- **Joint commit and resume.** Each lineage commits its own record, but generation *g*
+  is evaluated against champions read from the lineage records at *g − 1*, so the five
+  attempts in a generation see the same frozen opponents. A process killed between two
+  lineage commits resumes by skipping lineages already at *g*, which replays the same
+  decisions (tested).
+- **No move budget in evaluation.** The phase 2 decision budget is wall-clock time, which
+  would make decisions depend on machine load. Evaluation episodes run without it;
+  "failures" are seeds where the candidate needed engine fallbacks (a crash or an
+  invalid action), and any failure blocks promotion.
+- **Score.** Kills × 1,000 / episode ticks, with the win target disabled. Guards use the
+  phase 3 guard rule with the tolerances above plus a small absolute slack (0.05) so a
+  zero baseline doesn't make every increase infinite.
+- **Profiles.** `default` is the configuration in section 4. Two reduced profiles exist,
+  and every report from them is labelled as not the specified experiment:
+  - `quick`: 40 × 40, 1,000-tick episodes, 20 + 20 pairs, 40 final pairs.
+  - `experiment`: 24 × 24, 2,000-tick episodes, 40 + 40 pairs, 100 final pairs. The
+    personalities are cautious, so on larger boards almost every paired seed scores zero
+    kills for both sides (on 40 × 40, 1,000 ticks: 0–5 of 40 seeds had any kill; on
+    24 × 24, 2,000 ticks: 1–12 of 40), and the default profile costs hours per
+    generation on one machine. These figures are in `specs/plan.md`, Measurements.
+- **Charts.** `report` writes `report.md`, `report.json` and one SVG small-multiples
+  chart (`progress.svg`) rather than PNGs, so the report needs no plotting dependency.
+- **Hall-of-fame check.** Each final champion plays every earlier version of its own
+  lineage on the final seeds with all four other seats drawn from every lineage's hall
+  of fame, so all earlier champions of every lineage appear as opponents.
+- **Watching.** `watch --run` exposes every archived version as a policy (`hunter@v4`,
+  shown as "Hunter v4"). `--vs-generation K` seats a lineage's current and generation-K
+  versions in one six-seat game with the other four current champions.
