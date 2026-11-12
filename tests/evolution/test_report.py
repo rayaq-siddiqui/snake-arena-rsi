@@ -5,7 +5,7 @@ import numpy as np
 from evo_helpers import AlwaysAccept, tiny_evolution
 
 from arena.cli import main
-from arena.evolution.report import load_lineage, verdict
+from arena.evolution.report import clean_note, load_lineage, verdict
 from arena.rsi.accept import bootstrap_ci
 from arena.rsi.seeds import rng_for
 
@@ -44,3 +44,9 @@ def test_verdicts_follow_the_interval() -> None:
     assert verdict({"ci": [0.1, 0.3]}) == "improved"
     assert verdict({"ci": [-0.3, -0.1]}) == "got worse"
     assert verdict({"ci": [-0.1, 0.3]}) == "no significant change"
+
+
+def test_float_noise_is_not_shown_as_a_change() -> None:
+    note = "sigma 0.15: w_territory 20->20, w_space 6->103.5, w_straightness 0.01->0.01"
+    assert clean_note(note) == "w_space 6->103.5"
+    assert clean_note("uniform random point") == "uniform random point"

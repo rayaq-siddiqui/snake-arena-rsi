@@ -18,7 +18,7 @@ from typing import Any
 
 from arena.agents.registry import STYLES
 from arena.evolution.entrants import param_specs
-from arena.evolution.report import LineageView, load_run
+from arena.evolution.report import LineageView, clean_note, load_run
 from arena.evolution.report import verdict as report_verdict
 from arena.rsi.store import read_json, write_atomic
 from arena.rsi.types import Candidate, ParamSpec
@@ -54,7 +54,7 @@ def attempts(view: LineageView) -> list[Attempt]:
         chosen = next((f for f in rec["feedback"] if f["candidate"]["id"] == rec["chosen"]), None)
         if guards is None and chosen and chosen.get("dev"):
             guards = chosen["dev"]["guards"].get("deaths_per_1k_alive")
-        note = _clean(chosen["candidate"]["note"]) if chosen else "-"
+        note = clean_note(chosen["candidate"]["note"]) if chosen else "-"
         out.append(
             Attempt(
                 rec["generation"],
@@ -69,17 +69,6 @@ def attempts(view: LineageView) -> list[Attempt]:
             )
         )
     return out
-
-
-def _clean(note: str) -> str:
-    """The change list of a note without "x 20->20" entries, which are float noise from the
-    unit round trip rather than changes (notes written before proposers dropped them)."""
-    kept = []
-    for part in note.split(": ", 1)[-1].split(", "):
-        old, sep, new = part.rpartition(" ")[2].partition("->")
-        if not sep or f"{float(old):.4g}" != f"{float(new):.4g}":
-            kept.append(part)
-    return ", ".join(kept) or "no change"
 
 
 def champion_units(view: LineageView, space: Sequence[ParamSpec]) -> list[list[float]]:

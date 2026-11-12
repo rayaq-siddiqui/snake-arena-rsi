@@ -199,13 +199,24 @@ def build(run_dir: str | Path, workers: int | None = None) -> dict[str, Any]:
     return out
 
 
+def clean_note(note: str) -> str:
+    """The change list of a note without "x 20->20" entries, which are float noise from the
+    unit round trip rather than changes (notes written before proposers dropped them)."""
+    kept = []
+    for part in note.split(": ", 1)[-1].split(", "):
+        old, sep, new = part.rpartition(" ")[2].partition("->")
+        if not sep or f"{float(old):.4g}" != f"{float(new):.4g}":
+            kept.append(part)
+    return ", ".join(kept) or "no change"
+
+
 def _decision(rec: Mapping[str, Any]) -> dict[str, Any]:
     d = rec["decision"]
     chosen = next((f for f in rec["feedback"] if f["candidate"]["id"] == rec["chosen"]), None)
     stats = d.get("stats", {})
     return {
         "generation": rec["generation"],
-        "change": chosen["candidate"]["note"] if chosen else "-",
+        "change": clean_note(chosen["candidate"]["note"]) if chosen else "-",
         "dev": stats.get("dev"),
         "holdout": stats.get("holdout"),
         "guards": stats.get("guards"),

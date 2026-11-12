@@ -43,9 +43,3 @@ def test_a_broken_dashboard_never_stops_a_run(
     monkeypatch.setattr(dashboard, "write", boom)
     r = tiny_evolution(tmp_path, generations=1).run()
     assert r.generations == 1 and json.loads((tmp_path / "final.json").read_text())
-
-
-def test_float_noise_is_not_shown_as_a_change() -> None:
-    note = "sigma 0.15: w_territory 20->20, w_space 6->103.5, w_straightness 0.01->0.01"
-    assert dashboard._clean(note) == "w_space 6->103.5"
-    assert dashboard._clean("uniform random point") == "uniform random point"
