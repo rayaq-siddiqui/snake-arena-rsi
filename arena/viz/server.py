@@ -154,6 +154,10 @@ class Session:
                 events = self._advance()
                 self.frames.append(frame(self.state, events))
             oldest = self.frames[0]["t"]
+            if start < oldest and self.finished:
+                # finish() dropped the frames in between; a request already in flight
+                # when the viewer pressed Finish just learns the match is over.
+                return []
             if start < oldest:
                 raise LookupError(f"tick {start} is no longer buffered (oldest {oldest})")
             return [f for f in self.frames if start <= f["t"] < start + count]

@@ -105,6 +105,15 @@ def test_finish_jumps_to_the_end(base_url: str) -> None:
     assert data["summary"]["end_reason"] in {"score_target", "tick_cap"}
 
 
+def test_a_frame_request_racing_finish_gets_no_frames(base_url: str) -> None:
+    meta = post(base_url + "/api/match", {"seed": 2, "config": SMALL})
+    get(f"{base_url}/api/match/{meta['id']}/frames?from=1&count=50")
+    post(f"{base_url}/api/match/{meta['id']}/finish", {})
+    late = get(f"{base_url}/api/match/{meta['id']}/frames?from=51&count=50")
+    assert late["frames"] == []
+    assert late["finished"]
+
+
 def test_downloaded_replay_plays_back_identically(base_url: str) -> None:
     meta = post(base_url + "/api/match", {"seed": 6, "config": SMALL})
     live = play_all(base_url, meta["id"])
