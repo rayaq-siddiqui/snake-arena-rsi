@@ -15,10 +15,10 @@ not self-modification of any underlying language model.
 
 ## Where things stand
 
-Phases 1–3 are built: the engine, random policies, headless CLIs, replays, the browser
-viewer, the five parameterized personalities with their acceptance check, and the generic
-RSI framework proven on toy problems. Phase 4
-is still a spec. Read the specs before writing code:
+All four phases are built: the engine, random policies, headless CLIs, replays, the
+browser viewer, the five parameterized personalities with their acceptance check, the
+generic RSI framework proven on toy problems, and the five self-tuning snake lineages with
+their report and viewer support. Read the specs before writing code:
 
 ```
 README.md                 Short project summary and how to run it
@@ -54,7 +54,7 @@ arena/
   sim/         Match runner (match.py), tournaments, replays, bench, behaviour metrics,
                personality_check.py (phase 2 acceptance), boards.py (named configs).
   viz/         server.py (stdlib HTTP, pull-based frames) + static/ (Canvas page).
-  cli.py       `python -m arena.cli run-match | run-tournament | bench | watch`.
+  cli.py       `python -m arena.cli run-match | run-tournament | bench | watch | evolve | report`.
   rsi/         The generic RSI framework (NumPy); must not import engine/agents/sim.
     types.py     ParamSpec, Candidate, PairedResult, Decision, Feedback, Budget, protocols.
     seeds.py     Disjoint dev / holdout / final seed pools; rng_for(seed, gen, purpose).
@@ -63,7 +63,12 @@ arena/
     loop.py      Run: propose -> dev screen -> holdout -> accept; budgets, resume.
     store.py     Run directory, atomic writes, immutable archive; report.py, toys.py.
   evolution/   (phase 4) Plugs snakes into the RSI framework.
-tests/         Mirrors arena/ (tests/engine, tests/sim, tests/viz).
+    entrants.py  Entrant (a policy + its parameters + version) and param_specs().
+    evaluator.py SnakeEvaluator: paired games over the opponent mixture; Workers pool.
+    run.py       Profiles, Lineage, Evolution (lockstep generations, resume), load_champion.
+    report.py    The experiment report: progress vs reference, cycle check, chart.
+    watch.py     Archived champions as viewer policies and lineups.
+tests/         Mirrors arena/ (tests/engine, tests/sim, tests/viz, tests/rsi, tests/evolution).
 docs/          Screenshots.
 ```
 
@@ -102,6 +107,9 @@ uv run python -m arena.cli bench --policies all                   # personality 
 uv run python -m arena.cli check-personalities --workers 4        # phase 2 acceptance (slow)
 uv run python -m arena.cli watch                                  # browser viewer
 uv run python -m arena.cli rsi-demo --problem quadratic           # RSI loop on a toy
+uv run python -m arena.cli evolve --quick --generations 3 --run-id demo   # snakes tune themselves
+uv run python -m arena.cli report runs/demo                       # report.md + progress.svg
+uv run python -m arena.cli watch --run runs/demo --vs-generation 0   # evolved vs original
 ```
 
 CI (`.github/workflows/ci.yml`) runs the lint, type and test commands above. The browser
