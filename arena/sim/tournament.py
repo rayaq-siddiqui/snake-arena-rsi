@@ -7,13 +7,18 @@ import io
 import json
 import multiprocessing
 from collections.abc import Iterator, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 from arena.agents import make_policy
 from arena.engine import GameConfig
+from arena.engine.types import DeathCause
 from arena.sim.match import MatchResult, simulate_match
+from arena.sim.metrics import Behaviour
+
+METRICS_EVERY = 10
+DEATH_CAUSES: tuple[DeathCause, ...] = ("wall", "self", "body", "head_on", "head_swap")
 
 
 @dataclass(frozen=True)
@@ -26,10 +31,23 @@ class SnakeSummary:
     deaths: int
     alive_ticks: int
     match_ticks: int
+    death_causes: dict[str, int] = field(default_factory=dict)
+    behaviour: Behaviour = field(default_factory=Behaviour)
 
     @property
     def kills_per_1000_ticks(self) -> float:
         return 1000 * self.kills / self.match_ticks if self.match_ticks else 0.0
+
+    @property
+    def kills_per_1000_alive(self) -> float:
+        return 1000 * self.kills / self.alive_ticks if self.alive_ticks else 0.0
+
+    @property
+    def deaths_per_1000_alive(self) -> float:
+        return 1000 * self.deaths / self.alive_ticks if self.alive_ticks else 0.0
+
+    def death_share(self, cause: str) -> float:
+        return self.death_causes.get(cause, 0) / self.deaths if self.deaths else 0.0
 
     @property
     def kd(self) -> float:
@@ -46,19 +64,33 @@ class SnakeSummary:
             "kd": round(self.kd, 4),
             "kills_per_1000_ticks": round(self.kills_per_1000_ticks, 4),
             "alive_share": round(self.alive_ticks / self.match_ticks, 4),
+            "kills_per_1000_alive": round(self.kills_per_1000_alive, 4),
+            "deaths_per_1000_alive": round(self.deaths_per_1000_alive, 4),
+            "mean_enemy_distance": _round(self.behaviour.mean_enemy_distance),
+            "mean_space": _round(self.behaviour.mean_space),
+            **{f"death_share_{c}": round(self.death_share(c), 4) for c in DEATH_CAUSES},
         }
 
 
-def _play(job: tuple[tuple[str, ...], int, dict[str, int]]) -> MatchResult:
-    names, seed, config = job
-    return simulate_match([make_policy(n) for n in names], seed, GameConfig.from_dict(config))
+def _round(value: float | None) -> float | str:
+    return "" if value is None else round(value, 4)
+
+
+def _play(job: tuple[tuple[str, ...], int, dict[str, int], int]) -> MatchResult:
+    names, seed, config, every = job
+    policies = [make_policy(n) for n in names]
+    return simulate_match(policies, seed, GameConfig.from_dict(config), metrics_every=every)
 
 
 def run_matches(
-    policy_names: Sequence[str], seeds: Sequence[int], config: GameConfig, workers: int = 1
+    policy_names: Sequence[str],
+    seeds: Sequence[int],
+    config: GameConfig,
+    workers: int = 1,
+    metrics_every: int = METRICS_EVERY,
 ) -> Iterator[MatchResult]:
     """Yield results in seed order; the output never depends on ``workers``."""
-    jobs = [(tuple(policy_names), seed, config.to_dict()) for seed in seeds]
+    jobs = [(tuple(policy_names), seed, config.to_dict(), metrics_every) for seed in seeds]
     if workers <= 1:
         yield from map(_play, jobs)
         return
@@ -73,6 +105,13 @@ def summarise(results: Sequence[MatchResult]) -> list[SnakeSummary]:
     summaries = []
     for i, sid in enumerate(ids):
         mine = [next(s for s in r.standings if s.snake == sid) for r in results]
+        causes: dict[str, int] = {}
+        behaviour = Behaviour()
+        for r in results:
+            for cause, n in r.death_causes.get(sid, {}).items():
+                causes[cause] = causes.get(cause, 0) + n
+            if sid in r.behaviour:
+                behaviour.add(r.behaviour[sid])
         summaries.append(
             SnakeSummary(
                 snake=sid,
@@ -83,6 +122,8 @@ def summarise(results: Sequence[MatchResult]) -> list[SnakeSummary]:
                 deaths=sum(s.deaths for s in mine),
                 alive_ticks=sum(s.alive_ticks for s in mine),
                 match_ticks=sum(r.ticks for r in results),
+                death_causes=causes,
+                behaviour=behaviour,
             )
         )
     return summaries

@@ -23,6 +23,7 @@ from arena.engine import (
 )
 from arena.engine.rng import derive_seed
 from arena.engine.types import as_direction
+from arena.sim.metrics import Behaviour, sample
 
 
 @dataclass(frozen=True)
@@ -36,6 +37,7 @@ class MatchResult:
     kill_matrix: dict[str, dict[str, int]]
     death_causes: dict[str, dict[str, int]]
     fallbacks: int
+    behaviour: dict[str, Behaviour] = field(default_factory=dict)
 
     @property
     def winner(self) -> str | None:
@@ -54,6 +56,7 @@ class MatchResult:
             "kill_matrix": self.kill_matrix,
             "death_causes": self.death_causes,
             "fallbacks": self.fallbacks,
+            "behaviour": {k: v.to_dict() for k, v in self.behaviour.items()},
         }
 
 
@@ -66,6 +69,7 @@ class Match:
     config: GameConfig = field(default_factory=GameConfig)
     record: bool = False
     move_budget_s: float | None = None
+    metrics_every: int = 0
 
     def __post_init__(self) -> None:
         if len(self.policies) != self.config.num_snakes:
@@ -79,6 +83,7 @@ class Match:
         self.kill_matrix = {k: {v: 0 for v in ids} for k in ids}
         self.death_causes: dict[str, dict[str, int]] = {sid: {} for sid in ids}
         self.fallbacks = 0
+        self.behaviour = {sid: Behaviour() for sid in ids}
         self.actions: list[list[Direction | None]] = []
         self.events: list[Event] = []
         self._account(events)
@@ -120,6 +125,9 @@ class Match:
         self.state, events = step(self.state, actions)
         events = fallbacks + events
         self._account(events)
+        every = self.metrics_every
+        if every and self.state.tick % every == 0:
+            sample(self.state, self.behaviour)
         return events
 
     def run(self) -> MatchResult:
@@ -139,6 +147,7 @@ class Match:
             kill_matrix={k: dict(v) for k, v in self.kill_matrix.items()},
             death_causes={k: dict(v) for k, v in self.death_causes.items()},
             fallbacks=self.fallbacks,
+            behaviour={k: Behaviour(**v.to_dict()) for k, v in self.behaviour.items()},
         )
 
     def _account(self, events: list[Event]) -> None:
@@ -159,5 +168,12 @@ def simulate_match(
     seed: int,
     config: GameConfig | None = None,
     move_budget_s: float | None = None,
+    metrics_every: int = 0,
 ) -> MatchResult:
-    return Match(policies, seed, config or GameConfig(), move_budget_s=move_budget_s).run()
+    return Match(
+        policies,
+        seed,
+        config or GameConfig(),
+        move_budget_s=move_budget_s,
+        metrics_every=metrics_every,
+    ).run()
