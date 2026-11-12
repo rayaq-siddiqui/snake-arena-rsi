@@ -1,0 +1,29 @@
+{
+  "name": "opportunist",
+  "version": 1,
+  "params": {
+    "w_immediate_death": -1000.0,
+    "space_cap": 60,
+    "search_radius": 12,
+    "trap_margin": 2.0,
+    "keep_distance": 4,
+    "keep_repel": 1.0,
+    "pull_radius": 15,
+    "random_tiebreak": 1,
+    "attack_threshold": 1,
+    "cruise_head_on_risk": -100.0,
+    "cruise_territory": 30.0,
+    "cruise_space": 15.0,
+    "cruise_space_vs_length": 30.0,
+    "cruise_nearest_enemy_head": -20.0,
+    "cruise_straightness": 0.01,
+    "attack_head_on_risk": -40.0,
+    "attack_territory": 20.0,
+    "attack_space": 6.0,
+    "attack_space_vs_length": 20.0,
+    "attack_nearest_enemy_head": -10.0,
+    "attack_enemy_escape_moves": -20.0,
+    "attack_enemy_space_after": -10.0,
+    "attack_cut_off": 10.0
+  }
+}

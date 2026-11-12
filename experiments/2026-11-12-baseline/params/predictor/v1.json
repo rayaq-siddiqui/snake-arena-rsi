@@ -1,0 +1,24 @@
+{
+  "name": "predictor",
+  "version": 1,
+  "params": {
+    "w_immediate_death": -1000.0,
+    "space_cap": 60,
+    "search_radius": 12,
+    "trap_margin": 2.0,
+    "keep_distance": 3,
+    "keep_repel": 1.0,
+    "pull_radius": 15,
+    "random_tiebreak": 1,
+    "w_territory": 20.0,
+    "w_space": 6.0,
+    "w_space_vs_length": 20.0,
+    "w_nearest_enemy_head": -20.0,
+    "w_straightness": 0.01,
+    "w_expected_kills": 300.0,
+    "w_pressure": 10.0,
+    "w_expected_death": -300.0,
+    "lookahead": 2,
+    "discount": 0.5
+  }
+}

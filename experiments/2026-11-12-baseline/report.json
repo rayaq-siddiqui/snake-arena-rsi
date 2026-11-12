@@ -1,0 +1,1221 @@
+{
+  "generation": 4,
+  "lineages": {
+    "hunter": {
+      "accepted": 0,
+      "cycle_check": [],
+      "decisions": [
+        {
+          "accept": false,
+          "change": "w_space_vs_length 20->102.7",
+          "dev": {
+            "diff": 0.0,
+            "failures": 0,
+            "mean_cand": 0.1125,
+            "mean_champ": 0.1125,
+            "n": 40
+          },
+          "generation": 1,
+          "guards": null,
+          "holdout": null,
+          "rationale": "dev mean difference +0 is not above 0",
+          "stage": "dev"
+        },
+        {
+          "accept": false,
+          "change": "w_territory 20->-23.34",
+          "dev": {
+            "diff": 0.125,
+            "failures": 0,
+            "mean_cand": 0.25,
+            "mean_champ": 0.125,
+            "n": 40
+          },
+          "generation": 2,
+          "guards": {
+            "deaths_per_1k_alive": [
+              5.066533070858428,
+              0.1189264574908345
+            ],
+            "self_wall_deaths": [
+              0.1375,
+              0.0
+            ]
+          },
+          "holdout": {
+            "ci": [
+              -0.0625,
+              0.175
+            ],
+            "diff": 0.05625,
+            "extended": true,
+            "failures": 0,
+            "mean_cand": 0.5125,
+            "mean_champ": 0.45625,
+            "n": 80,
+            "rel_gain": 0.12328767123287664
+          },
+          "rationale": "holdout gain +12.3%, 95% CI [-0.0625, +0.175]: interval reaches 0",
+          "stage": "holdout"
+        },
+        {
+          "accept": false,
+          "change": "pull_radius 0->11",
+          "dev": {
+            "diff": -0.05,
+            "failures": 0,
+            "mean_cand": 0.2125,
+            "mean_champ": 0.2625,
+            "n": 40
+          },
+          "generation": 3,
+          "guards": null,
+          "holdout": null,
+          "rationale": "dev mean difference -0.05 is not above 0",
+          "stage": "dev"
+        },
+        {
+          "accept": false,
+          "change": "trap_margin 2->2.51, keep_distance 1->0",
+          "dev": {
+            "diff": 0.0,
+            "failures": 0,
+            "mean_cand": 0.35,
+            "mean_champ": 0.35,
+            "n": 40
+          },
+          "generation": 4,
+          "guards": null,
+          "holdout": null,
+          "rationale": "dev mean difference +0 is not above 0",
+          "stage": "dev"
+        }
+      ],
+      "final": null,
+      "generations": 4,
+      "progress": [
+        {
+          "candidate": "8e645d3074c33047",
+          "ci": [
+            0.01,
+            0.06
+          ],
+          "deaths": 0.35,
+          "enemy_distance": 4.2991153846153844,
+          "generation": 0,
+          "kills_per_1k": [
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mean": 0.035,
+          "space": 69.05849358974359,
+          "version": 1
+        }
+      ],
+      "versions": 1
+    },
+    "opportunist": {
+      "accepted": 0,
+      "cycle_check": [],
+      "decisions": [
+        {
+          "accept": false,
+          "change": "trap_margin 2->3.475, cruise_straightness 0.01->-23.29",
+          "dev": {
+            "diff": 0.05,
+            "failures": 0,
+            "mean_cand": 0.1125,
+            "mean_champ": 0.0625,
+            "n": 40
+          },
+          "generation": 1,
+          "guards": {
+            "deaths_per_1k_alive": [
+              0.31357792411414237,
+              0.025006876891145065
+            ],
+            "self_wall_deaths": [
+              0.5,
+              0.05
+            ]
+          },
+          "holdout": {
+            "ci": [
+              -0.0375,
+              0.0375
+            ],
+            "diff": 0.0,
+            "extended": false,
+            "failures": 0,
+            "mean_cand": 0.0125,
+            "mean_champ": 0.0125,
+            "n": 40,
+            "rel_gain": 0.0
+          },
+          "rationale": "holdout gain +0.0%, 95% CI [-0.0375, +0.0375]: below the 2% minimum gain",
+          "stage": "holdout"
+        },
+        {
+          "accept": false,
+          "change": "attack_enemy_escape_moves -20->-80.18",
+          "dev": {
+            "diff": 0.0,
+            "failures": 0,
+            "mean_cand": 0.075,
+            "mean_champ": 0.075,
+            "n": 40
+          },
+          "generation": 2,
+          "guards": null,
+          "holdout": null,
+          "rationale": "dev mean difference +0 is not above 0",
+          "stage": "dev"
+        },
+        {
+          "accept": false,
+          "change": "trap_margin 2->1.292, pull_radius 15->0",
+          "dev": {
+            "diff": -0.0125,
+            "failures": 0,
+            "mean_cand": 0.05,
+            "mean_champ": 0.0625,
+            "n": 40
+          },
+          "generation": 3,
+          "guards": null,
+          "holdout": null,
+          "rationale": "dev mean difference -0.0125 is not above 0",
+          "stage": "dev"
+        },
+        {
+          "accept": false,
+          "change": "keep_distance 4->6, cruise_straightness 0.01->-22.27, attack_space_vs_length 20->23.8",
+          "dev": {
+            "diff": -0.0375,
+            "failures": 0,
+            "mean_cand": 0.0375,
+            "mean_champ": 0.075,
+            "n": 40
+          },
+          "generation": 4,
+          "guards": null,
+          "holdout": null,
+          "rationale": "dev mean difference -0.0375 is not above 0",
+          "stage": "dev"
+        }
+      ],
+      "final": null,
+      "generations": 4,
+      "progress": [
+        {
+          "candidate": "9be0df7e19f18624",
+          "ci": [
+            0.0,
+            0.025
+          ],
+          "deaths": 0.09,
+          "enemy_distance": 4.7226346153846155,
+          "generation": 0,
+          "kills_per_1k": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mean": 0.01,
+          "space": 68.70628846153846,
+          "version": 1
+        }
+      ],
+      "versions": 1
+    },
+    "predictor": {
+      "accepted": 0,
+      "cycle_check": [],
+      "decisions": [
+        {
+          "accept": false,
+          "change": "w_space 6->103.5",
+          "dev": {
+            "diff": 0.025,
+            "failures": 0,
+            "mean_cand": 0.1625,
+            "mean_champ": 0.1375,
+            "n": 40
+          },
+          "generation": 1,
+          "guards": {
+            "deaths_per_1k_alive": [
+              0.07506192608902344,
+              0.11263939124666775
+            ],
+            "self_wall_deaths": [
+              0.05,
+              0.1
+            ]
+          },
+          "holdout": {
+            "ci": [
+              -0.1,
+              0.05
+            ],
+            "diff": -0.025,
+            "extended": false,
+            "failures": 0,
+            "mean_cand": 0.5625,
+            "mean_champ": 0.5875,
+            "n": 40,
+            "rel_gain": -0.042553191489361736
+          },
+          "rationale": "holdout gain -4.3%, 95% CI [-0.1, +0.05]: below the 2% minimum gain",
+          "stage": "holdout"
+        },
+        {
+          "accept": false,
+          "change": "w_territory 20->-20.4, w_nearest_enemy_head -20->-34.77",
+          "dev": {
+            "diff": -0.05,
+            "failures": 0,
+            "mean_cand": 0.4125,
+            "mean_champ": 0.4625,
+            "n": 40
+          },
+          "generation": 2,
+          "guards": null,
+          "holdout": null,
+          "rationale": "dev mean difference -0.05 is not above 0",
+          "stage": "dev"
+        },
+        {
+          "accept": false,
+          "change": "w_expected_kills 300->571.5",
+          "dev": {
+            "diff": 0.0125,
+            "failures": 0,
+            "mean_cand": 0.325,
+            "mean_champ": 0.3125,
+            "n": 40
+          },
+          "generation": 3,
+          "guards": {
+            "deaths_per_1k_alive": [
+              0.13770828377921607,
+              0.11263939124666775
+            ],
+            "self_wall_deaths": [
+              0.1,
+              0.1
+            ]
+          },
+          "holdout": {
+            "ci": [
+              -0.075,
+              0.0
+            ],
+            "diff": -0.025,
+            "extended": false,
+            "failures": 0,
+            "mean_cand": 0.5625,
+            "mean_champ": 0.5875,
+            "n": 40,
+            "rel_gain": -0.042553191489361736
+          },
+          "rationale": "holdout gain -4.3%, 95% CI [-0.075, +0]: below the 2% minimum gain",
+          "stage": "holdout"
+        },
+        {
+          "accept": false,
+          "change": "space_cap 60->59, w_straightness 0.01->-1.448",
+          "dev": {
+            "diff": -0.2375,
+            "failures": 0,
+            "mean_cand": 0.2125,
+            "mean_champ": 0.45,
+            "n": 40
+          },
+          "generation": 4,
+          "guards": null,
+          "holdout": null,
+          "rationale": "dev mean difference -0.2375 is not above 0",
+          "stage": "dev"
+        }
+      ],
+      "final": null,
+      "generations": 4,
+      "progress": [
+        {
+          "candidate": "75dc29af071f9c13",
+          "ci": [
+            0.07,
+            0.155
+          ],
+          "deaths": 0.22,
+          "enemy_distance": 4.315858974358974,
+          "generation": 0,
+          "kills_per_1k": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.5,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.5,
+            0.5,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mean": 0.11,
+          "space": 69.58433333333333,
+          "version": 1
+        }
+      ],
+      "versions": 1
+    },
+    "survivor": {
+      "accepted": 0,
+      "cycle_check": [],
+      "decisions": [
+        {
+          "accept": false,
+          "change": "space_cap 60->46, w_space 20->-3.064",
+          "dev": {
+            "diff": 0.0375,
+            "failures": 0,
+            "mean_cand": 0.1,
+            "mean_champ": 0.0625,
+            "n": 40
+          },
+          "generation": 1,
+          "guards": {
+            "deaths_per_1k_alive": [
+              0.025006876891145065,
+              0.0
+            ],
+            "self_wall_deaths": [
+              0.025,
+              0.0
+            ]
+          },
+          "holdout": {
+            "ci": [
+              -0.1875,
+              0.025
+            ],
+            "diff": -0.0625,
+            "extended": false,
+            "failures": 0,
+            "mean_cand": 0.0625,
+            "mean_champ": 0.125,
+            "n": 40,
+            "rel_gain": -0.5
+          },
+          "rationale": "holdout gain -50.0%, 95% CI [-0.1875, +0.025]: below the 2% minimum gain",
+          "stage": "holdout"
+        },
+        {
+          "accept": false,
+          "change": "space_cap 60->18, trap_margin 2->1.595",
+          "dev": {
+            "diff": 0.1125,
+            "failures": 0,
+            "mean_cand": 0.175,
+            "mean_champ": 0.0625,
+            "n": 40
+          },
+          "generation": 2,
+          "guards": {
+            "deaths_per_1k_alive": [
+              0.050027515133323326,
+              0.0
+            ],
+            "self_wall_deaths": [
+              0.0,
+              0.0
+            ]
+          },
+          "holdout": {
+            "ci": [
+              -0.1125,
+              0.05
+            ],
+            "diff": -0.0375,
+            "extended": false,
+            "failures": 0,
+            "mean_cand": 0.0875,
+            "mean_champ": 0.125,
+            "n": 40,
+            "rel_gain": -0.30000000000000004
+          },
+          "rationale": "holdout gain -30.0%, 95% CI [-0.1125, +0.05]: below the 2% minimum gain",
+          "stage": "holdout"
+        },
+        {
+          "accept": false,
+          "change": "trap_margin 2->2.358, w_nearest_enemy_head -8->-34.39",
+          "dev": {
+            "diff": 0.0125,
+            "failures": 0,
+            "mean_cand": 0.0875,
+            "mean_champ": 0.075,
+            "n": 40
+          },
+          "generation": 3,
+          "guards": {
+            "deaths_per_1k_alive": [
+              0.0,
+              0.0
+            ],
+            "self_wall_deaths": [
+              0.0,
+              0.0
+            ]
+          },
+          "holdout": {
+            "ci": [
+              -0.1625,
+              0.0
+            ],
+            "diff": -0.075,
+            "extended": false,
+            "failures": 0,
+            "mean_cand": 0.05,
+            "mean_champ": 0.125,
+            "n": 40,
+            "rel_gain": -0.6
+          },
+          "rationale": "holdout gain -60.0%, 95% CI [-0.1625, +0]: below the 2% minimum gain",
+          "stage": "holdout"
+        },
+        {
+          "accept": false,
+          "change": "w_immediate_death -1000->-249.3, w_space 20->4.535",
+          "dev": {
+            "diff": 0.0,
+            "failures": 0,
+            "mean_cand": 0.1375,
+            "mean_champ": 0.1375,
+            "n": 40
+          },
+          "generation": 4,
+          "guards": null,
+          "holdout": null,
+          "rationale": "dev mean difference +0 is not above 0",
+          "stage": "dev"
+        }
+      ],
+      "final": null,
+      "generations": 4,
+      "progress": [
+        {
+          "candidate": "2443a84a394b38c6",
+          "ci": [
+            0.0,
+            0.015
+          ],
+          "deaths": 0.03,
+          "enemy_distance": 4.35998717948718,
+          "generation": 0,
+          "kills_per_1k": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mean": 0.005,
+          "space": 72.54559615384615,
+          "version": 1
+        }
+      ],
+      "versions": 1
+    },
+    "trapper": {
+      "accepted": 0,
+      "cycle_check": [],
+      "decisions": [
+        {
+          "accept": false,
+          "change": "w_enemy_space_after -15->-77.33",
+          "dev": {
+            "diff": -0.025,
+            "failures": 0,
+            "mean_cand": 0.1,
+            "mean_champ": 0.125,
+            "n": 40
+          },
+          "generation": 1,
+          "guards": null,
+          "holdout": null,
+          "rationale": "dev mean difference -0.025 is not above 0",
+          "stage": "dev"
+        },
+        {
+          "accept": false,
+          "change": "keep_distance 3->2, w_enemy_escape_moves -10->42.62, w_straightness 0.01->-2.235",
+          "dev": {
+            "diff": 0.1,
+            "failures": 0,
+            "mean_cand": 0.3375,
+            "mean_champ": 0.2375,
+            "n": 40
+          },
+          "generation": 2,
+          "guards": {
+            "deaths_per_1k_alive": [
+              0.1251721116535236,
+              0.012501718986360625
+            ],
+            "self_wall_deaths": [
+              0.2,
+              0.0
+            ]
+          },
+          "holdout": {
+            "ci": [
+              -0.1625,
+              0.125
+            ],
+            "diff": -0.0125,
+            "extended": false,
+            "failures": 0,
+            "mean_cand": 0.1875,
+            "mean_champ": 0.2,
+            "n": 40,
+            "rel_gain": -0.06250000000000006
+          },
+          "rationale": "holdout gain -6.3%, 95% CI [-0.1625, +0.125]: below the 2% minimum gain",
+          "stage": "holdout"
+        },
+        {
+          "accept": false,
+          "change": "keep_distance 3->2, w_space 6->4.897",
+          "dev": {
+            "diff": 0.1,
+            "failures": 0,
+            "mean_cand": 0.2625,
+            "mean_champ": 0.1625,
+            "n": 40
+          },
+          "generation": 3,
+          "guards": {
+            "deaths_per_1k_alive": [
+              0.08758429988864282,
+              0.012501718986360625
+            ],
+            "self_wall_deaths": [
+              0.1,
+              0.0
+            ]
+          },
+          "holdout": {
+            "ci": [
+              -0.1,
+              0.1
+            ],
+            "diff": 0.0,
+            "extended": false,
+            "failures": 0,
+            "mean_cand": 0.2,
+            "mean_champ": 0.2,
+            "n": 40,
+            "rel_gain": 0.0
+          },
+          "rationale": "holdout gain +0.0%, 95% CI [-0.1, +0.1]: below the 2% minimum gain",
+          "stage": "holdout"
+        },
+        {
+          "accept": false,
+          "change": "search_radius 12->11, w_space 6->-15.32",
+          "dev": {
+            "diff": 0.0,
+            "failures": 0,
+            "mean_cand": 0.1,
+            "mean_champ": 0.1,
+            "n": 40
+          },
+          "generation": 4,
+          "guards": null,
+          "holdout": null,
+          "rationale": "dev mean difference +0 is not above 0",
+          "stage": "dev"
+        }
+      ],
+      "final": null,
+      "generations": 4,
+      "progress": [
+        {
+          "candidate": "cdb47bf58afe956c",
+          "ci": [
+            0.0,
+            0.015
+          ],
+          "deaths": 0.19,
+          "enemy_distance": 4.454519230769231,
+          "generation": 0,
+          "kills_per_1k": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mean": 0.005,
+          "space": 69.0868782051282,
+          "version": 1
+        }
+      ],
+      "versions": 1
+    }
+  },
+  "matrix": {
+    "episodes": 100,
+    "kills": [
+      [
+        0,
+        0,
+        1,
+        5,
+        0
+      ],
+      [
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        4,
+        0,
+        0,
+        1,
+        0
+      ],
+      [
+        20,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ],
+    "snakes": [
+      "Hunter v1",
+      "Survivor v1",
+      "Trapper v1",
+      "Predictor v1",
+      "Opportunist v1"
+    ],
+    "ticks": 2000
+  },
+  "profile": {
+    "death_rate_slack": 0.05,
+    "death_rate_tolerance": 0.15,
+    "dev_pairs": 40,
+    "dev_pool": 10000,
+    "final_pairs": 100,
+    "holdout_blocks": 10,
+    "holdout_pairs": 40,
+    "holdout_rotate": 10,
+    "min_rel_gain": 0.02,
+    "name": "experiment",
+    "patience": 4,
+    "proposer": "gaussian_hill_climb",
+    "resamples": 10000,
+    "self_wall_slack": 0.05,
+    "self_wall_tolerance": 0.25,
+    "settings": {
+      "height": 24,
+      "shares": {
+        "champions": 0.5,
+        "hall_of_fame": 0.25,
+        "random_safe": 0.15,
+        "reference": 0.1
+      },
+      "ticks": 2000,
+      "width": 24
+    }
+  },
+  "stop_reason": "every lineage stopped"
+}

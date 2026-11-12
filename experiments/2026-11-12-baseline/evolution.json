@@ -1,0 +1,41 @@
+{
+  "code_hash": "7938b639809c2627",
+  "identity": {
+    "lineages": [
+      "hunter",
+      "survivor",
+      "trapper",
+      "predictor",
+      "opportunist"
+    ],
+    "profile": {
+      "death_rate_slack": 0.05,
+      "death_rate_tolerance": 0.15,
+      "dev_pairs": 40,
+      "dev_pool": 10000,
+      "final_pairs": 100,
+      "holdout_blocks": 10,
+      "holdout_pairs": 40,
+      "holdout_rotate": 10,
+      "min_rel_gain": 0.02,
+      "name": "experiment",
+      "patience": 4,
+      "proposer": "gaussian_hill_climb",
+      "resamples": 10000,
+      "self_wall_slack": 0.05,
+      "self_wall_tolerance": 0.25,
+      "settings": {
+        "height": 24,
+        "shares": {
+          "champions": 0.5,
+          "hall_of_fame": 0.25,
+          "random_safe": 0.1,
+          "reference": 0.15
+        },
+        "ticks": 2000,
+        "width": 24
+      }
+    },
+    "run_seed": 0
+  }
+}

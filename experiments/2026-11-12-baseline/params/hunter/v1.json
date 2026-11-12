@@ -1,0 +1,21 @@
+{
+  "name": "hunter",
+  "version": 1,
+  "params": {
+    "w_immediate_death": -1000.0,
+    "space_cap": 60,
+    "search_radius": 12,
+    "trap_margin": 2.0,
+    "keep_distance": 1,
+    "keep_repel": 0.0,
+    "pull_radius": 0,
+    "random_tiebreak": 1,
+    "w_head_on_risk": -40.0,
+    "w_territory": 20.0,
+    "w_space": 6.0,
+    "w_space_vs_length": 20.0,
+    "w_nearest_enemy_head": -30.0,
+    "w_straightness": 0.01,
+    "w_cut_off": 12.0
+  }
+}

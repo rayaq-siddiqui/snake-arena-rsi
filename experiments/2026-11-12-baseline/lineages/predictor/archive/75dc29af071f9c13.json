@@ -1,0 +1,27 @@
+{
+  "generation": 0,
+  "id": "75dc29af071f9c13",
+  "note": "generation-0 baseline",
+  "params": {
+    "discount": 0.5,
+    "keep_distance": 3.0,
+    "keep_repel": 1.0,
+    "lookahead": 2.0,
+    "pull_radius": 15.0,
+    "random_tiebreak": 1.0,
+    "search_radius": 12.0,
+    "space_cap": 60.0,
+    "trap_margin": 2.0,
+    "w_expected_death": -300.0,
+    "w_expected_kills": 300.0,
+    "w_immediate_death": -1000.0,
+    "w_nearest_enemy_head": -20.0,
+    "w_pressure": 10.0,
+    "w_space": 6.0,
+    "w_space_vs_length": 20.0,
+    "w_straightness": 0.01,
+    "w_territory": 20.0
+  },
+  "parent_id": null,
+  "proposer": "baseline"
+}

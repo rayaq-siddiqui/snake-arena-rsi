@@ -1,0 +1,22 @@
+{
+  "accepted": 0,
+  "archive": [
+    "cdb47bf58afe956c"
+  ],
+  "champion": "cdb47bf58afe956c",
+  "episodes": 480,
+  "generation": 4,
+  "proposer": {
+    "sigma": 0.09841500000000002,
+    "weights": {}
+  },
+  "rejected": [
+    "551fa9fcc1f4de77",
+    "6759caef05edba76",
+    "7c8846aad949050c",
+    "abd1a3ca393dc536"
+  ],
+  "seconds": 2477.144130928,
+  "since_accept": 4,
+  "stop_reason": "no accept in 4 generations"
+}

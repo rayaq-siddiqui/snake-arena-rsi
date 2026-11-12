@@ -1,0 +1,36 @@
+{
+  "generation": 4,
+  "lineages": {
+    "hunter": {
+      "accepted": 0,
+      "final": null,
+      "stop_reason": "no accept in 4 generations",
+      "version": 1
+    },
+    "opportunist": {
+      "accepted": 0,
+      "final": null,
+      "stop_reason": "no accept in 4 generations",
+      "version": 1
+    },
+    "predictor": {
+      "accepted": 0,
+      "final": null,
+      "stop_reason": "no accept in 4 generations",
+      "version": 1
+    },
+    "survivor": {
+      "accepted": 0,
+      "final": null,
+      "stop_reason": "no accept in 4 generations",
+      "version": 1
+    },
+    "trapper": {
+      "accepted": 0,
+      "final": null,
+      "stop_reason": "no accept in 4 generations",
+      "version": 1
+    }
+  },
+  "stop_reason": "every lineage stopped"
+}
