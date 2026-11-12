@@ -87,10 +87,22 @@ class Profile:
 
 PROFILES: dict[str, Profile] = {
     "default": Profile("default", EvalSettings(100, 100, 5000)),
+    "experiment": Profile(
+        "experiment",
+        EvalSettings(24, 24, 2000),
+        dev_pairs=40,
+        holdout_pairs=40,
+        final_pairs=100,
+    ),
     "quick": Profile(
         "quick", EvalSettings(40, 40, 1000), dev_pairs=20, holdout_pairs=20, final_pairs=40
     ),
 }
+"""``default`` is the specified experiment. ``experiment`` is a reduced, labelled setting
+that fits a single machine and puts snakes close enough to meet: on 40 x 40 boards with
+1,000-tick episodes only 0-5 of 40 paired seeds scored any kill, and the default profile
+costs hours per generation here (specs/plan.md, Measurements). ``quick`` is a fast
+end-to-end check whose results are never reported as the experiment."""
 
 
 def lineage_seed(run_seed: int, name: str) -> int:
