@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import random
 
-from arena.agents.base import Observation, hazards, legal_moves, next_cell
-from arena.engine import Direction
+from arena.agents.base import Observation, hazards, legal_moves
+from arena.engine import DELTAS, Direction
 
 
 class RandomUniform:
@@ -42,10 +42,13 @@ class RandomSafe:
         me = obs.me
         assert me.heading is not None
         blocked = hazards(obs)
+        hx, hy = me.body[0]
+        w, h = obs.width, obs.height
         safe = []
         for d in legal_moves(me.heading):
-            x, y = next_cell(me.body[0], d)
-            if 0 <= x < obs.width and 0 <= y < obs.height and (x, y) not in blocked:
+            dx, dy = DELTAS[d]
+            x, y = hx + dx, hy + dy
+            if 0 <= x < w and 0 <= y < h and (x, y) not in blocked:
                 safe.append(d)
         if not safe:
             return me.heading

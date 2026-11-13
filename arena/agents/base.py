@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Protocol
+from typing import NamedTuple, Protocol
 
 from arena.engine import DELTAS, DIRECTIONS, OPPOSITE, Cell, Direction, GameState, SnakeId
 
 
-@dataclass(frozen=True)
-class SnakeView:
+class SnakeView(NamedTuple):
     id: SnakeId
     alive: bool
     body: tuple[Cell, ...]
@@ -19,8 +17,13 @@ class SnakeView:
     respawn_in: int
 
 
-@dataclass(frozen=True)
-class Observation:
+class Observation(NamedTuple):
+    """A policy's read-only view of one tick.
+
+    Named tuples rather than frozen dataclasses: equally immutable, and several times
+    cheaper to build, which matters because a match builds five of these every tick.
+    """
+
     tick: int
     width: int
     height: int

@@ -97,20 +97,21 @@ class Match:
         state = self.state
         views = snake_views(state)
         tick = state.tick + 1
+        width, height = state.config.width, state.config.height
+        budget = self.move_budget_s
         actions: dict[str, Direction] = {}
         fallbacks: list[Event] = []
         for snake, policy in zip(state.snakes, self.policies, strict=True):
             if not snake.alive:
                 continue
             assert snake.heading is not None
-            obs = Observation(state.tick, state.config.width, state.config.height, snake.id, views)
+            obs = Observation(state.tick, width, height, snake.id, views)
             reason = None
-            started = time.perf_counter()
+            started = time.perf_counter() if budget is not None else 0.0
             try:
                 choice = as_direction(policy.choose_action(obs))
             except Exception:
                 choice, reason = None, "error"
-            budget = self.move_budget_s
             if reason is None and budget is not None and time.perf_counter() - started > budget:
                 choice, reason = None, "timeout"
             if choice is None:
