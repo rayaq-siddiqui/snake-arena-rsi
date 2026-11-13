@@ -416,7 +416,10 @@ Behaviour table (100 matches, all five together, 5,000-tick episodes on 100 × 1
   parameter priors, exploration, largest batch), clipped and audit-logged, from dev
   feedback only. *Status:* the long run (`evolve --profile arena --until-wins 200`) is in
   progress; it gained the coach and moved to CPython 3.14 (same games, bit-identical
-  results, about 18% less time on a 4-game benchmark) at a generation boundary. Results
+  results, about 18% less time on a 4-game benchmark) at a generation boundary, then to a
+  bitset `territory` race on small boards (12 arena games: 52.0 s and 51.6 s before,
+  25.2 s and 25.4 s after, same results; the 100 × 100 board keeps the list search, which
+  is faster there). Results
   land in `experiments/` when it ends.
 
 ---

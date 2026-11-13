@@ -244,8 +244,74 @@ def territory(board: Board, me: SnakeId, move: Direction, p: Params) -> float:
     return min(board.memo[key], cap) / cap
 
 
+_BITS = bytes.maketrans(b"\x00\x01", b"01")
+_diamond_bits: dict[tuple[int, int, int], tuple[int, int]] = {}
+
+
+def _as_bits(cells: bytes) -> int:
+    """A 0/1 byte map as an int whose bit ``i`` is ``cells[i]``."""
+    return int(cells[::-1].translate(_BITS), 2)
+
+
+def _diamond_mask(width: int, height: int, radius: int) -> tuple[int, int]:
+    key = (width, height, radius)
+    if key not in _diamond_bits:
+        inside, base = diamond(width, height, radius)
+        _diamond_bits[key] = (_as_bits(inside), base)
+    return _diamond_bits[key]
+
+
+BITSET_CELLS = 8192
+"""Padded grids up to this size race on bitsets. A shift costs time in proportion to the
+whole grid while the search stays local, so on the 100 x 100 board (20,706 padded cells)
+the cell lists are faster; on 30 x 30 (2,016) the bitsets take about half the game time."""
+
+
 def _territory(board: Board, me: SnakeId, target: Cell, cap: int, radius: int) -> int:
-    """The race in ``territory`` on the padded grid.
+    if len(board.grid) <= BITSET_CELLS:
+        return _territory_bits(board, me, target, cap, radius)
+    return _territory_lists(board, me, target, cap, radius)
+
+
+def _territory_bits(board: Board, me: SnakeId, target: Cell, cap: int, radius: int) -> int:
+    """The race in ``territory``, one layer at a time on bitsets over the padded grid.
+
+    Each front is an int with a bit per padded cell, so growing it by one step is four
+    shifts; the wall padding keeps a shift from wrapping onto the next row. A cell both
+    sides reach in the same layer belongs to nobody but still extends the enemy front.
+    """
+    stride = stride_of(board.width)
+    blocked = board.memo.get(("bits",))
+    if blocked is None:
+        blocked = board.memo[("bits",)] = _as_bits(board.grid)
+    start = board.index(target)
+    near_in, near_base = _diamond_mask(board.width, board.height, radius)
+    far_in, far_base = _diamond_mask(board.width, board.height, 2 * radius)
+    full = (1 << len(board.grid)) - 1
+    near = (near_in >> (near_base - start)) & full
+    far = (far_in >> (far_base - start)) & full
+    heads = 0
+    for e in board.enemies(me):
+        if manhattan(e.body[0], target) <= 2 * radius:
+            heads |= 1 << board.index(e.body[0])
+    mine = 1 << start
+    taken = blocked | mine | heads
+    enemy = ((heads << 1) | (heads >> 1) | (heads << stride) | (heads >> stride)) & far & ~taken
+    taken |= enemy
+    count = 1
+    while mine and count < cap:
+        reach = ((mine << 1) | (mine >> 1) | (mine << stride) | (mine >> stride)) & near & ~taken
+        grown = (enemy << 1) | (enemy >> 1) | (enemy << stride) | (enemy >> stride)
+        grown &= far & ~(taken & ~reach)
+        mine = reach & ~grown
+        taken |= reach | grown
+        enemy = grown
+        count += mine.bit_count()
+    return count
+
+
+def _territory_lists(board: Board, me: SnakeId, target: Cell, cap: int, radius: int) -> int:
+    """The race in ``territory`` as a breadth-first search over cell lists.
 
     ``taken`` holds 0 for free, 1 for taken, ``mine_mark`` for cells I reach in the layer
     being built, and ``tie_mark`` for cells both sides reach in it: those belong to nobody

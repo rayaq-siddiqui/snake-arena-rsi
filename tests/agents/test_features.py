@@ -1,7 +1,11 @@
 import pytest
 from board_helpers import line, observe
 
+from arena.agents import make_policy
+from arena.agents.base import Observation, snake_views
 from arena.agents.features import (
+    _territory_bits,
+    _territory_lists,
     board_of,
     centre_distance,
     cut_off,
@@ -17,6 +21,8 @@ from arena.agents.features import (
     territory,
     wall_distance,
 )
+from arena.engine import GameConfig
+from arena.sim.match import Match
 
 P: dict[str, float] = {}
 
@@ -141,6 +147,25 @@ def test_territory_sees_a_corridor_an_enemy_closes_first() -> None:
     p = {"space_cap": 60, "search_radius": 12}
     assert space(board, "s0", "DOWN", p) == 1.0
     assert territory(board, "s0", "DOWN", p) < 0.2
+
+
+def test_territory_bitsets_match_the_list_search() -> None:
+    size = 30
+    cfg = GameConfig(width=size, height=size, max_ticks=40)
+    m = Match([make_policy("random_safe") for _ in range(5)], 7, cfg)
+    checked = 0
+    while not m.finished:
+        m.advance()
+        views = snake_views(m.state)
+        board = board_of(Observation(m.state.tick, size, size, "s0", views))
+        for me in (s for s in views if s.alive):
+            for target in [(x, y) for x in range(size) for y in range(size)][::23]:
+                if board.free(target):
+                    for cap, radius in ((60, 3), (400, 12), (900, 30)):
+                        bits = _territory_bits(board, me.id, target, cap, radius)
+                        assert bits == _territory_lists(board, me.id, target, cap, radius)
+                        checked += 1
+    assert checked > 500
 
 
 def test_keep_distance_stops_or_repels_the_pull() -> None:
