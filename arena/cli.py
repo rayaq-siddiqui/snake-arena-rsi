@@ -414,6 +414,36 @@ def cmd_map_elites(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_exploit(args: argparse.Namespace) -> int:
+    from arena.evolution.exploit import train_exploiter
+
+    ex = train_exploiter(
+        args.run,
+        args.snake,
+        args.generations,
+        target_generation=args.target_generation,
+        workers=args.workers,
+        league=not args.no_league,
+    )
+    r = ex.result
+    print(
+        f"{args.snake} exploiter vs the champions after generation {ex.target_generation}: "
+        f"{r.accepted} accepted in {r.generations} generations ({r.stop_reason})."
+    )
+    if ex.gap is None:
+        print("Exploit gap: none found (the exploiter never beat its starting champion).")
+    else:
+        lo, hi = ex.gap["ci"]
+        print(
+            f"Exploit gap on {ex.gap['n']} final seeds: {ex.gap['diff']:+.3f} kills/1k "
+            f"[{lo:+.3f}, {hi:+.3f}] over the {args.snake} champion it started from."
+        )
+    if ex.registered:
+        print(f"Registered in {Path(args.run) / 'league.json'}; it joins the halls of fame.")
+    print(f"Wrote {ex.run.store.dir}")
+    return 0
+
+
 def cmd_report(args: argparse.Namespace) -> int:
     from arena.evolution.dashboard import write as write_dashboard
     from arena.evolution.report import write
@@ -582,6 +612,20 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--workers", type=int, default=None, help="processes (default: all cores)")
     p.add_argument("--out", help="run directory (default runs/map-elites-<snake>-<seed>)")
     p.set_defaults(func=cmd_map_elites)
+
+    p = sub.add_parser(
+        "exploit",
+        help="step 5.4: train an exploiter of an evolve run's champions; it joins the league",
+    )
+    p.add_argument("run", help="evolve run directory, e.g. runs/demo")
+    p.add_argument("snake", help="personality the exploiter plays, e.g. hunter")
+    p.add_argument("--generations", type=int, default=4, help="RSI generations to train")
+    p.add_argument(
+        "--target-generation", type=int, help="freeze champions after this generation (latest)"
+    )
+    p.add_argument("--no-league", action="store_true", help="do not register in league.json")
+    p.add_argument("--workers", type=int, default=None, help="processes (default: all cores)")
+    p.set_defaults(func=cmd_exploit)
 
     p = sub.add_parser("report", help="phase 4: write report.md and charts for an evolve run")
     p.add_argument("run", help="run directory, e.g. runs/demo")

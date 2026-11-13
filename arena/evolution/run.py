@@ -36,6 +36,7 @@ from arena.agents.registry import PERSONALITIES
 from arena.engine.rng import derive_seed
 from arena.evolution.entrants import Entrant, hand_set, param_specs, personality_class
 from arena.evolution.evaluator import Context, EvalSettings, SnakeEvaluator, Workers
+from arena.evolution.league import league_halls, with_league
 from arena.rsi.accept import GuardMetric, PairedBootstrapRule
 from arena.rsi.loop import Pending, Run, RunConfig, RunResult
 from arena.rsi.proposers import make_proposer
@@ -252,8 +253,10 @@ class Evolution:
             self._write_params(lin, lin.hall(lin.run.generation))
 
     def context(self, upto: int) -> Context:
-        """Every lineage frozen as it stood after generation ``upto``."""
-        return make_context({name: lin.hall(upto) for name, lin in self.lineages.items()})
+        """Every lineage frozen as it stood after generation ``upto``, plus any league
+        exploiters that had joined by then (``arena/evolution/league.py``)."""
+        ctx = make_context({name: lin.hall(upto) for name, lin in self.lineages.items()})
+        return with_league(ctx, league_halls(self.dir, upto))
 
     def _set_context(self, upto: int) -> None:
         ctx = self.context(upto)

@@ -385,14 +385,20 @@ flowchart TB
     dashboard --> ereport
     watch --> ereport
     emap["evolution/map_elites.py<br/>one personality: kills vs aggression x caution<br/>vs hand-set reference · heatmap SVG"]
+    exploit["evolution/exploit.py<br/>exploiter: a Run vs the frozen champions<br/>exploit gap on final seeds"]
+    league["evolution/league.py<br/>league.json: exploiters join halls of fame<br/>after the generation they were registered"]
     emap --> evaluator
+    exploit --> evaluator
+    exploit -- "load_champion · Profile" --> run
+    exploit --> league
+    run -- "context(upto) + league halls" --> league
   end
 
-  cli["cli.py + __main__.py<br/>run-match · run-tournament · bench · watch<br/>check-personalities · rsi-demo · rsi-meta · evolve · report<br/>dashboard · propose-code · index · map-elites"]
+  cli["cli.py + __main__.py<br/>run-match · run-tournament · bench · watch<br/>check-personalities · rsi-demo · rsi-meta · evolve · report<br/>dashboard · propose-code · index · map-elites · exploit"]
 
   storage["storage/db.py<br/>SQLite index: runs · agents · policy_versions · generations<br/>candidate_evaluations · promotion_decisions · matches · kills<br/>rebuilt from the files, read-only queries"]
   OUT[("out/<br/>tournament matches.jsonl · summary.csv · kill_matrix.csv<br/>replay *.json · bookmarks.json")]
-  RUNS[("runs/&lt;id&gt;/<br/>evolution.json · lineages/&lt;name&gt;/generations.jsonl<br/>params/&lt;name&gt;/v&lt;k&gt;.json · timing.jsonl<br/>report.md · progress.svg · dashboard.html<br/>map-elites-&lt;snake&gt;: map_elites.json · holdout.json · .svg")]
+  RUNS[("runs/&lt;id&gt;/<br/>evolution.json · lineages/&lt;name&gt;/generations.jsonl<br/>params/&lt;name&gt;/v&lt;k&gt;.json · timing.jsonl<br/>report.md · progress.svg · dashboard.html<br/>league.json · exploiters/&lt;name&gt;-g&lt;G&gt;/<br/>map-elites-&lt;snake&gt;: map_elites.json · holdout.json · .svg")]
 
   AGENTS --> ENGINE
   match --> step
@@ -407,6 +413,7 @@ flowchart TB
   evaluator --> match
   evaluator --> pcheck
   run -- "one Run per lineage" --> loop
+  exploit -- "one Run" --> loop
   emap -- "MapElites" --> mapel
   emap --> metrics
   evaluator -. "implements Evaluator" .-> rtypes
@@ -416,6 +423,7 @@ flowchart TB
   store --> RUNS
   ereport --> RUNS
   dashboard --> RUNS
+  league --> RUNS
   mapel --> RUNS
   codeprop -. "dev results only" .-> RUNS
   storage -. "reads" .-> RUNS
