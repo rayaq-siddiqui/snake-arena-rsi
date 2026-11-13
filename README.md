@@ -185,9 +185,8 @@ uv run python -m arena.cli index --db arena.db --sql "SELECT run_id, agent, SUM(
 It sees only the parameter schema, the champion and recent dev-screen results, never a
 seed. Its reply is clipped to the parameter bounds, every call is logged to
 `llm_audit.jsonl`, and `--max-llm-tokens` / `--max-llm-dollars` stop the run when spent.
-A failed or unusable reply falls back to the hill climber for that proposal. It needs
-the `llm` extra and an `ANTHROPIC_API_KEY`. It has not yet been compared against the
-default improver.
+A failed or unusable reply falls back to the hill climber for that proposal. With the
+default provider it needs the `llm` extra and an `ANTHROPIC_API_KEY`:
 
 ```bash
 uv sync --extra llm
@@ -195,6 +194,14 @@ uv sync --extra llm
 
 ```bash
 uv run python -m arena.cli evolve --quick --proposer llm --max-llm-dollars 2 --run-id llm
+```
+
+`--llm-provider openrouter` uses OpenRouter's chat API instead (standard library only,
+`OPENROUTER_API_KEY`, and the provider's reported cost counts against the dollar cap).
+The dollar cap applies to each lineage:
+
+```bash
+uv run python -m arena.cli evolve --quick --proposer llm --llm-provider openrouter --llm-model deepseek/deepseek-v4.1-flash --max-llm-dollars 0.4 --run-id llm
 ```
 
 **Optional: code proposals, review only.** `propose-code` asks the model for a whole new

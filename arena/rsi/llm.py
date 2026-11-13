@@ -27,7 +27,9 @@ from __future__ import annotations
 import importlib
 import json
 import math
+import os
 import re
+import urllib.request
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -62,6 +64,8 @@ class Reply:
     input_tokens: int
     output_tokens: int
     refused: bool = False
+    dollars: float | None = None
+    """What the provider says the call cost, when it says; otherwise ``prices`` apply."""
 
 
 Complete = Callable[[str, str], Reply]
@@ -177,6 +181,60 @@ def parse_params(text: str, champion: Candidate, space: Sequence[ParamSpec]) -> 
     return params
 
 
+OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+Post = Callable[[str, bytes, Mapping[str, str]], Any]
+
+
+def _post_json(url: str, body: bytes, headers: Mapping[str, str]) -> Any:
+    request = urllib.request.Request(url, body, dict(headers), method="POST")
+    with urllib.request.urlopen(request, timeout=120) as response:
+        return json.loads(response.read())
+
+
+def openrouter_complete(model: str, max_tokens: int = 2048, post: Post = _post_json) -> Complete:
+    """A ``Complete`` for OpenRouter's chat completions API, using only the standard library.
+
+    The key comes from ``OPENROUTER_API_KEY``. OpenRouter reports each call's cost, which
+    the proposer then charges instead of estimating it from ``prices``.
+    """
+
+    def complete(system: str, prompt: str) -> Reply:
+        key = os.environ.get("OPENROUTER_API_KEY")
+        if not key:
+            raise RuntimeError("the openrouter provider needs OPENROUTER_API_KEY")
+        body = {
+            "model": model,
+            "max_tokens": max_tokens,
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user", "content": prompt},
+            ],
+            "usage": {"include": True},
+        }
+        headers = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
+        data = post(OPENROUTER_URL, json.dumps(body).encode(), headers)
+        if "error" in data:
+            raise RuntimeError(f"openrouter error: {data['error']}")
+        choice = data["choices"][0]
+        usage = data.get("usage") or {}
+        cost = usage.get("cost")
+        return Reply(
+            choice["message"].get("content") or "",
+            int(usage.get("prompt_tokens", 0)),
+            int(usage.get("completion_tokens", 0)),
+            refused=choice.get("finish_reason") == "content_filter",
+            dollars=float(cost) if cost is not None else None,
+        )
+
+    return complete
+
+
+PROVIDERS: dict[str, Callable[[str], Complete]] = {
+    "anthropic": anthropic_complete,
+    "openrouter": openrouter_complete,
+}
+
+
 class LLMProposer:
     """Ask a language model for the next parameter set; numbers only, budgeted, audited."""
 
@@ -192,8 +250,14 @@ class LLMProposer:
         prices: tuple[float, float] = DEFAULT_PRICES,
         audit_path: str | Path | None = None,
         recent: int = 12,
+        provider: str = "anthropic",
     ) -> None:
+        if provider not in PROVIDERS:
+            raise ValueError(
+                f"unknown llm provider {provider!r}; choose from {', '.join(PROVIDERS)}"
+            )
         self._complete = complete
+        self.provider = provider
         self.model = model
         self.max_tokens = max_tokens
         self.max_dollars = max_dollars
@@ -232,11 +296,15 @@ class LLMProposer:
         if not self._budget_left():
             return self._fall_back(champion, history, space, rng, "llm budget spent")
         prompt = build_prompt(champion, history, space, self.recent)
-        record: dict[str, Any] = {"generation": history.generation, "model": self.model}
+        record: dict[str, Any] = {
+            "generation": history.generation,
+            "model": self.model,
+            "provider": self.provider,
+        }
         record["prompt"] = prompt
         try:
             if self._complete is None:
-                self._complete = anthropic_complete(self.model)
+                self._complete = PROVIDERS[self.provider](self.model)
             reply = self._complete(SYSTEM, prompt)
         except Exception as exc:  # a failed call is a fallback, not a crashed run
             self.failures += 1
@@ -244,10 +312,15 @@ class LLMProposer:
             return self._fall_back(champion, history, space, rng, "llm call failed")
         self.calls += 1
         self.tokens += reply.input_tokens + reply.output_tokens
-        self.dollars += (
-            reply.input_tokens * self.prices[0] + reply.output_tokens * self.prices[1]
-        ) / 1e6
+        if reply.dollars is not None:
+            cost = reply.dollars
+        else:
+            cost = (
+                reply.input_tokens * self.prices[0] + reply.output_tokens * self.prices[1]
+            ) / 1e6
+        self.dollars += cost
         record |= {
+            "dollars": cost,
             "reply": reply.text,
             "input_tokens": reply.input_tokens,
             "output_tokens": reply.output_tokens,

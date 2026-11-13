@@ -139,6 +139,7 @@ uv run python -m arena.cli watch --runs-dir runs                  # + /experimen
 uv run python -m arena.cli rsi-demo --problem quadratic           # RSI loop on a toy
 uv run python -m arena.cli rsi-meta --workers 4                   # the loop tunes its own hill climb
 uv run python -m arena.cli evolve --quick --proposer llm --max-llm-dollars 2 --run-id llm  # opt-in; needs the llm extra + API key
+uv run python -m arena.cli evolve --quick --proposer llm --llm-provider openrouter --llm-model deepseek/deepseek-v4.1-flash --max-llm-dollars 0.4 --run-id llm-or  # opt-in; OPENROUTER_API_KEY
 uv run python -m arena.cli propose-code hunter --run runs/demo   # opt-in; review-only patch
 uv run python -m arena.cli map-elites hunter --batches 10 --workers 4   # behaviour-grid elites
 uv run python -m arena.cli exploit runs/demo hunter --generations 4     # exploiter + league

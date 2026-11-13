@@ -143,3 +143,53 @@ def test_a_note_with_braces_after_the_json_does_not_spoil_the_reply() -> None:
     text = 'Here: {"params": {"a": 1.0}} (kept {k} as it was)'
     assert parse_params(text, CHAMP, SPACE)["a"] == 1.0
     assert parse_params('{not json} then {"a": 1.0}', CHAMP, SPACE)["a"] == 1.0
+
+
+def test_openrouter_sends_a_chat_request_and_charges_the_reported_cost(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from arena.rsi.llm import OPENROUTER_URL, openrouter_complete
+
+    sent: list[tuple[str, dict[str, object], dict[str, str]]] = []
+
+    def post(url: str, body: bytes, headers: dict[str, str]) -> object:
+        sent.append((url, json.loads(body), dict(headers)))
+        return {
+            "choices": [{"message": {"content": '{"a": 1.0}'}, "finish_reason": "stop"}],
+            "usage": {"prompt_tokens": 100, "completion_tokens": 20, "cost": 0.0042},
+        }
+
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
+    complete = openrouter_complete("some/model", post=post)
+    reply = complete("sys", "prompt")
+    assert (reply.text, reply.input_tokens, reply.output_tokens) == ('{"a": 1.0}', 100, 20)
+    assert reply.dollars == 0.0042 and not reply.refused
+    url, body, headers = sent[0]
+    assert url == OPENROUTER_URL and body["model"] == "some/model"
+    assert body["messages"] == [
+        {"role": "system", "content": "sys"},
+        {"role": "user", "content": "prompt"},
+    ]
+    assert headers["Authorization"] == "Bearer test-key"
+
+    proposer = LLMProposer(complete=complete, provider="openrouter", max_dollars=1.0)
+    history = History(1, (), (CHAMP,))
+    cand = proposer.propose(CHAMP, history, SPACE, np.random.default_rng(0))
+    assert cand.params["a"] == 1.0 and proposer.dollars == pytest.approx(0.0042)
+
+
+def test_openrouter_without_a_key_or_with_an_error_falls_back(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from arena.rsi.llm import openrouter_complete
+
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+    with pytest.raises(RuntimeError, match="OPENROUTER_API_KEY"):
+        openrouter_complete("m", post=lambda *_: {})("s", "p")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "k")
+    failing = openrouter_complete("m", post=lambda *_: {"error": {"message": "no credit"}})
+    proposer = LLMProposer(complete=failing, provider="openrouter")
+    cand = proposer.propose(CHAMP, History(1, (), (CHAMP,)), SPACE, np.random.default_rng(0))
+    assert "llm call failed" in cand.note and proposer.failures == 1
+    with pytest.raises(ValueError, match="unknown llm provider"):
+        LLMProposer(provider="nope")

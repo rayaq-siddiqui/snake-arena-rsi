@@ -240,12 +240,28 @@ def proposer_options(args: argparse.Namespace, run_dir: Path) -> dict[str, Any]:
         "max_tokens": args.max_llm_tokens,
         "max_dollars": args.max_llm_dollars,
         "audit_path": run_dir / "llm_audit.jsonl",
+        "provider": args.llm_provider,
+        **({"prices": tuple(args.llm_prices)} if args.llm_prices else {}),
     }
 
 
 def add_llm_options(p: argparse.ArgumentParser) -> None:
     g = p.add_argument_group(
-        "llm proposer (opt-in, needs the anthropic package and an API key; never the default)"
+        "llm proposer (opt-in, needs an API key, and the anthropic package for the default "
+        "provider; never the default)"
+    )
+    g.add_argument(
+        "--llm-provider",
+        choices=["anthropic", "openrouter"],
+        default="anthropic",
+        help="anthropic (ANTHROPIC_API_KEY, the SDK) or openrouter (OPENROUTER_API_KEY, stdlib)",
+    )
+    g.add_argument(
+        "--llm-prices",
+        type=float,
+        nargs=2,
+        metavar=("IN", "OUT"),
+        help="dollars per million input / output tokens, for providers that report no cost",
     )
     g.add_argument("--llm-model", help="model id (default: arena.rsi.llm.DEFAULT_MODEL)")
     g.add_argument("--max-llm-tokens", type=int, help="token cap; after it, hill climbing")
