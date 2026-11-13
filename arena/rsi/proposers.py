@@ -8,11 +8,13 @@ so every proposal is valid by construction. A proposer's self-adaptation lives i
 
 from __future__ import annotations
 
+import math
 from collections.abc import Callable, Mapping, Sequence
 from typing import Any
 
 import numpy as np
 
+from arena.rsi.accept import z_score
 from arena.rsi.types import Candidate, Feedback, History, ParamSpec, Proposer
 
 
@@ -411,6 +413,146 @@ class PopulationHillClimb:
         ]
 
 
+class OnePlusOneCMA:
+    """The (1+1)-CMA-ES of Igel, Suttorp & Hansen (2006), with the active covariance
+    update of Arnold & Hansen (2010), in normalised space.
+
+    One candidate per generation: the champion plus ``sigma * A z``, where ``z`` is
+    standard normal and ``A A^T = C``. Unlike ``GaussianHillClimb`` it moves every
+    parameter at once and learns ``C``, so it can follow correlated or badly scaled
+    directions (a ridge where two weights must rise together).
+
+    Self-adaptation, all from what the proposer may see:
+
+    - step size: a smoothed success rate ``p_succ`` (success = accepted) is pushed toward
+      ``p_target`` = 2/11 by ``sigma *= exp((p_succ - p_target) / (d (1 - p_target)))``
+      (Igel et al.'s improved 1/5th rule), with ``sigma`` kept in ``[sigma_min,
+      sigma_max]``;
+    - covariance: an accepted step feeds an evolution path ``p_c`` and a rank-one update
+      of ``C``; with ``active``, a step whose dev z statistic is below ``bad_z`` (clearly
+      worse) shrinks ``C`` along that direction.
+
+    The step that is learned from is the one actually taken after clipping to bounds
+    and rounding integers, so the update never learns a direction it did not try.
+    """
+
+    name = "cma_es"
+    batch = 1
+    max_condition = 1e6
+
+    def __init__(
+        self,
+        sigma: float = 0.15,
+        sigma_min: float = 0.005,
+        sigma_max: float = 0.5,
+        p_target: float = 2 / 11,
+        active: bool = True,
+        bad_z: float = -2.0,
+    ) -> None:
+        self.sigma0 = self.sigma = sigma
+        self.sigma_min, self.sigma_max = sigma_min, sigma_max
+        self.p_target = p_target
+        self.p_succ = p_target
+        self.active = active
+        self.bad_z = bad_z
+        self.cov: list[list[float]] | None = None
+        self.path: list[float] | None = None
+        self._steps: dict[str, list[float]] = {}
+
+    def _factor(self, n: int) -> np.ndarray:
+        if self.cov is None or len(self.cov) != n:
+            self.cov = np.eye(n).tolist()
+            self.path = [0.0] * n
+        c = np.array(self.cov)
+        try:
+            factor: np.ndarray = np.linalg.cholesky(c)
+        except np.linalg.LinAlgError:
+            self.cov = np.eye(n).tolist()
+            factor = np.eye(n)
+        return factor
+
+    def propose(
+        self,
+        champion: Candidate,
+        history: History,
+        space: Sequence[ParamSpec],
+        rng: np.random.Generator,
+    ) -> Candidate:
+        n = len(space)
+        a = self._factor(n)
+        u0 = to_unit(champion.params, space)
+        u = u0 + self.sigma * (a @ rng.standard_normal(n))
+        params = from_unit(u, space)
+        note = f"sigma {self.sigma:.3g}: " + describe_change(champion.params, params, space)
+        cand = _child(self.name, champion, params, history, note)
+        self._steps[cand.id] = ((to_unit(params, space) - u0) / self.sigma).tolist()
+        return cand
+
+    def observe(self, feedback: Sequence[Feedback]) -> None:
+        for f in feedback:
+            step = self._steps.get(f.candidate.id)
+            if step is None or f.stage in ("validate", "screened"):
+                continue
+            if self.cov is None or self.path is None:
+                continue
+            n = len(step)
+            y = np.array(step)
+            cov = np.array(self.cov)
+            d = 1.0 + n / 2.0
+            c_p, c_c, c_cov = 1 / 12, 2 / (n + 2), 2 / (n**2 + 6)
+            self.p_succ = (1 - c_p) * self.p_succ + c_p * float(f.accepted)
+            ratio = (self.p_succ - self.p_target) / (d * (1 - self.p_target))
+            self.sigma = min(self.sigma_max, max(self.sigma_min, self.sigma * math.exp(ratio)))
+            path = np.array(self.path)
+            if f.accepted:
+                if self.p_succ < 0.44:
+                    path = (1 - c_c) * path + math.sqrt(c_c * (2 - c_c)) * y
+                    cov = (1 - c_cov) * cov + c_cov * np.outer(path, path)
+                else:
+                    path = (1 - c_c) * path
+                    cov = (1 - c_cov) * cov + c_cov * (np.outer(path, path) + c_c * (2 - c_c) * cov)
+            elif self.active and f.dev is not None and z_score(f.dev.diffs) < self.bad_z:
+                cov = self._shrink(cov, y, n)
+            self.cov, self.path = cov.tolist(), path.tolist()
+        self._steps.clear()
+
+    @staticmethod
+    def _shrink(cov: np.ndarray, y: np.ndarray, n: int) -> np.ndarray:
+        """Arnold & Hansen's negative rank-one update, kept positive definite."""
+        try:
+            z = np.linalg.solve(np.linalg.cholesky(cov), y)
+        except np.linalg.LinAlgError:
+            return cov
+        zz = float(z @ z)
+        c_minus = 0.4 / (n**1.6 + 1)
+        if zz > 1:
+            c_minus = min(c_minus, 1 / (2 * zz - 1))
+        out: np.ndarray = (1 + c_minus) * cov - c_minus * np.outer(y, y)
+        try:
+            np.linalg.cholesky(out)
+        except np.linalg.LinAlgError:
+            return cov
+        # The same clipped step can repeat at a bound; without a cap C would collapse.
+        if np.linalg.cond(out) > OnePlusOneCMA.max_condition:
+            return cov
+        return out
+
+    def state(self) -> dict[str, Any]:
+        return {
+            "sigma": self.sigma,
+            "p_succ": self.p_succ,
+            "cov": self.cov,
+            "path": self.path,
+        }
+
+    def load_state(self, state: Mapping[str, Any]) -> None:
+        self.sigma = float(state["sigma"])
+        self.p_succ = float(state["p_succ"])
+        cov, path = state["cov"], state["path"]
+        self.cov = None if cov is None else [[float(x) for x in row] for row in cov]
+        self.path = None if path is None else [float(x) for x in path]
+
+
 PROPOSERS: dict[str, Callable[..., Proposer]] = {
     p.name: p
     for p in (
@@ -420,6 +562,7 @@ PROPOSERS: dict[str, Callable[..., Proposer]] = {
         CrossEntropy,
         ArchiveCrossover,
         PopulationHillClimb,
+        OnePlusOneCMA,
     )
 }
 
