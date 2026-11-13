@@ -170,6 +170,7 @@ def test_openrouter_sends_a_chat_request_and_charges_the_reported_cost(
         {"role": "system", "content": "sys"},
         {"role": "user", "content": "prompt"},
     ]
+    assert body["reasoning"] == {"effort": "low"}
     assert headers["Authorization"] == "Bearer test-key"
 
     proposer = LLMProposer(complete=complete, provider="openrouter", max_dollars=1.0)

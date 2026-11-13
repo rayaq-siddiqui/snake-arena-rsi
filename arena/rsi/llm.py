@@ -191,11 +191,13 @@ def _post_json(url: str, body: bytes, headers: Mapping[str, str]) -> Any:
         return json.loads(response.read())
 
 
-def openrouter_complete(model: str, max_tokens: int = 2048, post: Post = _post_json) -> Complete:
+def openrouter_complete(model: str, max_tokens: int = 4096, post: Post = _post_json) -> Complete:
     """A ``Complete`` for OpenRouter's chat completions API, using only the standard library.
 
     The key comes from ``OPENROUTER_API_KEY``. OpenRouter reports each call's cost, which
-    the proposer then charges instead of estimating it from ``prices``.
+    the proposer then charges instead of estimating it from ``prices``. Reasoning effort is
+    set low because reasoning models otherwise spend the whole token cap thinking and
+    return no content; models without reasoning ignore the setting.
     """
 
     def complete(system: str, prompt: str) -> Reply:
@@ -209,6 +211,7 @@ def openrouter_complete(model: str, max_tokens: int = 2048, post: Post = _post_j
                 {"role": "system", "content": system},
                 {"role": "user", "content": prompt},
             ],
+            "reasoning": {"effort": "low"},
             "usage": {"include": True},
         }
         headers = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
