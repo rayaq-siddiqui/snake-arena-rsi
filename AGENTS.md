@@ -210,7 +210,7 @@ Playwright and skips when it isn't installed. Keep this section in sync with rea
   uv run ruff check . && uv run mypy && uv run pytest   # jj fix does not type-check or test
   jj describe -m "fix: short desc" -m "long desc..." -m "Co-Authored-By: ..."
   jj bookmark set main -r @                     # move main to this change
-  jj git push --bookmark main                   # then `jj new` for the next change
+  jj git push --bookmark main                   # @ becomes immutable; jj starts a new empty change
   ```
 
   If `main@origin` moved while you worked, `jj git fetch` and then
