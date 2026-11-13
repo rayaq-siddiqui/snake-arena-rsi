@@ -323,8 +323,15 @@ Behaviour table (100 matches, all five together, 5,000-tick episodes on 100 × 1
 
 ## Step 5 — Stretch (only after step 4)
 
-- `[ ]` 5.1 Meta-run: use the RSI framework to tune `GaussianHillClimb`'s own settings
+- `[x]` 5.1 Meta-run: use the RSI framework to tune `GaussianHillClimb`'s own settings
   (initial σ, growth/shrink factors) on the toy suite — improving the improver, measured.
+  Built in `arena/rsi/meta.py` (`rsi-meta`): the outer `Run` scores each setting by an
+  inner `Run` on a seeded `NoisyQuadratic`, paired by seed, with the usual dev / holdout /
+  final split. Measured in `experiments/2026-11-13-meta` (40 generations, 30 pairs):
+  2 holdout accepts moved the settings only slightly (σ 0.148, grow 1.47, shrink 0.902),
+  and on 60 final toy problems the gain over the defaults was +0.240 with a 95% CI of
+  [−0.233, +0.806]. So the improver measured itself and found no significant improvement
+  over its hand-set defaults; nothing was changed in `GaussianHillClimb`.
 - `[ ]` 5.2 MAP-Elites over the behaviour grid (aggression × caution).
 - `[ ]` 5.3 PBT-style parallel candidates per lineage.
 - `[ ]` 5.4 Exploiter snakes trained to beat current champions (AlphaStar-style league).

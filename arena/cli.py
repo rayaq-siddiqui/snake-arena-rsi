@@ -252,6 +252,40 @@ def add_llm_options(p: argparse.ArgumentParser) -> None:
     g.add_argument("--max-llm-dollars", type=float, help="dollar cap; after it, hill climbing")
 
 
+def cmd_rsi_meta(args: argparse.Namespace) -> int:
+    from arena.rsi.meta import HillClimbTuning, meta_run
+
+    out = args.out or f"runs/meta-{args.run_seed}"
+    evaluator = HillClimbTuning(
+        generations=args.inner_generations, workers=args.workers or os.cpu_count() or 1
+    )
+    run = meta_run(out, args.generations, args.run_seed, evaluator, pairs=args.pairs)
+
+    def show(record: dict[str, object]) -> None:
+        d = record["decision"]
+        assert isinstance(d, dict)
+        mark = "ACCEPT" if d["accept"] else "reject"
+        print(f"gen {record['generation']:>3}  {mark}  {d['rationale']}", flush=True)
+
+    result = run.run(on_generation=show)
+    fmt = ", ".join(f"{k} {v:.3g}" for k, v in result.champion.params.items())
+    print(
+        f"\n{result.generations} generations, {result.accepted} accepted, stopped by "
+        f"{result.stop_reason}.\nSettings kept: {fmt}"
+    )
+    if result.final is not None:
+        f = result.final
+        print(
+            f"Final seeds ({f['n']} toy problems no proposer saw): mean true score "
+            f"{f['mean_cand']:.3f} with these settings vs {f['mean_champ']:.3f} with the defaults, "
+            f"difference {f['diff']:+.3f}, 95% CI [{f['ci'][0]:+.3f}, {f['ci'][1]:+.3f}]"
+        )
+    else:
+        print("The defaults were never replaced, so there is nothing to compare.")
+    print(f"Run directory: {out}")
+    return 0
+
+
 def cmd_rsi_demo(args: argparse.Namespace) -> int:
     from arena.rsi import Budget, PairedBootstrapRule, Run, RunConfig, make_proposer
     from arena.rsi.toys import PROBLEMS
@@ -419,6 +453,18 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--out", help="run directory (default runs/<problem>-<proposer>-<seed>)")
     add_llm_options(p)
     p.set_defaults(func=cmd_rsi_demo)
+
+    p = sub.add_parser(
+        "rsi-meta",
+        help="improve the improver: tune GaussianHillClimb's settings on toy problems",
+    )
+    p.add_argument("--generations", type=int, default=15)
+    p.add_argument("--inner-generations", type=int, default=30)
+    p.add_argument("--pairs", type=int, default=12, help="dev and holdout toy problems")
+    p.add_argument("--run-seed", type=int, default=0)
+    p.add_argument("--workers", type=int, default=None, help="processes (default: all cores)")
+    p.add_argument("--out", help="run directory (default runs/meta-<seed>)")
+    p.set_defaults(func=cmd_rsi_meta)
 
     p = sub.add_parser(
         "evolve",

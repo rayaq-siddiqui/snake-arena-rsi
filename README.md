@@ -112,6 +112,16 @@ same command again resumes the run; pass a larger `--generations` to extend it.
 uv run python -m arena.cli rsi-demo --problem quadratic --generations 60
 ```
 
+**Let the loop tune its own improver** (a meta-run). An outer loop proposes settings for
+the default hill climber (initial step size, grow and shrink factors) and scores each by
+running an inner loop with them on toy problems, then checks the settings it kept against
+the defaults on toy problems no proposer saw. The committed run is in
+[`experiments/2026-11-13-meta`](experiments/2026-11-13-meta/README.md).
+
+```bash
+uv run python -m arena.cli rsi-meta --workers 4 --generations 40 --pairs 30
+```
+
 **Let the snakes improve themselves.** Each of the five lineages proposes a change to
 its own parameters every generation and keeps it only if paired games on held-out seeds
 show a real gain without more deaths. `--quick` is a fast end-to-end check (about 8
@@ -206,6 +216,7 @@ On this project's cloud container (Python 3.13, x86_64, 4 cores; single process 
 
 | Improvement loop, 5-D noisy quadratic, 60 generations (10 seeds) | `gaussian_hill_climb` within 10% of the optimum on 10/10, `random_restart` on 0/10 |
 | Improvement loop on pure noise (5 × 200 generations) | 14 accepts in 1,000 (1.4%) |
+| Meta-run: hill-climb settings on toy quadratics (40 generations, 30 pairs, 4 workers, 6 min 52 s) | 2 accepts on holdout; kept σ 0.148, grow 1.47, shrink 0.902 (defaults 0.15, 1.5, 0.9). On 60 final toy problems: −4.506 vs −4.746, difference +0.240, 95% CI [−0.233, +0.806], so **no measurable gain**: the defaults were already about as good |
 
 Random snakes almost never kill on the full board, so default matches end at the tick
 cap. The personalities kill random snakes far more often, but against each other they are
@@ -314,6 +325,9 @@ flowchart TB
     toys["rsi/toys.py<br/>noisy quadratic · pure noise · test evaluators"]
     llm["rsi/llm.py<br/>optional LLMProposer: numbers only, clipped,<br/>token/dollar budget, llm_audit.jsonl,<br/>falls back to hill climb"]
     loop --> proposers
+    meta["rsi/meta.py<br/>meta-run: an outer Run tunes the hill climb's<br/>sigma · grow · shrink; each score = an inner Run on a toy"]
+    meta --> loop
+    meta --> toys
     proposers -. "--proposer llm (lazy)" .-> llm
     llm --> proposers
     loop -- "spent() vs Budget.tokens / dollars" --> llm
@@ -339,7 +353,7 @@ flowchart TB
     watch --> ereport
   end
 
-  cli["cli.py + __main__.py<br/>run-match · run-tournament · bench · watch<br/>check-personalities · rsi-demo · evolve · report · dashboard"]
+  cli["cli.py + __main__.py<br/>run-match · run-tournament · bench · watch<br/>check-personalities · rsi-demo · rsi-meta · evolve · report<br/>dashboard"]
 
   OUT[("out/<br/>tournament matches.jsonl · summary.csv · kill_matrix.csv<br/>replay *.json · bookmarks.json")]
   RUNS[("runs/&lt;id&gt;/<br/>evolution.json · lineages/&lt;name&gt;/generations.jsonl<br/>params/&lt;name&gt;/v&lt;k&gt;.json · timing.jsonl<br/>report.md · progress.svg · dashboard.html")]

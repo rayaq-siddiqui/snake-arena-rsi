@@ -79,6 +79,7 @@ arena/
     accept.py    PairedBootstrapRule and guard metrics.
     proposers.py Five built-in proposers working in normalised parameter space.
     llm.py       Optional, opt-in LLMProposer (numbers only, budgeted, audit-logged).
+    meta.py      Meta-run: an outer Run tunes GaussianHillClimb's settings on toys.
     loop.py      Run: propose -> dev screen -> holdout -> accept; budgets, resume.
     store.py     Run directory, atomic writes, immutable archive; report.py, toys.py.
   evolution/   (phase 4) Plugs snakes into the RSI framework.
@@ -130,6 +131,7 @@ uv run python -m arena.cli watch                                  # browser view
 uv run python -m arena.cli watch --library out                    # + replay browser over out/
 uv run python -m arena.cli watch --runs-dir runs                  # + /experiments over runs/
 uv run python -m arena.cli rsi-demo --problem quadratic           # RSI loop on a toy
+uv run python -m arena.cli rsi-meta --workers 4                   # the loop tunes its own hill climb
 uv run python -m arena.cli evolve --quick --proposer llm --max-llm-dollars 2 --run-id llm  # opt-in; needs the llm extra + API key
 uv run python -m arena.cli evolve --quick --generations 3 --run-id demo   # snakes tune themselves
 uv run python -m arena.cli evolve --generations 10 --max-hours 12 --run-id long  # capped long run

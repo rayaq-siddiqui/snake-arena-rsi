@@ -1,0 +1,62 @@
+{
+  "accepted": 2,
+  "archive": [
+    "06ae6cf1f36659fd",
+    "1cec3f9599b8becf",
+    "32815655b215df30"
+  ],
+  "champion": "32815655b215df30",
+  "episodes": 4080,
+  "generation": 40,
+  "proposer": {
+    "sigma": 0.01,
+    "weights": {
+      "grow": 1.083385908498333,
+      "shrink": 1.083385908498333,
+      "sigma": 1.1432107408059875
+    }
+  },
+  "rejected": [
+    "041c037783334b92",
+    "1638b3acf03c0516",
+    "1676c6fa1bd5989d",
+    "1e62253f95593f76",
+    "2767aed3a493a784",
+    "289113f16a2d5902",
+    "29d650f5ffe372a8",
+    "2d6d0c7873399285",
+    "3c75f7295b85b84d",
+    "3e281e80f3e78b8c",
+    "49e008f2b03ab74a",
+    "5b291266cc0a1c7e",
+    "602d194ee49ec019",
+    "6da73160dd7807e7",
+    "720f02c2aaa2db78",
+    "76d8a45beb8b2604",
+    "7ca2306f78fa8d16",
+    "7fb6151a8eeceaa7",
+    "884b4e0bd8bf8063",
+    "88588083e55f3d8d",
+    "88706a430fd83e28",
+    "8abeacf27f968eac",
+    "8c62f025492a0dc7",
+    "8db74938e2e819b2",
+    "9b037c32a32b053e",
+    "9d801e2a703dd55f",
+    "aaccc4d23a655b0a",
+    "be39701929e74072",
+    "beed1438eab93bf6",
+    "bf836c5096877480",
+    "c0d856c53c14f0db",
+    "c3c36c3901a762e1",
+    "d3c0b38ad3b9d1d8",
+    "d5d9571237d7b6f5",
+    "d85c6dd5aaebeec7",
+    "d993ba2c124b938a",
+    "e704fecea0156f79",
+    "e7dd3a4cd2a23b4b"
+  ],
+  "seconds": 395.8820184219994,
+  "since_accept": 17,
+  "stop_reason": "generation budget"
+}

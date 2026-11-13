@@ -1,0 +1,12 @@
+{
+  "generation": 23,
+  "id": "32815655b215df30",
+  "note": "sigma 0.0246: sigma 0.1498->0.1475, grow 1.5->1.472, shrink 0.9->0.9021",
+  "params": {
+    "grow": 1.472089351166179,
+    "shrink": 0.9021010503077582,
+    "sigma": 0.14751106445546777
+  },
+  "parent_id": "1cec3f9599b8becf",
+  "proposer": "gaussian_hill_climb"
+}

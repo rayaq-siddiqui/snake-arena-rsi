@@ -228,7 +228,12 @@ above, the code is the reference:
 - **`LLMProposer`** is built in `arena/rsi/llm.py` (optional, off by default; plan step
   5.5) and tested with a fake model. It has not been compared against the default
   proposers on equal budgets, which needs an API key.
-- **Not built.** The meta-run (plan step 5.1).
+- **Meta-run** (plan step 5.1) is `arena/rsi/meta.py`: an outer `Run` over
+  `GaussianHillClimb`'s σ, grow and shrink, each scored by an inner `Run` on a
+  `NoisyQuadratic` chosen by the outer seed, so candidate and champion meet the same
+  problem. Inner scores are cached per (settings, seed) and can run in worker
+  processes. The committed run (`experiments/2026-11-13-meta`) found no significant gain
+  over the defaults on final seeds (+0.240, 95% CI [−0.233, +0.806]).
 
 Measured (cloud container, Python 3.13, 5-D quadratic, 60 generations, 10 run seeds; time
 is for all 10 runs):

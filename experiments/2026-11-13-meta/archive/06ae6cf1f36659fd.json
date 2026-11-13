@@ -1,0 +1,12 @@
+{
+  "generation": 0,
+  "id": "06ae6cf1f36659fd",
+  "note": "generation-0 baseline",
+  "params": {
+    "grow": 1.5,
+    "shrink": 0.9,
+    "sigma": 0.15
+  },
+  "parent_id": null,
+  "proposer": "baseline"
+}

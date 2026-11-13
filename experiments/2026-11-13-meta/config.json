@@ -1,0 +1,71 @@
+{
+  "budget": {
+    "dollars": null,
+    "episodes": null,
+    "generations": 40,
+    "seconds": null,
+    "tokens": null
+  },
+  "code_hash": "0c04dc7e0c42b233",
+  "framework_version": 1,
+  "identity": {
+    "baseline": {
+      "generation": 0,
+      "id": "06ae6cf1f36659fd",
+      "note": "generation-0 baseline",
+      "params": {
+        "grow": 1.5,
+        "shrink": 0.9,
+        "sigma": 0.15
+      },
+      "parent_id": null,
+      "proposer": "baseline"
+    },
+    "config": {
+      "dev_pairs": 30,
+      "dev_pool": 2000,
+      "final_pairs": 60,
+      "holdout_blocks": 2,
+      "holdout_pairs": 30,
+      "holdout_rotate": 10,
+      "patience": null,
+      "problem": "meta: GaussianHillClimb settings on toy quadratics",
+      "run_seed": 0
+    },
+    "proposer": "gaussian_hill_climb",
+    "rule": {
+      "allow_extension": true,
+      "guards": [],
+      "level": 0.95,
+      "min_rel_gain": 0.02,
+      "resamples": 10000,
+      "rule": "PairedBootstrapRule"
+    },
+    "space": [
+      {
+        "default": 0.15,
+        "high": 0.5,
+        "kind": "float",
+        "low": 0.01,
+        "name": "sigma",
+        "scale": "log"
+      },
+      {
+        "default": 1.5,
+        "high": 3.0,
+        "kind": "float",
+        "low": 1.0,
+        "name": "grow",
+        "scale": "linear"
+      },
+      {
+        "default": 0.9,
+        "high": 0.99,
+        "kind": "float",
+        "low": 0.5,
+        "name": "shrink",
+        "scale": "linear"
+      }
+    ]
+  }
+}
