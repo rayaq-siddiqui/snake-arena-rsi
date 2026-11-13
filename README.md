@@ -15,7 +15,7 @@ improved in 4), **one of the five snakes (Trapper)** **measurably improved itsel
 other four found nothing that passed the tests (see
 [Results](#results)).
 
-![The Snake Arena viewer: five random snakes on a 20 × 20 board with the leaderboard and settings](docs/viewer.png)
+![The Snake Arena viewer: the five personalities and a random snake on a 20 × 20 board, with the leaderboard and settings](docs/viewer.gif)
 
 ## The game in one paragraph
 
