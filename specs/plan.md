@@ -120,7 +120,9 @@ land as **one to three small commits**, has concrete **targets**, and ends with 
 - **Targets:** `watch --seed 42` shows a live match; a Playwright smoke test loads the
   page, sees five snakes, presses pause and checks the tick counter stops; a test checks
   the viewer's final standings equal `run-match --seed 42` for a short match.
-- *As built:* the viewer defaults to 20 × 20 and first to 10 kills, with a settings form
+- *As built:* the viewer defaults to 30 × 30 and first to 10 kills (20 × 20 until the
+  owner asked for a 50% larger board and twice-as-long snakes: defaults are now 150 × 150
+  and 10 cells, so snakes meet and block each other more often), with a settings form
   for every game parameter, "finish now", and replay download/upload.
 - **Done when:** phase 1 acceptance (§11) passes in full; README updated with the real
   commands, the benchmark number and a screenshot.
@@ -388,6 +390,24 @@ Behaviour table (100 matches, all five together, 5,000-tick episodes on 100 × 1
   by decision, not left out: phase 1 chose a stdlib server and a Canvas page with no web
   dependencies, and the viewer now covers the dashboard's screens (live arena, replay
   browser, `/experiments` with charts and run control, per-run `dashboard.html`).
+- `[~]` 5.8 A self-tuning harness per snake, and a cup to 100 wins. The owner's goal:
+  run the improvement loop until one snake has won 100 real matches, and let each snake
+  tune its own search from what it learns in play, with its strategy in mind. Built:
+  `arena/rsi/harness.py` (`AdaptiveHarness`, `--proposer harness`): a discounted UCB
+  bandit over five built-in proposers, rewarded by each candidate's paired dev games;
+  per-parameter weights learned from which changes helped, starting from and decaying
+  toward a per-personality strategy prior (`STRATEGY_PRIORS` in `arena/evolution/run.py`);
+  reward penalties when guard metrics (wall and own-body deaths) get worse; a batch size
+  that grows after a generation with no dev winner and shrinks after an accept. It sees
+  dev feedback only and never changes the evaluator or the acceptance rule.
+  `arena/evolution/cup.py`: after each generation the five champions and a
+  `random_safe` snake play 24 matches with the real win rule (first to 10 points on
+  30 × 30, 10-cell snakes); wins add up in `cup.jsonl`, and `evolve --until-wins N`
+  stops once a snake has N. The `arena` profile trains on that same game: 30 × 30,
+  2,000-tick episodes, the `score` objective (kills minus self-inflicted deaths), the
+  harness, no patience stop. *Status:* the long run
+  (`evolve --profile arena --until-wins 100`) is in progress; results land in
+  `experiments/` when it ends.
 
 ---
 

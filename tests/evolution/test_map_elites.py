@@ -10,7 +10,7 @@ from arena.evolution.evaluator import EvalSettings, Workers
 from arena.evolution.map_elites import SnakeBehaviourEvaluator, heatmap_svg, snake_map_elites
 from arena.rsi.map_elites import MapElitesConfig
 
-TINY = EvalSettings(16, 16, 150)
+TINY = EvalSettings(16, 16, 150, length=5)
 
 
 def test_the_evaluator_is_deterministic_and_measures_behaviour() -> None:

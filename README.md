@@ -15,11 +15,11 @@ improved in 4), **one of the five snakes (Trapper)** **measurably improved itsel
 other four found nothing that passed the tests (see
 [Results](#results)).
 
-![The Snake Arena viewer: the five personalities and a random snake on a 20 × 20 board, with the leaderboard and settings](docs/viewer.gif)
+![The Snake Arena viewer: the five personalities and a random snake on a 30 × 30 board, with the leaderboard and settings](docs/viewer.gif)
 
 ## The game in one paragraph
 
-Five snakes, each a fixed 5 cells long, move one cell per tick at the same time. Hit a
+Five snakes, each a fixed 10 cells long, move one cell per tick at the same time. Hit a
 wall, yourself, or another snake and you die. If you die by running into another
 snake's body, *that* snake gets a point. Hitting a wall or yourself costs you a point.
 Head-on crashes kill both and award nothing. Dead snakes respawn after 10 ticks and keep
@@ -36,14 +36,14 @@ uv sync
 
 **Watch a match in the browser** (opens http://127.0.0.1:8000/). It defaults to the
 five personalities plus a random snake (`random_safe`: any move that doesn't die at once)
-on a 20 × 20 board, first to 10 points; every setting can be changed in
+on a 30 × 30 board, first to 10 points; every setting can be changed in
 the page or with flags such as `--width 40 --target 25 --policy random_safe`.
 
 ```bash
 uv run python -m arena.cli watch
 ```
 
-**Simulate a full match headless** on the default 100 × 100 board, first to 100 points,
+**Simulate a full match headless** on the default 150 × 150 board, first to 100 points,
 capped at 100,000 ticks:
 
 ```bash
@@ -362,6 +362,8 @@ flowchart TB
     toys["rsi/toys.py<br/>noisy quadratic · pure noise · test evaluators"]
     llm["rsi/llm.py<br/>optional LLMProposer: numbers only, clipped,<br/>token/dollar budget, llm_audit.jsonl,<br/>falls back to hill climb"]
     loop --> proposers
+    harness["rsi/harness.py<br/>AdaptiveHarness: a UCB bandit over the proposers<br/>+ learned parameter weights, guard penalties,<br/>batch size (dev feedback only)"]
+    harness --> proposers
     meta["rsi/meta.py<br/>meta-run: an outer Run tunes the hill climb's<br/>sigma · grow · shrink; each score = an inner Run on a toy"]
     meta --> loop
     meta --> toys
@@ -395,6 +397,9 @@ flowchart TB
     watch --> ereport
     emap["evolution/map_elites.py<br/>one personality: kills vs aggression x caution<br/>vs hand-set reference · heatmap SVG"]
     exploit["evolution/exploit.py<br/>exploiter: a Run vs the frozen champions<br/>exploit gap on final seeds"]
+    cupm["evolution/cup.py<br/>arena cup: champions + a random snake play<br/>full matches each generation; wins in cup.jsonl"]
+    run -- "after each generation; --until-wins" --> cupm
+    run -- "profile arena: harness + strategy prior" --> harness
     league["evolution/league.py<br/>league.json: exploiters join halls of fame<br/>after the generation they were registered"]
     emap --> evaluator
     exploit --> evaluator
@@ -407,7 +412,7 @@ flowchart TB
 
   storage["storage/db.py<br/>SQLite index: runs · agents · policy_versions · generations<br/>candidate_evaluations · promotion_decisions · matches · kills<br/>rebuilt from the files, read-only queries"]
   OUT[("out/<br/>tournament matches.jsonl · summary.csv · kill_matrix.csv<br/>replay *.json · bookmarks.json")]
-  RUNS[("runs/&lt;id&gt;/<br/>evolution.json · lineages/&lt;name&gt;/generations.jsonl<br/>params/&lt;name&gt;/v&lt;k&gt;.json · timing.jsonl<br/>report.md · progress.svg · dashboard.html<br/>league.json · exploiters/&lt;name&gt;-g&lt;G&gt;/<br/>map-elites-&lt;snake&gt;: map_elites.json · holdout.json · .svg")]
+  RUNS[("runs/&lt;id&gt;/<br/>evolution.json · lineages/&lt;name&gt;/generations.jsonl<br/>params/&lt;name&gt;/v&lt;k&gt;.json · timing.jsonl · cup.jsonl<br/>report.md · progress.svg · dashboard.html<br/>league.json · exploiters/&lt;name&gt;-g&lt;G&gt;/<br/>map-elites-&lt;snake&gt;: map_elites.json · holdout.json · .svg")]
 
   AGENTS --> ENGINE
   match --> step
@@ -433,6 +438,7 @@ flowchart TB
   ereport --> RUNS
   dashboard --> RUNS
   league --> RUNS
+  cupm --> RUNS
   mapel --> RUNS
   codeprop -. "dev results only" .-> RUNS
   storage -. "reads" .-> RUNS

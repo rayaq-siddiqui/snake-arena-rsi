@@ -15,7 +15,7 @@ from arena.evolution.evaluator import (
 )
 from arena.rsi.types import Candidate, validate
 
-TINY = EvalSettings(16, 16, 150)
+TINY = EvalSettings(16, 16, 150, length=5)
 
 
 def reference_context() -> Context:

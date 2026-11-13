@@ -80,6 +80,7 @@ arena/
     accept.py    PairedBootstrapRule and guard metrics.
     proposers.py Six built-in proposers (incl. PBT-style `pbt`) in normalised parameter space.
     llm.py       Optional, opt-in LLMProposer (numbers only, budgeted, audit-logged).
+    harness.py   AdaptiveHarness: UCB over the proposers, learned parameter weights, batch.
     meta.py      Meta-run: an outer Run tunes GaussianHillClimb's settings on toys.
     map_elites.py  MAP-Elites archive over a behaviour grid; holdout re-score at the end.
     loop.py      Run: propose -> dev screen -> holdout -> accept; budgets, resume.
@@ -93,6 +94,7 @@ arena/
     code_proposer.py  Opt-in, review-only LLM strategy-file patches (never run or applied).
     map_elites.py  One personality's kills over the aggression x caution grid (step 5.2).
     exploit.py   Exploiters trained against frozen champions; the exploit gap (step 5.4).
+    cup.py       Arena cup: champions + a random snake play full matches; cup.jsonl.
     league.py    league.json: registered exploiters join later generations' halls of fame.
 tests/         Mirrors arena/ (tests/engine, tests/sim, tests/viz, tests/rsi, tests/evolution);
                tests/test_docs.py keeps the README diagram in sync.
@@ -148,6 +150,7 @@ uv run python -m arena.cli map-elites hunter --batches 10 --workers 4   # behavi
 uv run python -m arena.cli exploit runs/demo hunter --generations 4     # exploiter + league
 uv run python -m arena.cli evolve --quick --generations 3 --run-id demo   # snakes tune themselves
 uv run python -m arena.cli evolve --generations 10 --max-hours 12 --run-id long  # capped long run
+uv run python -m arena.cli evolve --profile arena --generations 1000 --until-wins 100 --run-id cup  # self-tuning harness + cup
 uv run python -m arena.cli index experiments runs out --db arena.db   # SQLite index (+ --sql)
 uv run python -m arena.cli report runs/demo                       # report.md + progress.svg
 uv run python -m arena.cli watch --run runs/demo --vs-generation 0   # evolved vs original

@@ -20,7 +20,7 @@ from arena.viz.server import make_server
 
 TINY = Profile(
     "tiny",
-    EvalSettings(12, 12, 80),
+    EvalSettings(12, 12, 80, length=5),
     dev_pairs=3,
     holdout_pairs=3,
     holdout_blocks=2,

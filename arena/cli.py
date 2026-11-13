@@ -192,7 +192,7 @@ def cmd_bench(args: argparse.Namespace) -> int:
 def cmd_check_personalities(args: argparse.Namespace) -> int:
     from arena.sim.personality_check import episode_config, run_check
 
-    config = episode_config(args.width, args.height, args.ticks)
+    config = episode_config(args.width, args.height, args.ticks, args.length)
     report = run_check(
         args.matches,
         config,
@@ -344,7 +344,7 @@ def cmd_rsi_demo(args: argparse.Namespace) -> int:
 
 
 def cmd_evolve(args: argparse.Namespace) -> int:
-    from arena.evolution.run import PROFILES, Evolution
+    from arena.evolution.run import PROFILES, Evolution, lineage_proposer
     from arena.rsi import make_proposer
 
     profile = PROFILES["quick" if args.quick else args.profile]
@@ -353,7 +353,9 @@ def cmd_evolve(args: argparse.Namespace) -> int:
     out = Path(args.runs_dir) / (args.run_id or f"{profile.name}-{args.run_seed}")
     args.proposer = profile.proposer
 
-    def lineage_proposer(name: str) -> Proposer:
+    def make_lineage_proposer(name: str) -> Proposer:
+        if profile.proposer == "harness":
+            return lineage_proposer(profile, name)
         return make_proposer(profile.proposer, **proposer_options(args, out / "lineages" / name))
 
     evo = Evolution(
@@ -364,8 +366,9 @@ def cmd_evolve(args: argparse.Namespace) -> int:
         args.workers,
         max_seconds=None if args.max_hours is None else args.max_hours * 3600,
         max_episodes=args.max_episodes,
-        proposer=lineage_proposer,
+        proposer=make_lineage_proposer,
         log=lambda m: print(m, flush=True),
+        until_wins=args.until_wins,
     )
     started = time.monotonic()
     # The viewer's experiments screen reads this to tell a running run from a stopped one.
@@ -385,7 +388,8 @@ def cmd_evolve(args: argparse.Namespace) -> int:
     for name, r in result.lineages.items():
         final = r.final
         vs = (
-            f"final seeds vs generation 0: {final['diff']:+.3f} kills/1k ticks, "
+            f"final seeds vs generation 0: {final['diff']:+.3f} "
+            f"{profile.settings.objective}/1k ticks, "
             f"95% CI [{final['ci'][0]:+.3f}, {final['ci'][1]:+.3f}]"
             if final
             else "champion is still generation 0"
@@ -569,6 +573,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--ticks", type=int, default=5000, help="episode length (%(default)s)")
     p.add_argument("--width", type=int, default=100)
     p.add_argument("--height", type=int, default=100)
+    p.add_argument("--length", type=int, default=5, help="snake length (%(default)s)")
     p.add_argument("--seed-start", type=int, default=0)
     p.add_argument("--workers", type=int, default=1, help="processes (results do not change)")
     p.add_argument("--out", help="also write the markdown report to this file")
@@ -605,8 +610,15 @@ def build_parser() -> argparse.ArgumentParser:
         help="phase 4: every personality tunes itself with the RSI loop (re-running resumes)",
     )
     p.add_argument("--generations", type=int, default=10)
-    p.add_argument("--profile", choices=["default", "quick", "experiment"], default="default")
+    p.add_argument(
+        "--profile", choices=["default", "quick", "experiment", "arena"], default="default"
+    )
     p.add_argument("--quick", action="store_true", help="same as --profile quick")
+    p.add_argument(
+        "--until-wins",
+        type=int,
+        help="stop once a snake has won this many arena cup matches (profiles with a cup)",
+    )
     p.add_argument("--run-id", help="run directory name under --runs-dir")
     p.add_argument("--runs-dir", default="runs")
     p.add_argument("--run-seed", type=int, default=0)

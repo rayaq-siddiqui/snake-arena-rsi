@@ -34,10 +34,12 @@ import numpy
 from arena.agents.params import ParamSet, save_params
 from arena.agents.registry import PERSONALITIES
 from arena.engine.rng import derive_seed
+from arena.evolution import cup
 from arena.evolution.entrants import Entrant, hand_set, param_specs, personality_class
 from arena.evolution.evaluator import Context, EvalSettings, SnakeEvaluator, Workers
 from arena.evolution.league import league_halls, with_league
 from arena.rsi.accept import GuardMetric, PairedBootstrapRule
+from arena.rsi.harness import AdaptiveHarness
 from arena.rsi.loop import Pending, Run, RunConfig, RunResult
 from arena.rsi.proposers import make_proposer
 from arena.rsi.store import code_hash, read_json, write_json
@@ -56,7 +58,7 @@ class Profile:
     holdout_rotate: int = 10
     final_pairs: int = 200
     dev_pool: int = 10_000
-    patience: int = 4
+    patience: int | None = 4
     min_rel_gain: float = 0.02
     resamples: int = 10_000
     proposer: str = "gaussian_hill_climb"
@@ -64,6 +66,7 @@ class Profile:
     death_rate_slack: float = 0.05
     self_wall_tolerance: float = 0.25
     self_wall_slack: float = 0.05
+    cup: cup.CupSettings | None = None
 
     def rule(self) -> PairedBootstrapRule:
         return PairedBootstrapRule(
@@ -87,28 +90,104 @@ class Profile:
     @staticmethod
     def from_dict(d: Mapping[str, Any]) -> Profile:
         s = d["settings"]
-        settings = EvalSettings(s["width"], s["height"], s["ticks"], tuple(s["shares"].values()))
-        return Profile(**{**d, "settings": settings})
+        settings = EvalSettings(
+            s["width"],
+            s["height"],
+            s["ticks"],
+            tuple(s["shares"].values()),
+            s.get("length", 5),
+            s.get("objective", "kills"),
+        )
+        cup_settings = cup.CupSettings(**d["cup"]) if d.get("cup") else None
+        return Profile(**{**d, "settings": settings, "cup": cup_settings})
 
 
 PROFILES: dict[str, Profile] = {
-    "default": Profile("default", EvalSettings(100, 100, 5000)),
+    "default": Profile("default", EvalSettings(150, 150, 5000)),
     "experiment": Profile(
         "experiment",
-        EvalSettings(24, 24, 2000),
+        EvalSettings(36, 36, 2000),
         dev_pairs=40,
         holdout_pairs=40,
         final_pairs=100,
     ),
+    "arena": Profile(
+        "arena",
+        EvalSettings(30, 30, 2000, objective="score"),
+        dev_pairs=20,
+        holdout_pairs=30,
+        final_pairs=60,
+        patience=None,
+        proposer="harness",
+        cup=cup.CupSettings(),
+    ),
     "quick": Profile(
-        "quick", EvalSettings(40, 40, 1000), dev_pairs=20, holdout_pairs=20, final_pairs=40
+        "quick", EvalSettings(60, 60, 1000), dev_pairs=20, holdout_pairs=20, final_pairs=40
     ),
 }
 """``default`` is the specified experiment. ``experiment`` is a reduced, labelled setting
-that fits a single machine and puts snakes close enough to meet: on 40 x 40 boards with
-1,000-tick episodes only 0-5 of 40 paired seeds scored any kill, and the default profile
-costs hours per generation here (specs/plan.md, Measurements). ``quick`` is a fast
-end-to-end check whose results are never reported as the experiment."""
+that fits a single machine and puts snakes close enough to meet: with 5-cell snakes on
+40 x 40 boards and 1,000-tick episodes only 0-5 of 40 paired seeds scored any kill, and
+the default profile costs hours per generation here (specs/plan.md, Measurements).
+``quick`` is a fast end-to-end check whose results are never reported as the experiment.
+These three were scaled by 1.5 when snakes grew from 5 to 10 cells; runs saved before
+that load their old size.
+
+``arena`` is the open-ended setting: lineages tune themselves on the viewer's 30 x 30
+board for points (kills minus self-inflicted deaths), every lineage runs the
+self-tuning ``harness`` proposer with its strategy prior, nothing stops on patience, and
+after each generation the champions play the arena cup (``arena/evolution/cup.py``)."""
+
+STRATEGY_PRIORS: dict[str, dict[str, float]] = {
+    "hunter": {
+        "w_cut_off": 2.0,
+        "w_nearest_enemy_head": 2.0,
+        "w_territory": 1.5,
+        "search_radius": 1.5,
+        "w_head_on_risk": 1.5,
+    },
+    "survivor": {
+        "w_space": 2.0,
+        "w_wall_distance": 2.0,
+        "w_space_vs_length": 1.5,
+        "w_head_on_risk": 1.5,
+        "keep_distance": 1.5,
+    },
+    "trapper": {
+        "w_enemy_space_after": 2.0,
+        "w_enemy_escape_moves": 2.0,
+        "w_cut_off": 1.5,
+        "keep_distance": 1.5,
+    },
+    "predictor": {
+        "w_expected_kills": 2.0,
+        "w_expected_death": 2.0,
+        "w_pressure": 1.5,
+        "lookahead": 1.5,
+        "discount": 1.5,
+    },
+    "opportunist": {
+        "attack_threshold": 2.0,
+        "attack_cut_off": 1.5,
+        "attack_enemy_escape_moves": 1.5,
+        "attack_enemy_space_after": 1.5,
+        "cruise_space": 1.5,
+    },
+}
+"""Where each lineage's harness starts looking: the parameters closest to the
+personality's objective (phase 2 spec) get picked more often at first. The harness then
+moves these weights by what its candidates did in play, and decays them back to here."""
+
+
+def lineage_proposer(profile: Profile, name: str) -> Proposer:
+    """The proposer for one lineage; ``harness`` gets the lineage's strategy prior and
+    learns to avoid candidates that crash into walls or themselves more."""
+    if profile.proposer == "harness":
+        return AdaptiveHarness(
+            priors=STRATEGY_PRIORS.get(name, {}),
+            penalties={"self_wall_deaths": 0.5, "deaths_per_1k_alive": 0.25},
+        )
+    return make_proposer(profile.proposer)
 
 
 def provenance() -> dict[str, str]:
@@ -198,6 +277,7 @@ class Evolution:
         proposer: Callable[[str], Proposer] | None = None,
         rule: AcceptanceRule | None = None,
         log: Callable[[str], None] = lambda _: None,
+        until_wins: int | None = None,
     ) -> None:
         self.dir = Path(run_dir)
         self.profile = profile
@@ -207,9 +287,10 @@ class Evolution:
         self.names = lineages
         self.max_seconds = max_seconds
         self.max_episodes = max_episodes
-        self.make_proposer = proposer or (lambda _: make_proposer(profile.proposer))
+        self.make_proposer = proposer or (lambda name: lineage_proposer(profile, name))
         self.rule = rule or profile.rule()
         self.log = log
+        self.until_wins = until_wins
         self.lineages: dict[str, Lineage] = {}
 
     def identity(self) -> dict[str, Any]:
@@ -295,9 +376,17 @@ class Evolution:
             return 0.0
         return sum(float(json.loads(line)["seconds"]) for line in path.read_text().splitlines())
 
+    def cup_wins(self) -> dict[str, int]:
+        return dict(cup.standings(cup.read_cup(self.dir)))
+
     def stop_reason(self) -> str | None:
         if (self.dir / "STOP").exists():
             return "stop file"
+        if self.until_wins is not None and self.profile.cup is not None:
+            wins = self.cup_wins()
+            leader = max(wins, key=lambda n: (wins[n], n), default=None)
+            if leader is not None and wins[leader] >= self.until_wins:
+                return f"{leader} reached {wins[leader]} cup wins"
         if self.max_seconds is not None and self.seconds() >= self.max_seconds:
             return "time budget"
         if not self.active():
@@ -324,6 +413,7 @@ class Evolution:
                 for lin, p in pending:
                     lin.commit(p)
                     self._write_params(lin, lin.hall(g))
+                self._play_cup(g)
                 seconds = time.monotonic() - started
                 self._log_generation(g, pending, seconds, episodes)
                 self._dashboard()
@@ -353,6 +443,23 @@ class Evolution:
         finally:
             self.workers.close()
 
+    def _play_cup(self, g: int) -> None:
+        settings = self.profile.cup
+        if settings is None or any(r["generation"] == g for r in cup.read_cup(self.dir)):
+            return
+        champions = {}
+        for name, lin in self.lineages.items():
+            hall = lin.hall(g)
+            champions[name] = Entrant.personality(name, hall[-1].params, len(hall))
+        tasks = cup.cup_tasks(settings, self.run_seed, g, champions)
+        matches = self.workers.map(cup.play_cup_match, tasks)
+        cup.append_cup(self.dir, g, matches)
+        won = cup.standings([{"matches": matches}])
+        self.log(
+            f"cup generation {g}: {cup.format_standings(won, self.names)}; "
+            f"total: {cup.format_standings(cup.standings(cup.read_cup(self.dir)), self.names)}"
+        )
+
     def _dashboard(self) -> None:
         """Rewrite dashboard.html; a broken page must never stop a long run."""
         from arena.evolution import dashboard
@@ -378,6 +485,10 @@ class Evolution:
         }
         with open(self.dir / "timing.jsonl", "a") as f:
             f.write(json.dumps(line) + "\n")
+        for lin, _ in pending:
+            summary = getattr(lin.run.proposer, "summary", None)
+            if callable(summary):
+                parts.append(f"  {lin.name:<12}harness {json.dumps(summary())}")
         self.log("\n".join([f"generation {g} ({seconds:.0f} s)", *parts]))
 
 

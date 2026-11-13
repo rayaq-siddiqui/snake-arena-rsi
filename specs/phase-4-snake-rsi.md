@@ -172,3 +172,13 @@ Where the code differs from the text above, the code is the reference:
 - **Watching.** `watch --run` exposes every archived version as a policy (`hunter@v4`,
   shown as "Hunter v4"). `--vs-generation K` seats a lineage's current and generation-K
   versions in one six-seat game with the other four current champions.
+- **The arena profile, harness and cup (plan step 5.8).** `--profile arena` trains every
+  lineage on the cup's own game (30 × 30, 10-cell snakes, 2,000-tick episodes) with the
+  `score` objective: kills minus the self-death penalty per wall or own-body death, per
+  1,000 ticks, the points that win matches. Each lineage's proposer is an
+  `AdaptiveHarness` seeded with its personality's strategy prior (which parameters to
+  try first), so each snake tunes its own search from its dev games. The acceptance rule
+  and holdout are unchanged. After every generation the champions and a `random_safe`
+  snake play the arena cup (`cup.jsonl`); `--until-wins N` stops the run when one snake
+  has N cup wins. The cup only measures: no decision reads it, and its seeds are derived
+  from their own purpose tag.

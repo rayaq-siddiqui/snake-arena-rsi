@@ -34,23 +34,37 @@ GUARDS = ("deaths_per_1k_alive", "self_wall_deaths")
 
 @dataclass(frozen=True)
 class EvalSettings:
-    width: int = 100
-    height: int = 100
+    width: int = 150
+    height: int = 150
     ticks: int = 5000
     shares: tuple[float, float, float, float] = (0.50, 0.25, 0.15, 0.10)
+    length: int = 10
+    objective: str = "kills"
+    """What a lineage maximises per 1,000 ticks: ``kills``, or ``score`` (kills minus the
+    config's self-death penalty per wall or own-body death, the points that win matches)."""
 
     def __post_init__(self) -> None:
         if abs(sum(self.shares) - 1.0) > 1e-9 or min(self.shares) < 0:
             raise ValueError("mixture shares must be non-negative and sum to 1")
+        if self.objective not in ("kills", "score"):
+            raise ValueError("objective must be 'kills' or 'score'")
+
+    def fitness(self, o: Outcome) -> float:
+        points = o.kills
+        if self.objective == "score":
+            points -= self.config().self_death_penalty * o.self_wall
+        return points * 1000 / self.ticks
 
     def config(self) -> GameConfig:
-        return episode_config(self.width, self.height, self.ticks)
+        return episode_config(self.width, self.height, self.ticks, self.length)
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "width": self.width,
             "height": self.height,
             "ticks": self.ticks,
+            "length": self.length,
+            "objective": self.objective,
             "shares": dict(zip(MIXTURES, self.shares, strict=True)),
         }
 
@@ -210,15 +224,15 @@ class SnakeEvaluator:
     def evaluate(self, a: Candidate, b: Candidate, seeds: Sequence[int]) -> PairedResult:
         tasks = self.tasks(a, b, seeds)
         pairs = self.workers.map(play_pair, tasks)
-        per_k = 1000 / self.settings.ticks
-        score_a = tuple(oa.kills * per_k for oa, _ in pairs)
-        score_b = tuple(ob.kills * per_k for _, ob in pairs)
+        fit = self.settings.fitness
+        score_a = tuple(fit(oa) for oa, _ in pairs)
+        score_b = tuple(fit(ob) for _, ob in pairs)
         by_mixture: dict[str, list[float]] = {}
         for t, (oa, ob) in zip(tasks, pairs, strict=True):
             row = by_mixture.setdefault(t.mixture, [0, 0.0, 0.0])
             row[0] += 1
-            row[1] += oa.kills * per_k
-            row[2] += ob.kills * per_k
+            row[1] += fit(oa)
+            row[2] += fit(ob)
         return PairedResult(
             tuple(seeds),
             score_a,
