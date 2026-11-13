@@ -1,0 +1,32 @@
+generation 1 (415 s)
+  hunter      reject  dev mean difference +0 is not above 0
+  survivor    reject  holdout gain +33.3%, 95% CI [-0.075, +0.1256]: interval reaches 0
+  trapper     reject  dev mean difference +0 is not above 0
+  predictor   reject  holdout gain +9.1%, 95% CI [-0.2, +0.325]: interval reaches 0
+  opportunist reject  dev mean difference +0 is not above 0
+generation 2 (316 s)
+  hunter      reject  dev mean difference -0.05 is not above 0
+  survivor    reject  dev mean difference +0 is not above 0
+  trapper     reject  dev mean difference +0 is not above 0
+  predictor   reject  dev mean difference -0.1 is not above 0
+  opportunist reject  dev mean difference +0 is not above 0
+generation 3 (377 s)
+  hunter      reject  dev mean difference -0.05 is not above 0
+  survivor    reject  dev mean difference -0.05 is not above 0
+  trapper     reject  holdout gain +0.0%, 95% CI [+0, +0]: below the 2% minimum gain
+  predictor   reject  dev mean difference -0.2 is not above 0
+  opportunist reject  dev mean difference +0 is not above 0
+generation 4 (370 s)
+  hunter      reject  dev mean difference +0 is not above 0
+  survivor    reject  dev mean difference +0 is not above 0
+  trapper     reject  dev mean difference +0 is not above 0
+  predictor   reject  holdout gain +9.1%, 95% CI [-0.175, +0.325]: interval reaches 0
+  opportunist reject  dev mean difference -0.05 is not above 0
+
+Stopped after generation 4: no accept in 4 generations (1478 s).
+  hunter: 0 accepted; champion is still generation 0
+  survivor: 0 accepted; champion is still generation 0
+  trapper: 0 accepted; champion is still generation 0
+  predictor: 0 accepted; champion is still generation 0
+  opportunist: 0 accepted; champion is still generation 0
+Run directory: runs/cmp-llm (quick profile, not the real experiment)

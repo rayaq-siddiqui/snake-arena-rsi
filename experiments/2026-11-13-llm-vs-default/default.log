@@ -1,0 +1,32 @@
+generation 1 (268 s)
+  hunter      reject  dev mean difference +0 is not above 0
+  survivor    reject  dev mean difference -0.05 is not above 0
+  trapper     reject  dev mean difference -0.1 is not above 0
+  predictor   reject  holdout gain -20.0%, 95% CI [-0.3, +0]: below the 2% minimum gain
+  opportunist reject  holdout gain +0.0%, 95% CI [+0, +0]: below the 2% minimum gain
+generation 2 (313 s)
+  hunter      reject  dev mean difference +0 is not above 0
+  survivor    reject  holdout gain +33.3%, 95% CI [+0, +0.075]: interval reaches 0
+  trapper     reject  holdout gain +400.0%, 95% CI [+0.05, +0.4]; guard worse: ['deaths_per_1k_alive', 'self_wall_deaths']
+  predictor   reject  dev mean difference -0.35 is not above 0
+  opportunist reject  dev mean difference +0 is not above 0
+generation 3 (349 s)
+  hunter      reject  holdout gain +0.0%, 95% CI [-0.3, +0.3]: below the 2% minimum gain
+  survivor    reject  dev mean difference -0.05 is not above 0
+  trapper     reject  holdout gain +100.0%, 95% CI [+0, +0.225]: interval reaches 0
+  predictor   reject  dev mean difference +0 is not above 0
+  opportunist reject  dev mean difference +0 is not above 0
+generation 4 (260 s)
+  hunter      reject  dev mean difference +0 is not above 0
+  survivor    reject  dev mean difference +0 is not above 0
+  trapper     reject  dev mean difference -0.05 is not above 0
+  predictor   reject  dev mean difference -0.2 is not above 0
+  opportunist reject  dev mean difference -0.05 is not above 0
+
+Stopped after generation 4: no accept in 4 generations (1191 s).
+  hunter: 0 accepted; champion is still generation 0
+  survivor: 0 accepted; champion is still generation 0
+  trapper: 0 accepted; champion is still generation 0
+  predictor: 0 accepted; champion is still generation 0
+  opportunist: 0 accepted; champion is still generation 0
+Run directory: runs/cmp-default (quick profile, not the real experiment)

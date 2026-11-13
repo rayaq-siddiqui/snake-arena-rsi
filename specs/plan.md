@@ -369,8 +369,10 @@ Behaviour table (100 matches, all five together, 5,000-tick episodes on 100 × 1
   sees holdout/final seeds); compare against `GaussianHillClimb` under equal episode
   budgets. Built in `arena/rsi/llm.py`, opt-in with `--proposer llm` and the `llm` extra;
   `tests/rsi/test_llm.py` checks clipping, the seed firewall, the audit log, both budgets
-  and the fallbacks with a fake model. The equal-budget comparison has **not been run**:
-  it needs an API key and paid calls, which this project never requires.
+  and the fallbacks with a fake model. A first comparison ran on the quick profile
+  (`experiments/2026-11-13-llm-vs-default`, 4 generations each, about 1,100 episodes
+  each, $0.035 of OpenRouter calls): 0 accepts for both, so it cannot rank them; a
+  larger comparison on a denser game is still to do.
 - `[x]` 5.6 Code-level proposer, review-only, until a real sandbox exists (vision §5).
   Built in `arena/evolution/code_proposer.py` as the opt-in `propose-code <snake>`
   command: one budgeted call shows a model the snake's strategy file, its parameters and
@@ -425,7 +427,7 @@ stretch item or a deliberate scope change recorded in the phase specs, not a hid
 | 3. Fast headless simulation, metrics on disk | Built: `matches.jsonl`, `summary.csv`, `kill_matrix.csv`, replays | `arena/sim`, step 1 |
 | 4. Browser arena: live and replay, leaderboard, controls, kill feed | Built with a stdlib server and Canvas page instead of FastAPI and React (phase 1 decision: no web dependencies) | `arena/viz`, `tests/viz/smoke.mjs` |
 | 5. Offline evolution driver: propose, test, promote | Built with the local parameter-search improver, so it needs no API | `arena/rsi`, `arena/evolution`, steps 3–4 |
-| 5. LLM provider adapter | Built, opt-in (step 5.5): Anthropic SDK behind a `Complete` callable, numbers only, token/dollar caps, audit log, hill-climb fallback. Not yet compared against the default improver (needs an API key) | `arena/rsi/llm.py` |
+| 5. LLM provider adapter | Built, opt-in (step 5.5): Anthropic SDK behind a `Complete` callable, numbers only, token/dollar caps, audit log, hill-climb fallback. A first small comparison found 0 accepts for both (`experiments/2026-11-13-llm-vs-default`) | `arena/rsi/llm.py` |
 | 6. Generation history and version inspection | Built: `report.md`, `progress.svg`, live `dashboard.html`, `watch --run` | `arena/evolution` |
 | §4 SQLite for experiment metadata | Built: `index` rebuilds a SQLite file from run and tournament files (the files stay the record) and runs read-only queries | `arena/storage/db.py`, `tests/storage/test_db.py` |
 | §7 Experiments screen: start and stop batches from the browser | Built: `/experiments` in the viewer lists runs, starts or resumes one as an `evolve` process, stops it through its `STOP` file, and charts accepted versions, the kill matrix, decisions and the log | `arena/viz/experiments.py`, `tests/viz/test_experiments.py` |
@@ -433,7 +435,7 @@ stretch item or a deliberate scope change recorded in the phase specs, not a hid
 | §7 Performance: 100,000 ticks/s (aspirational) | Met on 4 cores: full `RandomSafe` matches total 117,000–124,400 ticks/s over 4 worker processes (`bench --workers 4`), the engine alone 190,000–194,000. Not met in one process (~50,000 engine only, ~31,000 with `RandomSafe`); measured below | Measurements, `arena/sim/bench.py` |
 | §8 Seed separation, paired seeds, seat rotation, cost limits, provenance | Built: disjoint dev/holdout/final pools, a spy test, generation/episode/time caps, code and environment hashes in `evolution.json` | `arena/rsi/seeds.py`, `arena/evolution/run.py` |
 | §10 Automated acceptance tests: engine, evolution, UI | Built | `tests/engine`, `tests/rsi`, `tests/evolution`, `tests/viz` |
-| M5 LLM source improvement, M6 fixed vs parameter-evolving vs LLM comparison | Fixed vs parameter-evolving is done (`experiments/`); the LLM parameter proposer is built but not yet run in the comparison (step 5.5); LLM source edits are built as review-only patches (step 5.6), never executed, and not yet tried with a real model | `arena/evolution/code_proposer.py` |
+| M5 LLM source improvement, M6 fixed vs parameter-evolving vs LLM comparison | Fixed vs parameter-evolving is done (`experiments/`); the LLM parameter proposer had a first small comparison with 0 accepts on both sides (step 5.5); LLM source edits are built as review-only patches (step 5.6), never executed, and not yet tried with a real model | `arena/evolution/code_proposer.py` |
 
 ---
 
