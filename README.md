@@ -182,6 +182,19 @@ uv sync --extra llm
 uv run python -m arena.cli evolve --quick --proposer llm --max-llm-dollars 2 --run-id llm
 ```
 
+**Optional: code proposals, review only.** `propose-code` asks the model for a whole new
+version of one snake's strategy file (`arena/agents/<snake>.py`), showing it the file,
+the snake's parameters and, with `--run`, its lineage's dev-screen results (never holdout
+numbers or seeds). The answer is checked with `ast` only (it parses, keeps the policy
+name, imports only from an allowlist, avoids file, process and dynamic-code builtins) and
+saved as `proposals/<snake>/<n>/patch.diff` with `REVIEW.md` and `audit.json`. Nothing
+it writes is imported, run or applied: there is no sandbox here, and static checks are
+not one, so promotion is manual (`git apply`, tests, an evolve run, then commit).
+
+```bash
+uv run python -m arena.cli propose-code hunter --run runs/demo --max-llm-dollars 1
+```
+
 `--policy` takes one policy for every snake (`random_safe`, `hunter`, …), a comma list
 per snake, or the `personalities` lineup.
 
@@ -346,6 +359,7 @@ flowchart TB
     ereport["evolution/report.py<br/>final seeds · cycle check · progress.svg"]
     dashboard["evolution/dashboard.py<br/>live dashboard.html"]
     watch["evolution/watch.py<br/>archived champions as a viewer Roster"]
+    codeprop["evolution/code_proposer.py<br/>opt-in, review-only: LLM proposes a strategy file;<br/>ast checks + patch.diff; never imported, run or applied"]
     run --> evaluator --> entrants
     run --> entrants
     ereport --> evaluator
@@ -353,7 +367,7 @@ flowchart TB
     watch --> ereport
   end
 
-  cli["cli.py + __main__.py<br/>run-match · run-tournament · bench · watch<br/>check-personalities · rsi-demo · rsi-meta · evolve · report<br/>dashboard"]
+  cli["cli.py + __main__.py<br/>run-match · run-tournament · bench · watch<br/>check-personalities · rsi-demo · rsi-meta · evolve · report<br/>dashboard · propose-code"]
 
   OUT[("out/<br/>tournament matches.jsonl · summary.csv · kill_matrix.csv<br/>replay *.json · bookmarks.json")]
   RUNS[("runs/&lt;id&gt;/<br/>evolution.json · lineages/&lt;name&gt;/generations.jsonl<br/>params/&lt;name&gt;/v&lt;k&gt;.json · timing.jsonl<br/>report.md · progress.svg · dashboard.html")]
@@ -378,6 +392,8 @@ flowchart TB
   store --> RUNS
   ereport --> RUNS
   dashboard --> RUNS
+  codeprop -. "dev results only" .-> RUNS
+  codeprop -- "Complete, prices" --> llm
   cli --> SIM
   cli --> VIZ
   cli --> RSI

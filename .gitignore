@@ -10,4 +10,5 @@ dist/
 build/
 out/
 runs/
+proposals/
 node_modules/

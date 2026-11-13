@@ -390,6 +390,23 @@ def cmd_dashboard(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_propose_code(args: argparse.Namespace) -> int:
+    from arena.evolution.code_proposer import propose_code
+    from arena.rsi.llm import DEFAULT_MODEL
+
+    spent = 0.0
+    for _ in range(args.count):
+        if spent >= args.max_llm_dollars:
+            print(f"Stopped: ${spent:.4f} spent, cap ${args.max_llm_dollars}")
+            break
+        p = propose_code(args.snake, args.out, args.run, model=args.llm_model or DEFAULT_MODEL)
+        spent += p.dollars
+        verdict = "static checks passed" if p.passed else "static checks FAILED"
+        print(f"{p.path}: {verdict} (${p.dollars:.4f}); review {p.path / 'REVIEW.md'}")
+    print("Nothing was applied or run. Promotion is manual; see REVIEW.md.")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="arena", description="Snake Arena RSI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -500,6 +517,20 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("run", help="run directory, e.g. runs/demo")
     p.set_defaults(func=cmd_dashboard)
+
+    p = sub.add_parser(
+        "propose-code",
+        help="opt-in: ask an LLM for a strategy-file patch, stored for review, never applied",
+    )
+    p.add_argument("snake", help="personality, e.g. hunter")
+    p.add_argument("--run", help="evolve run whose dev results to show the model")
+    p.add_argument("--out", default="proposals", help="where patches go (default proposals)")
+    p.add_argument("--count", type=int, default=1, help="proposals to ask for (default 1)")
+    p.add_argument("--llm-model", help="model id (default: arena.rsi.llm.DEFAULT_MODEL)")
+    p.add_argument(
+        "--max-llm-dollars", type=float, default=1.0, help="stop asking after this (default 1)"
+    )
+    p.set_defaults(func=cmd_propose_code)
 
     p = sub.add_parser("watch", help="open the browser viewer (live match or replay)")
     from arena.viz.server import VIEWER_DEFAULTS, VIEWER_POLICY

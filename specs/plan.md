@@ -341,7 +341,15 @@ Behaviour table (100 matches, all five together, 5,000-tick episodes on 100 × 1
   `tests/rsi/test_llm.py` checks clipping, the seed firewall, the audit log, both budgets
   and the fallbacks with a fake model. The equal-budget comparison has **not been run**:
   it needs an API key and paid calls, which this project never requires.
-- `[ ]` 5.6 Code-level proposer, review-only, until a real sandbox exists (vision §5).
+- `[x]` 5.6 Code-level proposer, review-only, until a real sandbox exists (vision §5).
+  Built in `arena/evolution/code_proposer.py` as the opt-in `propose-code <snake>`
+  command: one budgeted call shows a model the snake's strategy file, its parameters and
+  its lineage's dev results (no holdout numbers, no seeds), static `ast` checks run on the
+  answer, and it is stored as `proposals/<snake>/<n>/patch.diff` with `REVIEW.md` and
+  `audit.json`. It is never imported, run or applied; promotion is manual. `evolve` never
+  calls it. `tests/evolution/test_code_proposer.py` covers the patch, the checks, the
+  seed firewall and unusable replies with a fake model. No real model has been asked yet
+  (that needs an API key).
 - `[ ]` 5.7 Full React dashboard and SQLite storage from the vision.
 
 ---
@@ -366,7 +374,7 @@ stretch item or a deliberate scope change recorded in the phase specs, not a hid
 | §7 Performance: 100,000 ticks/s (aspirational) | Met on 4 cores: full `RandomSafe` matches total 117,000–124,400 ticks/s over 4 worker processes (`bench --workers 4`), the engine alone 190,000–194,000. Not met in one process (~50,000 engine only, ~31,000 with `RandomSafe`); measured below | Measurements, `arena/sim/bench.py` |
 | §8 Seed separation, paired seeds, seat rotation, cost limits, provenance | Built: disjoint dev/holdout/final pools, a spy test, generation/episode/time caps, code and environment hashes in `evolution.json` | `arena/rsi/seeds.py`, `arena/evolution/run.py` |
 | §10 Automated acceptance tests: engine, evolution, UI | Built | `tests/engine`, `tests/rsi`, `tests/evolution`, `tests/viz` |
-| M5 LLM source improvement, M6 fixed vs parameter-evolving vs LLM comparison | Fixed vs parameter-evolving is done (`experiments/`); the LLM parameter proposer is built but not yet run in the comparison (step 5.5); LLM source edits are not built (step 5.6) | — |
+| M5 LLM source improvement, M6 fixed vs parameter-evolving vs LLM comparison | Fixed vs parameter-evolving is done (`experiments/`); the LLM parameter proposer is built but not yet run in the comparison (step 5.5); LLM source edits are built as review-only patches (step 5.6), never executed, and not yet tried with a real model | `arena/evolution/code_proposer.py` |
 
 ---
 

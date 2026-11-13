@@ -143,7 +143,10 @@ The `LLMProposer` only ever returns **numbers within declared bounds** — never
 its output can't execute anything. It never sees holdout or final seeds. A separate,
 later "code proposer" that edits strategy source is out of scope until a real sandbox
 exists (container/microVM, no network, read-only engine, capped CPU/memory, no
-credentials); until then any code it produces is **review-only**.
+credentials); until then any code it produces is **review-only**. That review-only form
+is built as `arena/evolution/code_proposer.py` (`propose-code`, plan step 5.6): it lives
+in `arena/evolution` because it reads snake source, writes a patch for a person to read,
+and never imports, runs or applies it.
 
 ## 7. Hall of fame and opponents
 

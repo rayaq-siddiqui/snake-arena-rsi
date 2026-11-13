@@ -88,6 +88,7 @@ arena/
     run.py       Profiles, Lineage, Evolution (lockstep generations, resume), load_champion.
     report.py    The experiment report: progress vs reference, cycle check, chart.
     watch.py     Archived champions as viewer policies and lineups.
+    code_proposer.py  Opt-in, review-only LLM strategy-file patches (never run or applied).
 tests/         Mirrors arena/ (tests/engine, tests/sim, tests/viz, tests/rsi, tests/evolution);
                tests/test_docs.py keeps the README diagram in sync.
 docs/          Screenshots.
@@ -133,6 +134,7 @@ uv run python -m arena.cli watch --runs-dir runs                  # + /experimen
 uv run python -m arena.cli rsi-demo --problem quadratic           # RSI loop on a toy
 uv run python -m arena.cli rsi-meta --workers 4                   # the loop tunes its own hill climb
 uv run python -m arena.cli evolve --quick --proposer llm --max-llm-dollars 2 --run-id llm  # opt-in; needs the llm extra + API key
+uv run python -m arena.cli propose-code hunter --run runs/demo   # opt-in; review-only patch
 uv run python -m arena.cli evolve --quick --generations 3 --run-id demo   # snakes tune themselves
 uv run python -m arena.cli evolve --generations 10 --max-hours 12 --run-id long  # capped long run
 uv run python -m arena.cli report runs/demo                       # report.md + progress.svg
