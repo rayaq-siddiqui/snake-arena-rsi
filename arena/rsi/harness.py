@@ -2,7 +2,7 @@
 
 ``AdaptiveHarness`` is a proposer made of proposers. Every generation it fills a batch of
 candidates, choosing an operator for each (hill climb, coordinate search, cross-entropy,
-archive crossover, random restart) with a discounted UCB bandit whose rewards come from
+archive crossover, random restart, (1+1)-CMA-ES) with a discounted UCB bandit whose rewards come from
 the paired dev games those candidates played. On top of that it learns:
 
 * **which parameters matter** for this lineage: parameters touched by candidates that beat
@@ -36,6 +36,7 @@ OPERATORS = (
     "cross_entropy",
     "archive_crossover",
     "random_restart",
+    "cma_es",
 )
 
 

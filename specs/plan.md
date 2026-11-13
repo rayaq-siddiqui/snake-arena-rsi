@@ -394,7 +394,8 @@ Behaviour table (100 matches, all five together, 5,000-tick episodes on 100 × 1
   run the improvement loop until one snake has won 100 real matches, and let each snake
   tune its own search from what it learns in play, with its strategy in mind. Built:
   `arena/rsi/harness.py` (`AdaptiveHarness`, `--proposer harness`): a discounted UCB
-  bandit over five built-in proposers, rewarded by each candidate's paired dev games;
+  bandit over six built-in proposers (`cma_es` joined after the first cup run started,
+  which keeps the five it began with), rewarded by each candidate's paired dev games;
   per-parameter weights learned from which changes helped, starting from and decaying
   toward a per-personality strategy prior (`STRATEGY_PRIORS` in `arena/evolution/run.py`);
   reward penalties when guard metrics (wall and own-body deaths) get worse; a batch size
