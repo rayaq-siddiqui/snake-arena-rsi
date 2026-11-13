@@ -4,18 +4,19 @@
     "2443a84a394b38c6"
   ],
   "champion": "2443a84a394b38c6",
-  "episodes": 800,
-  "generation": 3,
+  "episodes": 1000,
+  "generation": 4,
   "proposer": {
-    "sigma": 0.10935000000000002,
+    "sigma": 0.09841500000000002,
     "weights": {}
   },
   "rejected": [
     "0b7ba7fbb961a3da",
     "0e8145c551c973c8",
+    "254e64a26dc3f97d",
     "384df350ee35f028"
   ],
-  "seconds": 6830.073235235999,
-  "since_accept": 3,
-  "stop_reason": "generation budget"
+  "seconds": 7602.390256405999,
+  "since_accept": 4,
+  "stop_reason": "no accept in 4 generations"
 }

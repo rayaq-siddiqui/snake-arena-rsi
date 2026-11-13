@@ -2,8 +2,8 @@
 
 - proposer: `gaussian_hill_climb`; rule: `PairedBootstrapRule` (min gain 2%, 10,000 bootstrap resamples)
 - run seed 1813008628; framework v1, code c1faa27590837b50
-- generations: 3; accepted: 0; stopped by: generation budget
-- episodes used: 1,000
+- generations: 4; accepted: 0; stopped by: no accept in 4 generations
+- episodes used: 1,200
 
 ## Final check (champion vs generation-0 baseline on the final seeds)
 
@@ -39,3 +39,4 @@ Nothing was accepted; the champion is still the baseline.
 | 1 | f807f9b5 | holdout | +0.024 | +0.018 | [-0.018, +0.055] | no | holdout gain +7.3%, 95% CI [-0.018, +0.055]: interval reaches 0 |
 | 2 | a94a3ee1 | dev | -0.046 | - | - | no | dev mean difference -0.046 is not above 0 |
 | 3 | ab762fd5 | dev | +0 | - | - | no | dev mean difference +0 is not above 0 |
+| 4 | 5a907bcc | dev | -0.078 | - | - | no | dev mean difference -0.078 is not above 0 |

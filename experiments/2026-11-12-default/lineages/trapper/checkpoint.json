@@ -5,20 +5,24 @@
     "abd1a3ca393dc536"
   ],
   "champion": "abd1a3ca393dc536",
-  "episodes": 1200,
-  "generation": 3,
+  "episodes": 2200,
+  "generation": 7,
   "proposer": {
-    "sigma": 0.18225000000000002,
+    "sigma": 0.11957422500000003,
     "weights": {
-      "keep_distance": 1.5,
-      "w_space": 1.5
+      "keep_distance": 1.3280500000000002,
+      "w_space": 1.3280500000000002
     }
   },
   "rejected": [
     "551fa9fcc1f4de77",
-    "7c8846aad949050c"
+    "7c8846aad949050c",
+    "b069fe0bcaf7859c",
+    "c41c579e9357b44a",
+    "ccea256cd86c1363",
+    "e91644f36a5297fb"
   ],
-  "seconds": 7543.817458748,
-  "since_accept": 0,
-  "stop_reason": "generation budget"
+  "seconds": 11349.165642139,
+  "since_accept": 4,
+  "stop_reason": "no accept in 4 generations"
 }

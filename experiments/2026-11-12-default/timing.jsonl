@@ -1,3 +1,7 @@
 {"generation": 1, "seconds": 2884.651, "episodes": 1600, "workers": 4}
 {"generation": 2, "seconds": 3223.558, "episodes": 1800, "workers": 4}
 {"generation": 3, "seconds": 2132.424, "episodes": 1200, "workers": 4}
+{"generation": 4, "seconds": 2700.988, "episodes": 1400, "workers": 4}
+{"generation": 5, "seconds": 338.188, "episodes": 200, "workers": 4}
+{"generation": 6, "seconds": 393.143, "episodes": 200, "workers": 4}
+{"generation": 7, "seconds": 372.984, "episodes": 200, "workers": 4}

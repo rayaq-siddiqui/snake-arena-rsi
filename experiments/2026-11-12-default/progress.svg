@@ -11,7 +11,7 @@
 <polyline points="40.0,173.9 260.0,173.9" fill="none" stroke="#2f5fb3" stroke-width="2" stroke-linejoin="round"/>
 <circle cx="40.0" cy="173.9" r="4" fill="#2f5fb3" stroke="#ffffff" stroke-width="2"><title>v1 from generation 0: 0.003 kills/1k</title></circle>
 <text x="40.0" y="194" text-anchor="middle" fill="#59636e">0</text>
-<text x="260.0" y="194" text-anchor="middle" fill="#59636e">3</text>
+<text x="260.0" y="194" text-anchor="middle" fill="#59636e">7</text>
 <text x="276" y="16" fill="#1f2328" font-weight="600">Survivor</text>
 <line x1="276" x2="496" y1="178.0" y2="178.0" stroke="#d0d7de" stroke-width="1"/>
 <line x1="276" x2="496" y1="103.0" y2="103.0" stroke="#d0d7de" stroke-width="1"/>
@@ -20,17 +20,17 @@
 <polyline points="276.0,178.0 496.0,178.0" fill="none" stroke="#2f5fb3" stroke-width="2" stroke-linejoin="round"/>
 <circle cx="276.0" cy="178.0" r="4" fill="#2f5fb3" stroke="#ffffff" stroke-width="2"><title>v1 from generation 0: 0.000 kills/1k</title></circle>
 <text x="276.0" y="194" text-anchor="middle" fill="#59636e">0</text>
-<text x="496.0" y="194" text-anchor="middle" fill="#59636e">3</text>
+<text x="496.0" y="194" text-anchor="middle" fill="#59636e">7</text>
 <text x="512" y="16" fill="#1f2328" font-weight="600">Trapper</text>
 <line x1="512" x2="732" y1="178.0" y2="178.0" stroke="#d0d7de" stroke-width="1"/>
 <line x1="512" x2="732" y1="103.0" y2="103.0" stroke="#d0d7de" stroke-width="1"/>
 <line x1="512" x2="732" y1="28.0" y2="28.0" stroke="#d0d7de" stroke-width="1"/>
-<polygon points="512.0,173.9 732.0,173.9 732.0,164.4 732.0,164.4 732.0,176.6 732.0,176.6 732.0,178.0 512.0,178.0" fill="#c8d7f0" opacity="0.8"/>
-<polyline points="512.0,176.6 732.0,176.6 732.0,171.2 732.0,171.2" fill="none" stroke="#2f5fb3" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="512.0,173.9 606.3,173.9 606.3,164.4 732.0,164.4 732.0,176.6 606.3,176.6 606.3,178.0 512.0,178.0" fill="#c8d7f0" opacity="0.8"/>
+<polyline points="512.0,176.6 606.3,176.6 606.3,171.2 732.0,171.2" fill="none" stroke="#2f5fb3" stroke-width="2" stroke-linejoin="round"/>
 <circle cx="512.0" cy="176.6" r="4" fill="#2f5fb3" stroke="#ffffff" stroke-width="2"><title>v1 from generation 0: 0.001 kills/1k</title></circle>
-<circle cx="732.0" cy="171.2" r="4" fill="#2f5fb3" stroke="#ffffff" stroke-width="2"><title>v2 from generation 3: 0.005 kills/1k</title></circle>
+<circle cx="606.3" cy="171.2" r="4" fill="#2f5fb3" stroke="#ffffff" stroke-width="2"><title>v2 from generation 3: 0.005 kills/1k</title></circle>
 <text x="512.0" y="194" text-anchor="middle" fill="#59636e">0</text>
-<text x="732.0" y="194" text-anchor="middle" fill="#59636e">3</text>
+<text x="732.0" y="194" text-anchor="middle" fill="#59636e">7</text>
 <text x="748" y="16" fill="#1f2328" font-weight="600">Predictor</text>
 <line x1="748" x2="968" y1="178.0" y2="178.0" stroke="#d0d7de" stroke-width="1"/>
 <line x1="748" x2="968" y1="103.0" y2="103.0" stroke="#d0d7de" stroke-width="1"/>
@@ -39,7 +39,7 @@
 <polyline points="748.0,156.2 968.0,156.2" fill="none" stroke="#2f5fb3" stroke-width="2" stroke-linejoin="round"/>
 <circle cx="748.0" cy="156.2" r="4" fill="#2f5fb3" stroke="#ffffff" stroke-width="2"><title>v1 from generation 0: 0.016 kills/1k</title></circle>
 <text x="748.0" y="194" text-anchor="middle" fill="#59636e">0</text>
-<text x="968.0" y="194" text-anchor="middle" fill="#59636e">3</text>
+<text x="968.0" y="194" text-anchor="middle" fill="#59636e">7</text>
 <text x="984" y="16" fill="#1f2328" font-weight="600">Opportunist</text>
 <line x1="984" x2="1204" y1="178.0" y2="178.0" stroke="#d0d7de" stroke-width="1"/>
 <line x1="984" x2="1204" y1="103.0" y2="103.0" stroke="#d0d7de" stroke-width="1"/>
@@ -48,6 +48,6 @@
 <polyline points="984.0,178.0 1204.0,178.0" fill="none" stroke="#2f5fb3" stroke-width="2" stroke-linejoin="round"/>
 <circle cx="984.0" cy="178.0" r="4" fill="#2f5fb3" stroke="#ffffff" stroke-width="2"><title>v1 from generation 0: 0.000 kills/1k</title></circle>
 <text x="984.0" y="194" text-anchor="middle" fill="#59636e">0</text>
-<text x="1204.0" y="194" text-anchor="middle" fill="#59636e">3</text>
+<text x="1204.0" y="194" text-anchor="middle" fill="#59636e">7</text>
 <text x="40" y="212" fill="#59636e">generation → ; y: kills per 1,000 ticks vs the reference portfolio (band: 95% CI)</text>
 </svg>

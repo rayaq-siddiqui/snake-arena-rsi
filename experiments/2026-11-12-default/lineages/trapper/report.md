@@ -2,8 +2,8 @@
 
 - proposer: `gaussian_hill_climb`; rule: `PairedBootstrapRule` (min gain 2%, 10,000 bootstrap resamples)
 - run seed 1240441715; framework v1, code c1faa27590837b50
-- generations: 3; accepted: 1; stopped by: generation budget
-- episodes used: 1,200
+- generations: 7; accepted: 1; stopped by: no accept in 4 generations
+- episodes used: 2,200
 
 ## Final check (champion vs generation-0 baseline on the final seeds)
 
@@ -38,3 +38,7 @@ Mean score 0.128 vs 0.075 over 200 seeds: difference +0.053, 95% CI [+0.024, +0.
 | 1 | 7c8846aa | dev | -0.008 | - | - | no | dev mean difference -0.008 is not above 0 |
 | 2 | 551fa9fc | holdout | +0.024 | +0.016 | [-0.003, +0.035] | no | holdout gain +22.9%, 95% CI [-0.003, +0.035]: interval reaches 0 |
 | 3 | abd1a3ca | holdout | +0.052 | +0.072 | [+0.026, +0.13] | yes | accepted: holdout gain +100.0%, 95% CI [+0.026, +0.13] |
+| 4 | b069fe0b | holdout | +0.002 | +0 | [+0, +0] | no | holdout gain +0.0%, 95% CI [+0, +0]: below the 2% minimum gain |
+| 5 | c41c579e | dev | -0.152 | - | - | no | dev mean difference -0.152 is not above 0 |
+| 6 | ccea256c | dev | -0.008 | - | - | no | dev mean difference -0.008 is not above 0 |
+| 7 | e91644f3 | dev | -0.134 | - | - | no | dev mean difference -0.134 is not above 0 |

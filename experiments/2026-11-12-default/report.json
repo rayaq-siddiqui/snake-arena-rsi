@@ -1,5 +1,5 @@
 {
-  "generation": 3,
+  "generation": 7,
   "lineages": {
     "hunter": {
       "accepted": 0,
@@ -52,10 +52,26 @@
           "holdout": null,
           "rationale": "dev mean difference -0.004 is not above 0",
           "stage": "dev"
+        },
+        {
+          "accept": false,
+          "change": "trap_margin 2->2.51, keep_distance 1->0",
+          "dev": {
+            "diff": 0.0,
+            "failures": 0,
+            "mean_cand": 0.13,
+            "mean_champ": 0.13,
+            "n": 100
+          },
+          "generation": 4,
+          "guards": null,
+          "holdout": null,
+          "rationale": "dev mean difference +0 is not above 0",
+          "stage": "dev"
         }
       ],
       "final": null,
-      "generations": 3,
+      "generations": 4,
       "progress": [
         {
           "candidate": "8e645d3074c33047",
@@ -368,10 +384,47 @@
           "holdout": null,
           "rationale": "dev mean difference +0 is not above 0",
           "stage": "dev"
+        },
+        {
+          "accept": false,
+          "change": "keep_distance 4->6, cruise_straightness 0.01->-22.27, attack_space_vs_length 20->23.8",
+          "dev": {
+            "diff": 0.01,
+            "failures": 0,
+            "mean_cand": 0.014000000000000002,
+            "mean_champ": 0.004,
+            "n": 100
+          },
+          "generation": 4,
+          "guards": {
+            "deaths_per_1k_alive": [
+              0.050027515133323326,
+              0.028008626657010358
+            ],
+            "self_wall_deaths": [
+              0.19,
+              0.11
+            ]
+          },
+          "holdout": {
+            "ci": [
+              -0.01,
+              0.01
+            ],
+            "diff": 0.0,
+            "extended": false,
+            "failures": 0,
+            "mean_cand": 0.008,
+            "mean_champ": 0.008,
+            "n": 100,
+            "rel_gain": 0.0
+          },
+          "rationale": "holdout gain +0.0%, 95% CI [-0.01, +0.01]: below the 2% minimum gain",
+          "stage": "holdout"
         }
       ],
       "final": null,
-      "generations": 3,
+      "generations": 4,
       "progress": [
         {
           "candidate": "9be0df7e19f18624",
@@ -663,10 +716,26 @@
           "holdout": null,
           "rationale": "dev mean difference +0 is not above 0",
           "stage": "dev"
+        },
+        {
+          "accept": false,
+          "change": "space_cap 60->59, w_straightness 0.01->-1.448",
+          "dev": {
+            "diff": -0.078,
+            "failures": 0,
+            "mean_cand": 0.10600000000000001,
+            "mean_champ": 0.184,
+            "n": 100
+          },
+          "generation": 4,
+          "guards": null,
+          "holdout": null,
+          "rationale": "dev mean difference -0.078 is not above 0",
+          "stage": "dev"
         }
       ],
       "final": null,
-      "generations": 3,
+      "generations": 4,
       "progress": [
         {
           "candidate": "75dc29af071f9c13",
@@ -958,10 +1027,26 @@
           "holdout": null,
           "rationale": "dev mean difference +0 is not above 0",
           "stage": "dev"
+        },
+        {
+          "accept": false,
+          "change": "w_immediate_death -1000->-249.3, w_space 20->4.535",
+          "dev": {
+            "diff": 0.0,
+            "failures": 0,
+            "mean_cand": 0.032,
+            "mean_champ": 0.032,
+            "n": 100
+          },
+          "generation": 4,
+          "guards": null,
+          "holdout": null,
+          "rationale": "dev mean difference +0 is not above 0",
+          "stage": "dev"
         }
       ],
       "final": null,
-      "generations": 3,
+      "generations": 4,
       "progress": [
         {
           "candidate": "2443a84a394b38c6",
@@ -1485,6 +1570,91 @@
           },
           "rationale": "accepted: holdout gain +100.0%, 95% CI [+0.026, +0.13]",
           "stage": "holdout"
+        },
+        {
+          "accept": false,
+          "change": "trap_margin 2->1.764, w_space 4.897->-30.63",
+          "dev": {
+            "diff": 0.002,
+            "failures": 0,
+            "mean_cand": 0.132,
+            "mean_champ": 0.13,
+            "n": 100
+          },
+          "generation": 4,
+          "guards": {
+            "deaths_per_1k_alive": [
+              0.0060003960261377255,
+              0.008000704061957452
+            ],
+            "self_wall_deaths": [
+              0.02,
+              0.03
+            ]
+          },
+          "holdout": {
+            "ci": [
+              0.0,
+              0.0
+            ],
+            "diff": 0.0,
+            "extended": false,
+            "failures": 0,
+            "mean_cand": 0.14400000000000002,
+            "mean_champ": 0.14400000000000002,
+            "n": 100,
+            "rel_gain": 0.0
+          },
+          "rationale": "holdout gain +0.0%, 95% CI [+0, +0]: below the 2% minimum gain",
+          "stage": "holdout"
+        },
+        {
+          "accept": false,
+          "change": "w_territory 20->86.47, w_space_vs_length 20->-106.5",
+          "dev": {
+            "diff": -0.15200000000000002,
+            "failures": 0,
+            "mean_cand": 0.08199999999999999,
+            "mean_champ": 0.234,
+            "n": 100
+          },
+          "generation": 5,
+          "guards": null,
+          "holdout": null,
+          "rationale": "dev mean difference -0.152 is not above 0",
+          "stage": "dev"
+        },
+        {
+          "accept": false,
+          "change": "search_radius 12->10, keep_repel 1->0.6516, w_territory 20->55.48",
+          "dev": {
+            "diff": -0.008000000000000002,
+            "failures": 0,
+            "mean_cand": 0.08800000000000001,
+            "mean_champ": 0.09600000000000002,
+            "n": 100
+          },
+          "generation": 6,
+          "guards": null,
+          "holdout": null,
+          "rationale": "dev mean difference -0.008 is not above 0",
+          "stage": "dev"
+        },
+        {
+          "accept": false,
+          "change": "trap_margin 2->2.606, w_nearest_enemy_head -20->-0.8181, w_straightness 0.01->-0.3555",
+          "dev": {
+            "diff": -0.134,
+            "failures": 0,
+            "mean_cand": 0.08000000000000002,
+            "mean_champ": 0.21400000000000002,
+            "n": 100
+          },
+          "generation": 7,
+          "guards": null,
+          "holdout": null,
+          "rationale": "dev mean difference -0.134 is not above 0",
+          "stage": "dev"
         }
       ],
       "final": {
@@ -1508,7 +1678,7 @@
         "mean_champ": 0.075,
         "n": 200
       },
-      "generations": 3,
+      "generations": 7,
       "progress": [
         {
           "candidate": "cdb47bf58afe956c",
@@ -2020,5 +2190,5 @@
       "width": 100
     }
   },
-  "stop_reason": "generation budget"
+  "stop_reason": "no accept in 4 generations"
 }

@@ -1,6 +1,6 @@
 # Phase 4 report: 2026-11-12-default
 
-Profile `default`. 100 x 100 board, 5,000-tick episodes, 100 dev + 100 holdout pairs per candidate, proposer `gaussian_hill_climb`, min gain 2%, patience 4. Stopped after generation 3 (generation budget).
+Profile `default`. 100 x 100 board, 5,000-tick episodes, 100 dev + 100 holdout pairs per candidate, proposer `gaussian_hill_climb`, min gain 2%, patience 4. Stopped after generation 7 (no accept in 4 generations).
 
 All numbers below are on each lineage's final seeds, which no decision saw.
 
@@ -60,6 +60,7 @@ Rows killed columns.
 | 1 | w_space_vs_length 20->102.7 | +0.000 | - | - | reject: dev mean difference +0 is not above 0 |
 | 2 | w_territory 20->-23.34 | -0.062 | - | - | reject: dev mean difference -0.062 is not above 0 |
 | 3 | pull_radius 0->11 | -0.004 | - | - | reject: dev mean difference -0.004 is not above 0 |
+| 4 | trap_margin 2->2.51, keep_distance 1->0 | +0.000 | - | - | reject: dev mean difference +0 is not above 0 |
 
 ### Survivor
 
@@ -68,6 +69,7 @@ Rows killed columns.
 | 1 | space_cap 60->46, w_space 20->-3.064 | -0.010 | - | - | reject: dev mean difference -0.01 is not above 0 |
 | 2 | space_cap 60->18, trap_margin 2->1.595 | +0.026 | -0.004 | [-0.022, +0.012] | reject: holdout gain -12.5%, 95% CI [-0.022, +0.012]: below the 2% minimum gain |
 | 3 | trap_margin 2->2.358, w_nearest_enemy_head -8->-34.39 | +0.000 | - | - | reject: dev mean difference +0 is not above 0 |
+| 4 | w_immediate_death -1000->-249.3, w_space 20->4.535 | +0.000 | - | - | reject: dev mean difference +0 is not above 0 |
 
 ### Trapper
 
@@ -76,6 +78,10 @@ Rows killed columns.
 | 1 | w_enemy_space_after -15->-77.33 | -0.008 | - | - | reject: dev mean difference -0.008 is not above 0 |
 | 2 | keep_distance 3->2, w_enemy_escape_moves -10->42.62, w_straightness 0.01->-2.235 | +0.024 | +0.016 | [-0.003, +0.035] | reject: holdout gain +22.9%, 95% CI [-0.003, +0.035]: interval reaches 0 |
 | 3 | keep_distance 3->2, w_space 6->4.897 | +0.052 | +0.072 | [+0.026, +0.130] | **accept**: accepted: holdout gain +100.0%, 95% CI [+0.026, +0.13] |
+| 4 | trap_margin 2->1.764, w_space 4.897->-30.63 | +0.002 | +0.000 | [+0.000, +0.000] | reject: holdout gain +0.0%, 95% CI [+0, +0]: below the 2% minimum gain |
+| 5 | w_territory 20->86.47, w_space_vs_length 20->-106.5 | -0.152 | - | - | reject: dev mean difference -0.152 is not above 0 |
+| 6 | search_radius 12->10, keep_repel 1->0.6516, w_territory 20->55.48 | -0.008 | - | - | reject: dev mean difference -0.008 is not above 0 |
+| 7 | trap_margin 2->2.606, w_nearest_enemy_head -20->-0.8181, w_straightness 0.01->-0.3555 | -0.134 | - | - | reject: dev mean difference -0.134 is not above 0 |
 
 ### Predictor
 
@@ -84,6 +90,7 @@ Rows killed columns.
 | 1 | w_space 6->103.5 | +0.024 | +0.018 | [-0.018, +0.055] | reject: holdout gain +7.3%, 95% CI [-0.018, +0.055]: interval reaches 0 |
 | 2 | w_territory 20->-20.4, w_nearest_enemy_head -20->-34.77 | -0.046 | - | - | reject: dev mean difference -0.046 is not above 0 |
 | 3 | w_expected_kills 300->571.5 | +0.000 | - | - | reject: dev mean difference +0 is not above 0 |
+| 4 | space_cap 60->59, w_straightness 0.01->-1.448 | -0.078 | - | - | reject: dev mean difference -0.078 is not above 0 |
 
 ### Opportunist
 
@@ -92,4 +99,5 @@ Rows killed columns.
 | 1 | trap_margin 2->3.475, cruise_straightness 0.01->-23.29 | +0.008 | +0.030 | [+0.012, +0.050] | reject: holdout gain +375.0%, 95% CI [+0.012, +0.05]; guard worse: ['self_wall_deaths'] |
 | 2 | attack_enemy_escape_moves -20->-80.18 | +0.002 | +0.000 | [+0.000, +0.000] | reject: holdout gain +0.0%, 95% CI [+0, +0]: below the 2% minimum gain |
 | 3 | trap_margin 2->1.292, pull_radius 15->0 | +0.000 | - | - | reject: dev mean difference +0 is not above 0 |
+| 4 | keep_distance 4->6, cruise_straightness 0.01->-22.27, attack_space_vs_length 20->23.8 | +0.010 | +0.000 | [-0.010, +0.010] | reject: holdout gain +0.0%, 95% CI [-0.01, +0.01]: below the 2% minimum gain |
 

@@ -2,8 +2,8 @@
 
 - proposer: `gaussian_hill_climb`; rule: `PairedBootstrapRule` (min gain 2%, 10,000 bootstrap resamples)
 - run seed 1110577147; framework v1, code c1faa27590837b50
-- generations: 3; accepted: 0; stopped by: generation budget
-- episodes used: 600
+- generations: 4; accepted: 0; stopped by: no accept in 4 generations
+- episodes used: 800
 
 ## Final check (champion vs generation-0 baseline on the final seeds)
 
@@ -36,3 +36,4 @@ Nothing was accepted; the champion is still the baseline.
 | 1 | c9b79dae | dev | +0 | - | - | no | dev mean difference +0 is not above 0 |
 | 2 | 36b48a62 | dev | -0.062 | - | - | no | dev mean difference -0.062 is not above 0 |
 | 3 | 07da681a | dev | -0.004 | - | - | no | dev mean difference -0.004 is not above 0 |
+| 4 | 01922df0 | dev | +0 | - | - | no | dev mean difference +0 is not above 0 |
