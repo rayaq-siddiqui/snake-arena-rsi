@@ -151,10 +151,10 @@ On this project's cloud container (Python 3.13, x86_64, single process):
 
 | What | Result |
 |---|---|
-| Engine only, 100 × 100, 5 snakes | ~45,000 ticks/s |
+| Engine only, 100 × 100, 5 snakes | ~50,000 ticks/s (median of 7 runs of 50,000 ticks; the vision's aspirational 100,000 is not reached) |
 | Full match with `RandomSafe` policies | ~26,000–30,000 ticks/s (a 100,000-tick match in ~3.5 s) |
 | `RandomSafe` kills per 1,000 ticks, 100 × 100 (all snakes, 100 matches) | 0.049 |
-| Default 100-match tournament (100 × 100, cap 100,000) | all 100 hit the cap; ~1 kill per snake per match; 10M ticks in 148 s on 4 workers |
+| Default 100-match tournament (100 × 100, cap 100,000) | all 100 hit the cap; ~1 kill per snake per match; 10M ticks in 148 s on 4 workers; after the step rewrite, 20 matches ran at ~70,000 ticks/s on 4 workers |
 | Median ticks to 10 kills, `RandomSafe`, 20 × 20 (8 seeds) | ~14,700 |
 | Personality time per move, 100 × 100 (median / p99) | 0.21–0.42 ms / 0.41–0.82 ms |
 | Each personality vs 4 × `RandomSafe`: kills per 1,000 ticks (100 matches) | Hunter 1.66, Predictor 1.73, Trapper 0.76, Survivor 0.24, Opportunist 0.15; `RandomSafe` ≤ 0.015 |

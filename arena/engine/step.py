@@ -82,23 +82,18 @@ def step(state: GameState, actions: Mapping[SnakeId, object]) -> tuple[GameState
 
     owner: dict[Cell, SnakeId] = {}
     for s in alive:
-        for cell in s.body[:-1]:
-            owner[cell] = s.id
+        owner.update(dict.fromkeys(s.body[:-1], s.id))
 
     head_count: dict[Cell, int] = {}
     for cell in new_heads.values():
         head_count[cell] = head_count.get(cell, 0) + 1
 
-    old_heads = {s.id: s.body[0] for s in alive}
+    old_head_of = {s.body[0]: s.id for s in alive}
     swapped: set[SnakeId] = set()
-    for a in alive:
-        for b in alive:
-            if (
-                a.id < b.id
-                and new_heads[a.id] == old_heads[b.id]
-                and new_heads[b.id] == old_heads[a.id]
-            ):
-                swapped.update((a.id, b.id))
+    for s in alive:
+        other_id = old_head_of.get(new_heads[s.id])
+        if other_id is not None and other_id != s.id and new_heads[other_id] == s.body[0]:
+            swapped.add(s.id)
 
     deaths: dict[SnakeId, tuple[DeathCause, SnakeId | None]] = {}
     w, h = config.width, config.height
@@ -121,7 +116,6 @@ def step(state: GameState, actions: Mapping[SnakeId, object]) -> tuple[GameState
             events.append(Kill(tick, killer, victim))
             kills[killer] = kills.get(killer, 0) + 1
 
-    occupied: set[Cell] = set()
     committed: list[SnakeState] = []
     to_spawn: list[int] = []
     for s in state.snakes:
@@ -141,7 +135,6 @@ def step(state: GameState, actions: Mapping[SnakeId, object]) -> tuple[GameState
             )
         elif s.alive:
             body = (new_heads[s.id], *s.body[:-1])
-            occupied.update(body)
             s = SnakeState(
                 s.id,
                 body,
@@ -156,12 +149,27 @@ def step(state: GameState, actions: Mapping[SnakeId, object]) -> tuple[GameState
             )
         else:
             if gained or s.respawn_in:
-                s = replace(s, kills=s.kills + gained, respawn_in=max(0, s.respawn_in - 1))
+                s = SnakeState(
+                    s.id,
+                    s.body,
+                    s.heading,
+                    False,
+                    s.life_id,
+                    s.kills + gained,
+                    s.deaths,
+                    max(0, s.respawn_in - 1),
+                    s.alive_ticks,
+                    s.life_ticks,
+                )
             if s.respawn_in == 0:
                 to_spawn.append(len(committed))
         committed.append(s)
 
     rng_state = state.rng_state
+    occupied: set[Cell] = set()
+    if to_spawn:
+        for s in committed:
+            occupied.update(s.body)
     for index in to_spawn:
         s = committed[index]
         rng_state, cells, heading = find_spawn(rng_state, config, occupied)

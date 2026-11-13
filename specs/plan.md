@@ -353,7 +353,7 @@ stretch item or a deliberate scope change recorded in the phase specs, not a hid
 | 6. Generation history and version inspection | Built: `report.md`, `progress.svg`, live `dashboard.html`, `watch --run` | `arena/evolution` |
 | §7 Experiments screen: start and stop batches from the browser | Not built (step 5.7). Runs start from `evolve`; they stop with `STOP`, `--max-hours` or `--max-episodes` and resume by rerunning | `arena/cli.py` |
 | §7 Replay browser with filters, replay bookmarks | Not built (step 5.7). Replays load by file in the viewer | `arena/sim/replay.py` |
-| §7 Performance: 100,000 ticks/s (aspirational) | Not reached: about 45,000 ticks/s for the engine alone; measured below | Measurements |
+| §7 Performance: 100,000 ticks/s (aspirational) | Not reached: about 50,000 ticks/s for the engine alone in one process and about 70,000 ticks/s for full `RandomSafe` matches on 4 workers; measured below | Measurements |
 | §8 Seed separation, paired seeds, seat rotation, cost limits, provenance | Built: disjoint dev/holdout/final pools, a spy test, generation/episode/time caps, code and environment hashes in `evolution.json` | `arena/rsi/seeds.py`, `arena/evolution/run.py` |
 | §10 Automated acceptance tests: engine, evolution, UI | Built | `tests/engine`, `tests/rsi`, `tests/evolution`, `tests/viz` |
 | M5 LLM source improvement, M6 fixed vs parameter-evolving vs LLM comparison | Fixed vs parameter-evolving is done (`experiments/`); the LLM arm is not built (steps 5.5, 5.6) | — |
@@ -367,6 +367,7 @@ Fill in as steps land. Never estimate here.
 | What | Value | Machine | Commit | Step |
 |---|---|---|---|---|
 | Engine ticks/s (5 × RandomSafe, 100 × 100) | ~45,000 (engine only); ~26,000–30,000 with RandomSafe policies (was ~34,700 and ~18,100 at 94e5abd) | cloud container, Python 3.13, x86_64 | a223d9b | 1.10 |
+| Engine ticks/s after the step rewrite | ~50,000 engine only (median of 7 × 50,000 ticks; ~41,800 before on the same container); full matches still ~26,000–29,000 because `RandomSafe` and observations take about 60%; 20-match tournament: 2,000,000 ticks in 28.4 s on 4 workers (~70,000 ticks/s); identical states and events to the old step on 30 crowded seeds | cloud container, Python 3.13, x86_64, 4 cores | `engine: rewrite` commit after 50e1e1d | 5 (speed) |
 | RandomSafe kills / 1,000 ticks (100 × 100) | 0.049 all snakes (≈0.01 per snake); 100/100 default matches hit the 100,000-tick cap with ~1 kill per snake | same; 100-match tournament, 10M ticks in 148 s on 4 workers | 2176c31 | 1.10 |
 | Personality decision time p50 / p99 (100 × 100) | 0.44–0.81 ms / 0.94–1.95 ms across the five (budget 5 / 20 ms) | cloud container, Python 3.13, x86_64; `bench --policies all --ticks 3000` | 308a67b | 2.6 |
 | Personality decision time p50 / p99 after the grid search rewrite | 0.21–0.42 ms / 0.41–0.82 ms; all five together on 100 × 100: ~510–610 ticks/s (was ~260) with identical games (golden digests) | same; `bench --policies all --ticks 3000` | 0847bbb | 4 (speed) |
