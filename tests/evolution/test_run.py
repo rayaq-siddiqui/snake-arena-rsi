@@ -221,3 +221,25 @@ def test_a_policy_that_raises_is_never_promoted(
 def test_profiles_are_labelled() -> None:
     assert TINY.name == "tiny"
     assert isinstance(tiny_evolution(Path("unused")), Evolution)
+
+
+def test_the_in_memory_hall_matches_the_records_after_a_resume(tmp_path: Path) -> None:
+    def from_records(evo: Evolution, name: str, upto: int) -> list[str]:
+        lin = evo.lineages[name]
+        by_id = {m.id: m for m in lin.run.store.archive.members}
+        accepted = [
+            by_id[r["champion_after"]].id
+            for r in lin.records()
+            if r["decision"]["accept"] and r["generation"] <= upto
+        ]
+        return [lin.run.baseline.id, *accepted]
+
+    live = tiny_evolution(tmp_path, generations=2, rule=AlwaysAccept())
+    live.run()
+    resumed = tiny_evolution(tmp_path, generations=2, rule=AlwaysAccept())
+    resumed._open()
+    for evo in (live, resumed):
+        for name, lin in evo.lineages.items():
+            for upto in (0, 1, 2):
+                assert [c.id for c in lin.hall(upto)] == from_records(evo, name, upto)
+    assert len(resumed.lineages["hunter"].hall(2)) == 3

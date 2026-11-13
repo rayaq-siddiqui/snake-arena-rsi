@@ -132,19 +132,29 @@ class Lineage:
     run: Run
     evaluator: SnakeEvaluator
 
+    accepts: list[tuple[int, Candidate]] = field(default_factory=list, init=False)
+
+    def __post_init__(self) -> None:
+        """Read the accepted champions once; ``commit`` keeps the list current, so a
+        long run never re-parses its whole ``generations.jsonl`` each generation."""
+        by_id = {m.id: m for m in self.run.store.archive.members}
+        self.accepts = [
+            (rec["generation"], by_id[rec["champion_after"]])
+            for rec in self.records()
+            if rec["decision"]["accept"]
+        ]
+
     def records(self) -> list[dict[str, Any]]:
         return self.run.store.records()
 
+    def commit(self, pending: Pending) -> None:
+        self.run.commit(pending)
+        if pending.record["decision"]["accept"]:
+            self.accepts.append((pending.generation, pending.champion))
+
     def hall(self, upto: int) -> list[Candidate]:
         """Every champion this lineage has had after generation ``upto``, oldest first."""
-        by_id = {m.id: m for m in self.run.store.archive.members}
-        out = [self.run.baseline]
-        for rec in self.records():
-            if rec["generation"] > upto:
-                break
-            if rec["decision"]["accept"]:
-                out.append(by_id[rec["champion_after"]])
-        return out
+        return [self.run.baseline, *(c for g, c in self.accepts if g <= upto)]
 
 
 @dataclass
@@ -312,7 +322,7 @@ class Evolution:
                         episodes += p.state["episodes"] - before
                         pending.append((lin, p))
                 for lin, p in pending:
-                    lin.run.commit(p)
+                    lin.commit(p)
                     self._write_params(lin, lin.hall(g))
                 seconds = time.monotonic() - started
                 self._log_generation(g, pending, seconds, episodes)
