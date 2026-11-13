@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import os
 import sys
 import time
 from collections.abc import Sequence
@@ -220,6 +222,7 @@ def cmd_watch(args: argparse.Namespace) -> int:
         open_browser=not args.no_browser,
         roster=roster,
         library=args.library or ["out"],
+        runs_dir=args.runs_dir,
     )
 
 
@@ -303,7 +306,16 @@ def cmd_evolve(args: argparse.Namespace) -> int:
         log=lambda m: print(m, flush=True),
     )
     started = time.monotonic()
-    result = evo.run()
+    # The viewer's experiments screen reads this to tell a running run from a stopped one.
+    pid_file = out.parent / f"{out.name}.pid"
+    pid_file.parent.mkdir(parents=True, exist_ok=True)
+    pid_file.write_text(f"{os.getpid()}\n")
+    try:
+        result = evo.run()
+    finally:
+        with contextlib.suppress(OSError):
+            if pid_file.read_text().strip() == str(os.getpid()):
+                pid_file.unlink()
     print(
         f"\nStopped after generation {result.generations}: {result.stop_reason} "
         f"({time.monotonic() - started:.0f} s)."
@@ -449,6 +461,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=8000)
     p.add_argument("--no-browser", action="store_true", help="do not open a browser tab")
+    p.add_argument(
+        "--runs-dir",
+        default="runs",
+        help="evolve runs the experiments screen lists and starts (default: runs)",
+    )
     p.add_argument("--run", help="an evolve run directory: watch its archived champions")
     p.add_argument("--generation", type=int, help="with --run: the champions after this generation")
     p.add_argument(

@@ -27,6 +27,7 @@ from arena.agents.registry import expand_policies, snake_labels
 from arena.engine import Event, GameConfig, GameState, new_game, rank, step
 from arena.sim.match import Match
 from arena.sim.replay import build_replay, check_schema, load_replay
+from arena.viz.experiments import Experiments
 from arena.viz.library import Library
 
 MAX_SESSIONS = 16
@@ -230,9 +231,11 @@ class App:
         startup_replay: dict[str, Any] | None,
         roster: Roster = NO_ROSTER,
         library: Library | None = None,
+        experiments: Experiments | None = None,
     ) -> None:
         self.roster = roster
         self.library = library
+        self.experiments = experiments
         self.defaults = defaults
         self.seed = seed
         self.policy = policy
@@ -262,12 +265,18 @@ class App:
             "policies": [*self.roster.lineups, *LINEUPS, *sorted(POLICIES), *self.roster.policies],
             "startup_replay": self.startup_replay is not None,
             "library": self.library is not None,
+            "experiments": self.experiments is not None,
         }
 
     def need_library(self) -> Library:
         if self.library is None:
             raise ValueError("the viewer was started without a replay library")
         return self.library
+
+    def need_experiments(self) -> Experiments:
+        if self.experiments is None:
+            raise ValueError("the viewer was started without a runs folder")
+        return self.experiments
 
     def create(self, body: dict[str, Any]) -> Session:
         if body.get("mode") == "library":
@@ -340,6 +349,16 @@ def make_handler(app: App) -> type[BaseHTTPRequestHandler]:
             try:
                 if not parts:
                     return self.send_static("index.html")
+                if parts == ["experiments"]:
+                    return self.send_static("experiments.html")
+                if parts == ["api", "runs"]:
+                    return self.send_json(app.need_experiments().runs())
+                if len(parts) == 3 and parts[:2] == ["api", "runs"]:
+                    return self.send_json(app.need_experiments().detail(parts[2]))
+                if len(parts) == 4 and parts[:2] == ["api", "runs"] and parts[3] == "dashboard":
+                    return self.send_bytes(
+                        app.need_experiments().dashboard(parts[2]), "text/html; charset=utf-8"
+                    )
                 if parts[0] == "static" and len(parts) == 2:
                     return self.send_static(parts[1])
                 if parts == ["api", "info"]:
@@ -380,10 +399,20 @@ def make_handler(app: App) -> type[BaseHTTPRequestHandler]:
 
         def do_POST(self) -> None:
             parts = [p for p in urlparse(self.path).path.split("/") if p]
+            # Only JSON posts: a page on another site can't send one without a CORS
+            # preflight, which this server never grants, so it can't start or stop runs.
+            if self.headers.get_content_type() != "application/json":
+                return self.send_error_json(
+                    HTTPStatus.UNSUPPORTED_MEDIA_TYPE, "POST bodies must be application/json"
+                )
             try:
                 if parts == ["api", "match"]:
                     session = app.create(self.read_json())
                     return self.send_json(session.meta() | {"frame": session.frames[0]})
+                if parts == ["api", "runs"]:
+                    return self.send_json(app.need_experiments().start(self.read_json()))
+                if len(parts) == 4 and parts[:2] == ["api", "runs"] and parts[3] == "stop":
+                    return self.send_json(app.need_experiments().stop(parts[2]))
                 if parts == ["api", "bookmarks"]:
                     body = self.read_json()
                     marks = app.need_library().add_bookmark(
@@ -407,10 +436,13 @@ def make_handler(app: App) -> type[BaseHTTPRequestHandler]:
             resource = static / name
             if suffix not in STATIC_TYPES or "/" in name or not resource.is_file():
                 return self.send_error_json(HTTPStatus.NOT_FOUND, "not found")
-            body = resource.read_bytes()
+            self.send_bytes(resource.read_bytes(), STATIC_TYPES[suffix] + "; charset=utf-8")
+
+        def send_bytes(self, body: bytes, content_type: str) -> None:
             self.send_response(HTTPStatus.OK)
-            self.send_header("Content-Type", STATIC_TYPES[suffix] + "; charset=utf-8")
+            self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(body)))
+            self.send_header("Cache-Control", "no-store")
             self.end_headers()
             self.wfile.write(body)
 
@@ -426,9 +458,18 @@ def make_server(
     replay_path: str | None = None,
     roster: Roster = NO_ROSTER,
     library: list[str | Path] | None = None,
+    runs_dir: str | Path | None = None,
 ) -> ThreadingHTTPServer:
     replay = load_replay(replay_path) if replay_path else None
-    app = App(config, seed, policy, replay, roster, Library(library) if library else None)
+    app = App(
+        config,
+        seed,
+        policy,
+        replay,
+        roster,
+        Library(library) if library else None,
+        Experiments(runs_dir) if runs_dir is not None else None,
+    )
     server = ThreadingHTTPServer((host, port), make_handler(app))
     server.daemon_threads = True
     return server
@@ -444,10 +485,13 @@ def serve(
     open_browser: bool = True,
     roster: Roster = NO_ROSTER,
     library: list[str | Path] | None = None,
+    runs_dir: str | Path | None = None,
 ) -> int:
-    server = make_server(host, port, config, seed, policy, replay_path, roster, library)
+    server = make_server(host, port, config, seed, policy, replay_path, roster, library, runs_dir)
     url = f"http://{host}:{server.server_address[1]}/"
     print(f"Snake Arena viewer running at {url}  (Ctrl+C to stop)")
+    if runs_dir is not None:
+        print(f"Experiments screen: {url}experiments  (runs in {runs_dir})")
     if open_browser:
         webbrowser.open(url)
     try:

@@ -169,3 +169,29 @@ button.link:hover { text-decoration: underline; }
 button.link.current { color: var(--text); font-weight: 600; }
 .bookmark-row { display: flex; gap: 6px; margin-bottom: 6px; }
 .bookmark-row input { flex: 1; min-width: 0; }
+
+main.experiments { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); align-items: start; }
+.table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; margin-bottom: 16px; }
+.table th, .table td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--panel-2); }
+.table tr.selected td { background: var(--panel-2); }
+.table tr.accepted td { color: var(--text); }
+.table tr:not(.accepted) td { color: var(--muted); }
+#runs tr td { color: var(--text); }
+.st-running, .st-starting { color: #9ece6a !important; }
+.st-stopping { color: #e0af68 !important; }
+.start-form { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: end; margin-bottom: 8px; }
+.start-form label { display: flex; flex-direction: column; gap: 2px; color: var(--muted); font-size: 12px; }
+.start-form input { width: 8em; }
+.error { color: var(--error); }
+.chart { width: 100%; height: auto; display: block; margin-bottom: 16px; }
+.chart text { fill: var(--muted); font-size: 11px; }
+.chart .gridline { stroke: var(--panel-2); stroke-width: 1; }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 4px; }
+.legend-item i, .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; }
+.log { background: var(--panel); padding: 8px; max-height: 300px; overflow: auto; font-size: 12px; white-space: pre-wrap; }
+header a { color: var(--accent); }
+details summary { cursor: pointer; margin: 4px 0; }
+@media (max-width: 900px) { main.experiments { grid-template-columns: 1fr; } }
+.run-actions { display: flex; gap: 16px; align-items: center; margin-bottom: 8px; }
+.run-actions a { color: var(--accent); }
+#detail h2 { margin-top: 20px; }

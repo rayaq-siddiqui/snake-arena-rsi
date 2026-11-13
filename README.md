@@ -141,6 +141,20 @@ uv run python -m arena.cli report runs/demo
 uv run python -m arena.cli watch --run runs/demo --vs-generation 0
 ```
 
+**Run experiments from the browser.** `watch` also serves an experiments screen at
+`/experiments` over `runs/` (or `--runs-dir`). It lists every run with its status,
+starts or resumes one (run id, profile, generations, an hour cap, workers) as a separate
+`evolve` process that keeps going if the viewer closes, and stops one by creating its
+`STOP` file, so the run ends after its current generation. For a selected run it shows
+each lineage's accepted versions on one chart, the champions' kill matrix, every
+generation's decision and the log. It only starts the same command you could type, so it
+can't change how runs are judged, and it can't pick the opt-in language-model proposer.
+Runs started in a terminal show up too: `evolve` writes `runs/<id>.pid` while it runs.
+
+```bash
+uv run python -m arena.cli watch --runs-dir runs
+```
+
 **Optional: a language-model proposer.** Nothing needs an API. If you want to try one,
 `--proposer llm` (on `evolve` or `rsi-demo`) asks Claude for each candidate's numbers.
 It sees only the parameter schema, the champion and recent dev-screen results, never a
@@ -278,11 +292,14 @@ flowchart TB
 
   subgraph VIZ["arena/viz: viewer"]
     server["viz/server.py<br/>Session · App · Roster<br/>frames pulled on demand"]
-    static["viz/static/index.html · app.js · style.css<br/>Canvas page · replay library · bookmarks"]
+    static["viz/static/index.html · app.js · style.css<br/>Canvas page · replay library · bookmarks<br/>experiments.html · experiments.js"]
     library["viz/library.py<br/>indexes replay files + tournament matches.jsonl<br/>filters · bookmarks.json (reindex on mtime)"]
+    experiments["viz/experiments.py<br/>lists, inspects, starts, stops evolve runs<br/>start = evolve subprocess · stop = STOP file"]
     static -- "/api/match/:id/frames" --> server
     static -- "/api/library · /api/bookmarks" --> server
+    static -- "/api/runs (POSTs must be JSON)" --> server
     server --> library
+    server --> experiments
   end
 
   subgraph RSI["arena/rsi: generic loop"]
@@ -333,6 +350,8 @@ flowchart TB
   server --> registry
   library -- "load_replay" --> replay
   library -. "reads out/**/matches.jsonl, *.json replays" .-> OUT
+  experiments -. "reads run files; writes STOP, &lt;id&gt;.pid, &lt;id&gt;.log" .-> RUNS
+  experiments -. "python -m arena.cli evolve" .-> cli
   entrants --> registry
   evaluator --> match
   evaluator --> pcheck

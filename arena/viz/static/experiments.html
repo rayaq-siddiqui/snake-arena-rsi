@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Snake Arena experiments</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header>
+    <h1>Experiments</h1>
+    <a href="/">Arena viewer</a>
+    <span id="status" class="status">loading…</span>
+  </header>
+  <main class="experiments">
+    <section>
+      <h2>Runs</h2>
+      <table id="runs" class="table"></table>
+      <h2>Start or resume a run</h2>
+      <form id="start-form" class="start-form">
+        <label>Run id <input name="run_id" required pattern="[A-Za-z0-9][A-Za-z0-9_.\-]{0,63}" value="demo"></label>
+        <label>Profile
+          <select name="profile">
+            <option value="quick">quick</option>
+            <option value="experiment">experiment</option>
+            <option value="default">default</option>
+          </select>
+        </label>
+        <label>Generations <input name="generations" type="number" min="1" max="10000" value="3"></label>
+        <label>Max hours <input name="max_hours" type="number" min="0" step="0.1" placeholder="none"></label>
+        <label>Workers <input name="workers" type="number" min="1" max="256" placeholder="auto"></label>
+        <button type="submit">Start</button>
+      </form>
+      <p class="muted">Resuming a run needs the profile it was started with. Stop ends a run
+        after its current generation, like creating its STOP file. The opt-in language-model
+        proposer is only available from the command line.</p>
+      <p id="form-error" class="error"></p>
+    </section>
+    <section id="detail" class="hidden">
+      <h2 id="detail-title"></h2>
+      <p id="detail-meta" class="muted"></p>
+      <div class="run-actions">
+        <button id="stop">Stop after this generation</button>
+        <a id="dashboard" target="_blank" class="hidden">Open the dashboard</a>
+      </div>
+      <h2>Accepted versions (score against the reference lineup)</h2>
+      <div id="chart"></div>
+      <h2>Kill matrix of the final champions</h2>
+      <table id="matrix" class="table"></table>
+      <h2>Version timeline</h2>
+      <div id="timelines"></div>
+      <h2>Log</h2>
+      <pre id="log" class="log"></pre>
+    </section>
+  </main>
+  <script src="/static/experiments.js"></script>
+</body>
+</html>
