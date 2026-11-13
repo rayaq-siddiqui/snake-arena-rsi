@@ -97,7 +97,7 @@ arena/
 tests/         Mirrors arena/ (tests/engine, tests/sim, tests/viz, tests/rsi, tests/evolution);
                tests/test_docs.py keeps the README diagram in sync.
 docs/          Screenshots.
-jj/config.toml Repo jj config (author, `jj fix` tools); scripts/jj-setup.sh installs it.
+jj-config.toml Repo jj config (author, `jj fix` tools); scripts/jj-setup.sh installs it.
 ```
 
 ## Non-negotiable rules
@@ -198,7 +198,7 @@ Playwright and skips when it isn't installed. Keep this section in sync with rea
   make commits, rebases and pushes with `jj`. Run `scripts/jj-setup.sh` once per
   checkout (cloud sessions run it from the environment's setup script). It installs the
   pinned jj release if `jj` is missing, runs `jj git init --colocate`, and copies
-  `jj/config.toml` to the repo config path, because jj never reads config from inside
+  `jj-config.toml` to the repo config path, because jj never reads config from inside
   the working copy. That file sets the commit author and the `jj fix` tools. The
   working copy is itself a commit (`@`), so there is no staging step:
 
@@ -227,7 +227,7 @@ Playwright and skips when it isn't installed. Keep this section in sync with rea
 
 - The owner is the author of every commit, and agents are only co-authors. Author and
   commit as `Rayaq Siddiqui <rayaq05@hotmail.com>`, never as the agent's own identity.
-  `jj/config.toml` sets this once `scripts/jj-setup.sh` has run. A change started
+  `jj-config.toml` sets this once `scripts/jj-setup.sh` has run. A change started
   before that keeps the old author, so check `jj log -r @ -T 'author ++ "\n"'` and fix
   it with `jj metaedit --update-author` before pushing.
 

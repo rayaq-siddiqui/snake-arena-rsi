@@ -20,6 +20,6 @@ cd "$root"
 if [ ! -d .jj ]; then
     jj git init --colocate >/dev/null
 fi
-cp jj/config.toml "$(jj config path --repo)"
+cp jj-config.toml "$(jj config path --repo)"
 jj bookmark track main --remote=origin >/dev/null 2>&1 || true
 jj --version
