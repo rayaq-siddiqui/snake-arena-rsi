@@ -16,7 +16,7 @@ const fail = async (msg) => { console.error("FAIL:", msg, errors); await browser
 
 await page.goto(url);
 await page.waitForFunction(() => /tick \d/.test(document.querySelector("#status").textContent));
-if ((await page.locator("#leaderboard tbody tr").count()) !== 5) await fail("expected 5 leaderboard rows");
+if ((await page.locator("#leaderboard tbody tr").count()) !== 6) await fail("expected 6 leaderboard rows (the arena lineup)");
 if (!/Hunter/.test(await page.textContent("#leaderboard"))) await fail("leaderboard lacks personality names");
 if ((await page.inputValue("select[name=policy]")) !== "arena") await fail("policy select not on the lineup");
 await page.waitForTimeout(1500);
@@ -41,6 +41,7 @@ await page.fill("input[name=seed]", "7");
 await page.fill("input[name=width]", "16");
 await page.fill("input[name=height]", "16");
 await page.fill("input[name=score_target]", "3");
+await page.fill("input[name=max_ticks]", "2000");
 await page.selectOption("select[name=policy]", "random_safe");
 await page.click("button[type=submit]");
 await page.waitForFunction(() => /seed 7/.test(document.querySelector("#status").textContent));
@@ -50,6 +51,7 @@ const banner = await page.textContent("#banner");
 if (!/wins|Tick cap|Tie/.test(banner)) await fail(`unexpected banner: ${banner}`);
 
 if (await page.isVisible("#library-panel")) {
+  await page.selectOption("#speed", "1");
   await page.waitForSelector("#lib-list button[data-entry]");
   const games = await page.locator("#lib-list button[data-entry]").count();
   if (games < 1) await fail("library lists no games");
@@ -57,6 +59,7 @@ if (await page.isVisible("#library-panel")) {
   await page.waitForFunction(() => document.querySelectorAll("#lib-list button[data-entry]").length === 3);
   await page.click("#lib-list button[data-entry]");
   await page.waitForSelector("#lib-list button.current");
+  await page.waitForFunction(() => /tick [1-9]/.test(document.querySelector("#status").textContent));
   await page.click("#play"); // pause
   await page.fill("#bm-note", "smoke");
   await page.click("#bookmark");
@@ -67,7 +70,7 @@ if (await page.isVisible("#library-panel")) {
   await page.click("#new-seed");
   await page.click("#bm-list button[data-tick]");
   await page.waitForFunction((t) => new RegExp(`tick ${t.toLocaleString("en-US")} `).test(document.querySelector("#status").textContent), markTick);
-  if (!/paused/.test(await page.textContent("#status"))) await fail("bookmark did not open paused");
+  if (!/paused/.test(await page.textContent("#status"))) await fail(`bookmark did not open paused: ${await page.textContent("#status")}`);
 }
 
 if (shot) {
