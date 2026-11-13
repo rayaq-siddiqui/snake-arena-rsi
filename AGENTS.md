@@ -97,6 +97,7 @@ arena/
 tests/         Mirrors arena/ (tests/engine, tests/sim, tests/viz, tests/rsi, tests/evolution);
                tests/test_docs.py keeps the README diagram in sync.
 docs/          Screenshots.
+jj/config.toml Repo jj config (author, `jj fix` tools); scripts/jj-setup.sh installs it.
 ```
 
 ## Non-negotiable rules
@@ -125,6 +126,8 @@ library; dev tools are pytest, hypothesis, ruff and mypy (strict).
 
 ```bash
 uv sync                                   # install
+scripts/jj-setup.sh                       # jj colocated repo + jj fix config (once per checkout)
+jj fix                                    # ruff --fix + ruff format on the files you changed
 uv run pytest                             # all tests (~105 s; includes engine fuzzing)
 uv run ruff check . && uv run ruff format --check . && uv run mypy   # lint, format, types
 uv run python -m arena.cli run-match --seed 42                     # one headless match
@@ -190,22 +193,43 @@ Playwright and skips when it isn't installed. Keep this section in sync with rea
 - Push changes directly to `main`. Do not open pull requests or work on feature
   branches unless the owner explicitly asks.
 
-- Cloud sessions often start from a shallow clone, and other sessions may push to
-  `main` concurrently, so `origin/main` can move past the clone's history. When that
-  happens, `main` looks diverged ("ahead N, behind M", "no merge base", or a stop hook
-  reporting N unpushed commits) even though nothing local is unpushed. Before you treat
-  `main` as diverged, check `git rev-parse --is-shallow-repository`. If it prints
-  `true`, run `git fetch --unshallow origin main` and check `git status -sb` again.
-  Usually that shows `main` is only behind, and `git pull --ff-only origin main` fixes
-  it. Never force-push, reset, or merge unrelated histories to "fix" a divergence you
-  haven't confirmed on full history.
+- **Use jj (Jujutsu) for version control.** The checkout is a colocated jj + git repo:
+  GitHub, CI and read-only `git` commands (`git log`, `git diff`) work as before, but
+  make commits, rebases and pushes with `jj`. Run `scripts/jj-setup.sh` once per
+  checkout (cloud sessions run it from the environment's setup script). It installs the
+  pinned jj release if `jj` is missing, runs `jj git init --colocate`, and copies
+  `jj/config.toml` to the repo config path, because jj never reads config from inside
+  the working copy. That file sets the commit author and the `jj fix` tools. The
+  working copy is itself a commit (`@`), so there is no staging step:
+
+  ```bash
+  jj git fetch                                  # update main@origin
+  jj new main                                   # start a change on top of main
+  # ...edit files...
+  jj fix                                        # ruff --fix, then ruff format, on changed files
+  uv run ruff check . && uv run mypy && uv run pytest   # jj fix does not type-check or test
+  jj describe -m "fix: short desc" -m "long desc..." -m "Co-Authored-By: ..."
+  jj bookmark set main -r @                     # move main to this change
+  jj git push --bookmark main                   # then `jj new` for the next change
+  ```
+
+  If `main@origin` moved while you worked, `jj git fetch` and then
+  `jj rebase -d main@origin` before `jj bookmark set`. jj refuses to move `main`
+  backwards or sideways without `--allow-backwards`; do not pass it, and never force a
+  push. When `jj git push` says the remote moved, fetch and rebase instead.
+
+- Cloud sessions may start from a shallow clone. jj handles shallow history, but if
+  `main` looks diverged from `main@origin` (or a stop hook reports unpushed commits),
+  first check `git rev-parse --is-shallow-repository`. If it prints `true`, run
+  `git fetch --unshallow origin main` and `jj git import`, then compare again with
+  `jj log -r 'main | main@origin'`. Never force-push, abandon, or rewrite published
+  commits to "fix" a divergence you haven't confirmed on full history.
 
 - The owner is the author of every commit, and agents are only co-authors. Author and
   commit as `Rayaq Siddiqui <rayaq05@hotmail.com>`, never as the agent's own identity.
-  Cloud containers default `user.name`/`user.email` to the agent, so run
-  `git config user.name "Rayaq Siddiqui"` and
-  `git config user.email rayaq05@hotmail.com` at the start of a session, and check
-  `git log -1 --format='%an <%ae>'` before pushing.
+  `jj/config.toml` sets this once `scripts/jj-setup.sh` has run. A change started
+  before that keeps the old author, so check `jj log -r @ -T 'author ++ "\n"'` and fix
+  it with `jj metaedit --update-author` before pushing.
 
 - Every commit you create and push must include a `Co-Authored-By` trailer naming the
   model that contributed to it, not just the tool name (Claude Code or Codex). Use the

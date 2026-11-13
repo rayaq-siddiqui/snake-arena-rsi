@@ -1,0 +1,16 @@
+# Repo-level jj settings. jj never reads config from inside the working copy, so
+# `scripts/jj-setup.sh` copies this file to the path `jj config path --repo` prints.
+
+[user]
+name = "Rayaq Siddiqui"
+email = "rayaq05@hotmail.com"
+
+# `jj fix` runs these on the files each revision changes, in name order:
+# lint autofixes first, then the formatter, so the result matches CI's ruff checks.
+[fix.tools.1-ruff-check]
+command = ["uv", "run", "--quiet", "ruff", "check", "--fix", "--exit-zero", "--quiet", "--stdin-filename=$path", "-"]
+patterns = ["glob:'**/*.py'"]
+
+[fix.tools.2-ruff-format]
+command = ["uv", "run", "--quiet", "ruff", "format", "--quiet", "--stdin-filename=$path", "-"]
+patterns = ["glob:'**/*.py'"]
