@@ -94,3 +94,15 @@ def test_relative_gain_handles_signs_and_zero() -> None:
 def test_rule_round_trips() -> None:
     rule = PairedBootstrapRule(guards=(GuardMetric("deaths", 0.15, slack=0.01),))
     assert PairedBootstrapRule.from_dict(rule.to_dict()) == rule
+
+
+def test_guard_tolerance_widens_the_limit_for_negative_values_too() -> None:
+    worse_up = GuardMetric("cost", 0.1, slack=0.0)
+    assert not worse_up.violated(-10.0, -10.0)
+    assert not worse_up.violated(-9.5, -10.0)
+    assert worse_up.violated(-8.9, -10.0)
+    worse_down = GuardMetric("gain", 0.1, higher_is_worse=False)
+    assert not worse_down.violated(-10.0, -10.0)
+    assert not worse_down.violated(-10.5, -10.0)
+    assert worse_down.violated(-11.1, -10.0)
+    assert worse_up.violated(11.1, 10.0) and not worse_up.violated(10.9, 10.0)

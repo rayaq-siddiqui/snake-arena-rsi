@@ -22,8 +22,8 @@ class GuardMetric:
     """A secondary metric that may not get worse by more than ``tolerance`` (relative).
 
     With ``higher_is_worse`` (deaths, say) the candidate's value may be at most
-    ``champion * (1 + tolerance) + slack``; otherwise at least
-    ``champion * (1 - tolerance) - slack``. ``slack`` keeps a zero baseline from
+    ``champion + |champion| * tolerance + slack``; otherwise at least
+    ``champion - |champion| * tolerance - slack``. ``slack`` keeps a zero baseline from
     forbidding any change at all.
     """
 
@@ -33,9 +33,10 @@ class GuardMetric:
     slack: float = 0.0
 
     def violated(self, cand: float, champ: float) -> bool:
+        margin = abs(champ) * self.tolerance + self.slack
         if self.higher_is_worse:
-            return cand > champ * (1 + self.tolerance) + self.slack
-        return cand < champ * (1 - self.tolerance) - self.slack
+            return cand > champ + margin
+        return cand < champ - margin
 
     def to_dict(self) -> dict[str, Any]:
         return {
