@@ -154,3 +154,14 @@ def test_an_uncommitted_step_leaves_no_trace(tmp_path: Path) -> None:
     for name in ("generations.jsonl", "champion.json"):
         assert (tmp_path / "whole" / name).read_text() == (tmp_path / "cut" / name).read_text()
     assert resumed.champion == whole.champion
+
+
+def test_a_line_cut_off_mid_write_is_dropped_on_resume(tmp_path: Path) -> None:
+    quadratic_run(tmp_path / "whole", generations=6).run()
+    quadratic_run(tmp_path / "cut", generations=4).run()
+    with open(tmp_path / "cut" / "generations.jsonl", "a") as f:
+        f.write('{"generation": 5, "deci')
+    quadratic_run(tmp_path / "cut", generations=6).run()
+    assert (tmp_path / "whole" / "generations.jsonl").read_text() == (
+        tmp_path / "cut" / "generations.jsonl"
+    ).read_text()

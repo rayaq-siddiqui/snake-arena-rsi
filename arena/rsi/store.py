@@ -146,10 +146,11 @@ class RunStore:
             os.fsync(f.fileno())
 
     def truncate_records(self, keep: int) -> None:
-        records = self.records()
-        if len(records) > keep:
-            text = "".join(json.dumps(r, sort_keys=True) + "\n" for r in records[:keep])
-            write_atomic(self.generations_path, text)
+        """Keep the first ``keep`` lines without parsing the rest: a run killed mid-write
+        can leave a half-written last line that is not valid JSON."""
+        lines = [line for line in self.generations_path.read_text().splitlines() if line.strip()]
+        if len(lines) > keep:
+            write_atomic(self.generations_path, "".join(line + "\n" for line in lines[:keep]))
 
     def checkpoint(self) -> dict[str, Any] | None:
         path = self.dir / "checkpoint.json"
