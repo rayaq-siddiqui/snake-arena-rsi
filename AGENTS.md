@@ -69,7 +69,8 @@ arena/
     scorer.py    Weighted-sum ScoringPolicy; hunter/survivor/trapper/predictor/opportunist.py.
   sim/         Match runner (match.py), tournaments, replays, bench, behaviour metrics,
                personality_check.py (phase 2 acceptance), boards.py (named configs).
-  viz/         server.py (stdlib HTTP, pull-based frames) + static/ (Canvas page).
+  viz/         server.py (stdlib HTTP, pull-based frames) + static/ (Canvas page);
+               library.py (replay browser: stored games, filters, bookmarks).
   cli.py       `python -m arena.cli run-match | run-tournament | bench | watch | evolve | report`.
   rsi/         The generic RSI framework (NumPy); must not import engine/agents/sim.
     types.py     ParamSpec, Candidate, PairedResult, Decision, Feedback, Budget, protocols.
@@ -124,6 +125,7 @@ uv run python -m arena.cli bench                                  # speed + kill
 uv run python -m arena.cli bench --policies all                   # personality decision times
 uv run python -m arena.cli check-personalities --workers 4        # phase 2 acceptance (slow)
 uv run python -m arena.cli watch                                  # browser viewer
+uv run python -m arena.cli watch --library out                    # + replay browser over out/
 uv run python -m arena.cli rsi-demo --problem quadratic           # RSI loop on a toy
 uv run python -m arena.cli evolve --quick --proposer llm --max-llm-dollars 2 --run-id llm  # opt-in; needs the llm extra + API key
 uv run python -m arena.cli evolve --quick --generations 3 --run-id demo   # snakes tune themselves

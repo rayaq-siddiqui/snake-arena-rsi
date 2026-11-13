@@ -8,6 +8,7 @@ same way no matter how it is watched.
 from __future__ import annotations
 
 import collections
+import contextlib
 import json
 import secrets
 import threading
@@ -26,6 +27,7 @@ from arena.agents.registry import expand_policies, snake_labels
 from arena.engine import Event, GameConfig, GameState, new_game, rank, step
 from arena.sim.match import Match
 from arena.sim.replay import build_replay, check_schema, load_replay
+from arena.viz.library import Library
 
 MAX_SESSIONS = 16
 FRAME_BUFFER = 20_000
@@ -129,6 +131,7 @@ class Session:
             events = list(self.match.events)
         self.frames: collections.deque[dict[str, Any]] = collections.deque(maxlen=FRAME_BUFFER)
         self.frames.append(frame(self.state, events))
+        self.entry: str | None = None
 
     @property
     def finished(self) -> bool:
@@ -190,6 +193,7 @@ class Session:
             ],
             "lineup": self.lineup(),
             "replay_ticks": len(self.replay_actions) if self.mode == "replay" else None,
+            "entry": self.entry,
         }
 
     def lineup(self) -> str | None:
@@ -225,8 +229,10 @@ class App:
         policy: str,
         startup_replay: dict[str, Any] | None,
         roster: Roster = NO_ROSTER,
+        library: Library | None = None,
     ) -> None:
         self.roster = roster
+        self.library = library
         self.defaults = defaults
         self.seed = seed
         self.policy = policy
@@ -255,9 +261,20 @@ class App:
             "policy": self.policy,
             "policies": [*self.roster.lineups, *LINEUPS, *sorted(POLICIES), *self.roster.policies],
             "startup_replay": self.startup_replay is not None,
+            "library": self.library is not None,
         }
 
+    def need_library(self) -> Library:
+        if self.library is None:
+            raise ValueError("the viewer was started without a replay library")
+        return self.library
+
     def create(self, body: dict[str, Any]) -> Session:
+        if body.get("mode") == "library":
+            entry = str(body["entry"])
+            session = self.create(self.need_library().match_request(entry))
+            session.entry = entry
+            return session
         if body.get("mode") == "startup_replay":
             if self.startup_replay is None:
                 raise ValueError("no replay was given on the command line")
@@ -291,6 +308,11 @@ def make_handler(app: App) -> type[BaseHTTPRequestHandler]:
         def log_message(self, format: str, *args: Any) -> None:
             pass
 
+        def handle(self) -> None:
+            # A page that starts another match drops its in-flight frame request.
+            with contextlib.suppress(BrokenPipeError, ConnectionResetError):
+                super().handle()
+
         def send_json(self, data: Any, status: HTTPStatus = HTTPStatus.OK) -> None:
             body = json.dumps(data, separators=(",", ":")).encode()
             self.send_response(status)
@@ -322,6 +344,19 @@ def make_handler(app: App) -> type[BaseHTTPRequestHandler]:
                     return self.send_static(parts[1])
                 if parts == ["api", "info"]:
                     return self.send_json(app.info())
+                if parts == ["api", "library"]:
+                    q = {k: v[0] for k, v in parse_qs(url.query).items()}
+                    return self.send_json(
+                        app.need_library().query(
+                            winner=q.get("winner"),
+                            policy=q.get("policy"),
+                            end_reason=q.get("end_reason"),
+                            offset=int(q.get("offset", 0)),
+                            limit=int(q.get("limit", 100)),
+                        )
+                    )
+                if parts == ["api", "bookmarks"]:
+                    return self.send_json(app.need_library().bookmarks())
                 if len(parts) == 4 and parts[:2] == ["api", "match"]:
                     session = app.get(parts[2])
                     if parts[3] == "frames":
@@ -349,6 +384,14 @@ def make_handler(app: App) -> type[BaseHTTPRequestHandler]:
                 if parts == ["api", "match"]:
                     session = app.create(self.read_json())
                     return self.send_json(session.meta() | {"frame": session.frames[0]})
+                if parts == ["api", "bookmarks"]:
+                    body = self.read_json()
+                    marks = app.need_library().add_bookmark(
+                        str(body["entry"]), int(body["tick"]), str(body.get("note", ""))
+                    )
+                    return self.send_json(marks)
+                if len(parts) == 4 and parts[:2] == ["api", "bookmarks"] and parts[3] == "delete":
+                    return self.send_json(app.need_library().remove_bookmark(int(parts[2])))
                 if len(parts) == 4 and parts[:2] == ["api", "match"] and parts[3] == "finish":
                     session = app.get(parts[2])
                     final = session.finish()
@@ -382,9 +425,10 @@ def make_server(
     policy: str = VIEWER_POLICY,
     replay_path: str | None = None,
     roster: Roster = NO_ROSTER,
+    library: list[str | Path] | None = None,
 ) -> ThreadingHTTPServer:
     replay = load_replay(replay_path) if replay_path else None
-    app = App(config, seed, policy, replay, roster)
+    app = App(config, seed, policy, replay, roster, Library(library) if library else None)
     server = ThreadingHTTPServer((host, port), make_handler(app))
     server.daemon_threads = True
     return server
@@ -399,8 +443,9 @@ def serve(
     replay_path: str | None = None,
     open_browser: bool = True,
     roster: Roster = NO_ROSTER,
+    library: list[str | Path] | None = None,
 ) -> int:
-    server = make_server(host, port, config, seed, policy, replay_path, roster)
+    server = make_server(host, port, config, seed, policy, replay_path, roster, library)
     url = f"http://{host}:{server.server_address[1]}/"
     print(f"Snake Arena viewer running at {url}  (Ctrl+C to stop)")
     if open_browser:

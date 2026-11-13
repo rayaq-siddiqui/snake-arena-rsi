@@ -219,6 +219,7 @@ def cmd_watch(args: argparse.Namespace) -> int:
         replay_path=args.replay,
         open_browser=not args.no_browser,
         roster=roster,
+        library=args.library or ["out"],
     )
 
 
@@ -439,6 +440,12 @@ def build_parser() -> argparse.ArgumentParser:
     add_game_options(p, VIEWER_DEFAULTS, VIEWER_POLICY)
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--replay", help="open this replay file instead of a live match")
+    p.add_argument(
+        "--library",
+        action="append",
+        metavar="DIR",
+        help="folder for the replay browser (repeatable; default: out); bookmarks go in the first",
+    )
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=8000)
     p.add_argument("--no-browser", action="store_true", help="do not open a browser tab")

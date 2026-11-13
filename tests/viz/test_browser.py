@@ -7,6 +7,7 @@ import threading
 from pathlib import Path
 
 import pytest
+from library_helpers import make_library
 
 from arena.viz.server import make_server
 
@@ -24,11 +25,12 @@ def node_env() -> dict[str, str] | None:
     return env if probe.returncode == 0 else None
 
 
-def test_viewer_in_a_real_browser() -> None:
+def test_viewer_in_a_real_browser(tmp_path: Path) -> None:
     env = node_env()
     if env is None:
         pytest.skip("node with playwright is not available")
-    server = make_server(port=0)
+    make_library(tmp_path)
+    server = make_server(port=0, library=[tmp_path])
     threading.Thread(target=server.serve_forever, daemon=True).start()
     try:
         url = f"http://127.0.0.1:{server.server_address[1]}/"

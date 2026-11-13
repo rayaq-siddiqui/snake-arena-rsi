@@ -49,6 +49,27 @@ await page.waitForSelector("#banner:not(.hidden)");
 const banner = await page.textContent("#banner");
 if (!/wins|Tick cap|Tie/.test(banner)) await fail(`unexpected banner: ${banner}`);
 
+if (await page.isVisible("#library-panel")) {
+  await page.waitForSelector("#lib-list button[data-entry]");
+  const games = await page.locator("#lib-list button[data-entry]").count();
+  if (games < 1) await fail("library lists no games");
+  await page.selectOption("#lib-policy", "hunter");
+  await page.waitForFunction(() => document.querySelectorAll("#lib-list button[data-entry]").length === 3);
+  await page.click("#lib-list button[data-entry]");
+  await page.waitForSelector("#lib-list button.current");
+  await page.click("#play"); // pause
+  await page.fill("#bm-note", "smoke");
+  await page.click("#bookmark");
+  await page.waitForSelector("#bm-list button[data-tick]");
+  const mark = await page.textContent("#bm-list");
+  if (!/smoke/.test(mark)) await fail(`bookmark not listed: ${mark}`);
+  const markTick = Number((await page.getAttribute("#bm-list button[data-tick]", "data-tick")));
+  await page.click("#new-seed");
+  await page.click("#bm-list button[data-tick]");
+  await page.waitForFunction((t) => new RegExp(`tick ${t.toLocaleString("en-US")} `).test(document.querySelector("#status").textContent), markTick);
+  if (!/paused/.test(await page.textContent("#status"))) await fail("bookmark did not open paused");
+}
+
 if (shot) {
   await page.fill("input[name=seed]", "42");
   await page.fill("input[name=width]", "20");

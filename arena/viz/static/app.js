@@ -76,7 +76,9 @@ function fillForm(seed, config, policy) {
   }
 }
 
-async function start(body) {
+const esc = (s) => String(s).replace(/[&<>"']/g, (ch) => `&#${ch.charCodeAt(0)};`);
+
+async function start(body, at) {
   showError("");
   let meta;
   try {
@@ -104,8 +106,26 @@ async function start(body) {
   $("#banner").classList.add("hidden");
   $("#download").disabled = meta.mode !== "live";
   resize();
-  updateBoard(true);
   setPlaying(true);
+  if (at > 0) await seek(at);
+  updateBoard(true);
+  markCurrent();
+}
+
+// Jump straight to a tick: the server plays forward to it, the page shows that frame paused.
+async function seek(at) {
+  const gen = view.gen;
+  try {
+    const data = await api(`/api/match/${view.meta.id}/frames?from=${at}&count=1`);
+    if (gen !== view.gen || !data.frames.length) return;
+    view.queue = [];
+    view.prev = null;
+    view.cur = data.frames[0];
+    view.nextTick = view.cur.t + 1;
+    setPlaying(false);
+  } catch (err) {
+    showError(err.message);
+  }
 }
 
 async function fill() {
@@ -397,6 +417,84 @@ function updateBoard(force) {
   $("#status").textContent = `tick ${fmt(view.cur.t)} / cap ${fmt(c.max_ticks)} · first to ${c.score_target} · ${c.width}×${c.height} · seed ${view.meta.seed} · ${mode} · ${state}`;
 }
 
+// ---------- replay library ----------
+
+const FACETS = [["winner", "#lib-winner"], ["policy", "#lib-policy"], ["end_reason", "#lib-end"]];
+
+function fillFacet(sel, values) {
+  const select = $(sel);
+  const keep = select.value;
+  select.innerHTML = `<option value="">any</option>` + values.map((v) => `<option>${esc(v)}</option>`).join("");
+  select.value = values.includes(keep) ? keep : "";
+}
+
+async function loadLibrary() {
+  const q = new URLSearchParams();
+  for (const [key, sel] of FACETS) if ($(sel).value) q.set(key, $(sel).value);
+  try {
+    const data = await api(`/api/library?${q}`);
+    for (const [key, sel] of FACETS) fillFacet(sel, data.facets[key]);
+    const shown = data.entries.length;
+    $("#lib-count").textContent = data.total
+      ? `${fmt(data.total)} stored games${data.total > shown ? `, first ${shown} shown` : ""}`
+      : `No stored games in ${data.roots.join(", ")} match. Write some with run-match --replay or run-tournament.`;
+    $("#lib-list").innerHTML = data.entries.map((e) => `<li>`
+      + `<button class="link" data-entry="${esc(e.id)}">seed ${e.seed} · ${e.winner ? `${esc(e.winner)} won` : "no single winner"}</button>`
+      + `<span>${fmt(e.ticks)} ticks · ${e.kills} kills · ${esc(e.size)}${e.end_reason ? ` · ${esc(e.end_reason.replace("_", " "))}` : ""}</span>`
+      + `<span class="sub">${esc(e.policies.join(", "))} · ${esc(e.file)}${e.kind === "tournament" ? " · re-simulated from its seed" : ""}</span>`
+      + `</li>`).join("");
+    markCurrent();
+  } catch (err) {
+    showError(err.message);
+  }
+}
+
+function renderBookmarks(marks) {
+  $("#bm-list").innerHTML = marks.length
+    ? marks.map((m) => `<li><button class="link" data-entry="${esc(m.entry)}" data-tick="${m.tick}">tick ${fmt(m.tick)}${m.note ? ` · ${esc(m.note)}` : ""}</button>`
+      + `<button class="link" data-delete="${m.id}" title="Remove bookmark">remove</button>`
+      + `<span class="sub">${esc(m.entry.slice(2))}</span></li>`).join("")
+    : `<li class="muted">None yet. Open a stored game, pause on a moment, and bookmark it.</li>`;
+}
+
+function markCurrent() {
+  const entry = view.meta && view.meta.entry;
+  for (const b of document.querySelectorAll("#lib-list button[data-entry]")) {
+    b.classList.toggle("current", b.dataset.entry === entry);
+  }
+  const ok = Boolean(entry);
+  $("#bookmark").disabled = !ok;
+  $("#bookmark").title = ok ? "Bookmark the tick on screen" : "Open a game from the library to bookmark it";
+}
+
+async function onLibraryClick(e) {
+  const b = e.target.closest("button");
+  if (!b) return;
+  if (b.dataset.delete) {
+    try {
+      renderBookmarks(await api(`/api/bookmarks/${b.dataset.delete}/delete`, {}));
+    } catch (err) {
+      showError(err.message);
+    }
+  } else if (b.dataset.entry) {
+    await start({ mode: "library", entry: b.dataset.entry }, Number(b.dataset.tick || 0));
+  }
+}
+
+$("#lib-list").addEventListener("click", onLibraryClick);
+$("#bm-list").addEventListener("click", onLibraryClick);
+for (const [, sel] of FACETS) $(sel).addEventListener("change", loadLibrary);
+$("#bookmark").addEventListener("click", async () => {
+  if (!view.meta || !view.meta.entry || !view.cur) return;
+  try {
+    const note = $("#bm-note").value.trim();
+    renderBookmarks(await api("/api/bookmarks", { entry: view.meta.entry, tick: view.cur.t, note }));
+    $("#bm-note").value = "";
+  } catch (err) {
+    showError(err.message);
+  }
+});
+
 // ---------- controls ----------
 
 $("#play").addEventListener("click", () => setPlaying(!view.playing));
@@ -458,6 +556,11 @@ window.addEventListener("resize", resize);
     form.elements.policy.innerHTML = info.policies.map((p) => `<option>${p}</option>`).join("");
     fillForm(info.seed, info.defaults, info.policy);
     view.speed = $("#speed").value;
+    if (info.library) {
+      $("#library-panel").classList.remove("hidden");
+      loadLibrary();
+      api("/api/bookmarks").then(renderBookmarks, (err) => showError(err.message));
+    }
     await start(info.startup_replay ? { mode: "startup_replay" } : formSettings());
   } catch (err) {
     showError(err.message);

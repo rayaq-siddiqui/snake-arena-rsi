@@ -355,7 +355,7 @@ stretch item or a deliberate scope change recorded in the phase specs, not a hid
 | 5. LLM provider adapter | Built, opt-in (step 5.5): Anthropic SDK behind a `Complete` callable, numbers only, token/dollar caps, audit log, hill-climb fallback. Not yet compared against the default improver (needs an API key) | `arena/rsi/llm.py` |
 | 6. Generation history and version inspection | Built: `report.md`, `progress.svg`, live `dashboard.html`, `watch --run` | `arena/evolution` |
 | §7 Experiments screen: start and stop batches from the browser | Not built (step 5.7). Runs start from `evolve`; they stop with `STOP`, `--max-hours` or `--max-episodes` and resume by rerunning | `arena/cli.py` |
-| §7 Replay browser with filters, replay bookmarks | Not built (step 5.7). Replays load by file in the viewer | `arena/sim/replay.py` |
+| §7 Replay browser with filters, replay bookmarks | Built: the viewer lists replay files and tournament matches, filters by winner, policy and end reason, and keeps bookmarks that open paused at their tick | `arena/viz/library.py`, `tests/viz/test_library.py` |
 | §7 Performance: 100,000 ticks/s (aspirational) | Not reached: about 50,000 ticks/s for the engine alone in one process and about 70,000 ticks/s for full `RandomSafe` matches on 4 workers; measured below | Measurements |
 | §8 Seed separation, paired seeds, seat rotation, cost limits, provenance | Built: disjoint dev/holdout/final pools, a spy test, generation/episode/time caps, code and environment hashes in `evolution.json` | `arena/rsi/seeds.py`, `arena/evolution/run.py` |
 | §10 Automated acceptance tests: engine, evolution, UI | Built | `tests/engine`, `tests/rsi`, `tests/evolution`, `tests/viz` |

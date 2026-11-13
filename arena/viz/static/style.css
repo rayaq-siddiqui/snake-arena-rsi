@@ -136,3 +136,36 @@ tbody tr.dead { opacity: 0.55; }
   main { grid-template-columns: 1fr; }
   canvas { max-width: 100%; }
 }
+
+.muted { color: var(--muted); margin: 6px 0; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.grid3 select { width: 100%; }
+.lib-list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.lib-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--panel-2);
+}
+.lib-list .sub { flex-basis: 100%; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+button.link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+button.link:hover { text-decoration: underline; }
+button.link.current { color: var(--text); font-weight: 600; }
+.bookmark-row { display: flex; gap: 6px; margin-bottom: 6px; }
+.bookmark-row input { flex: 1; min-width: 0; }

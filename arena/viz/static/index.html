@@ -69,6 +69,23 @@
         <p id="form-error" class="error" role="alert"></p>
       </section>
 
+      <section id="library-panel" class="hidden">
+        <h2>Replay library</h2>
+        <div class="grid3">
+          <label>Winner <select id="lib-winner"><option value="">any</option></select></label>
+          <label>Includes <select id="lib-policy"><option value="">any</option></select></label>
+          <label>Ended by <select id="lib-end"><option value="">any</option></select></label>
+        </div>
+        <p id="lib-count" class="muted"></p>
+        <ol id="lib-list" class="lib-list"></ol>
+        <h2>Bookmarks</h2>
+        <div class="bookmark-row">
+          <input id="bm-note" maxlength="200" placeholder="note (optional)" aria-label="bookmark note">
+          <button type="button" id="bookmark" disabled title="Open a game from the library to bookmark it">Bookmark tick</button>
+        </div>
+        <ol id="bm-list" class="lib-list"></ol>
+      </section>
+
       <section>
         <h2>Kill feed</h2>
         <ol id="feed" class="feed"></ol>

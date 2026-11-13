@@ -73,6 +73,18 @@ uv run python -m arena.cli run-match --seed 7 --width 20 --height 20 --target 10
 uv run python -m arena.cli watch --replay out/m7.json
 ```
 
+**Browse stored games.** The viewer's replay library lists every replay file and every
+tournament match under `out/` (or the folders given with `--library`). Filter by winner,
+by a policy taking part, or by how the game ended, then click one to watch it. Replay
+files play back their stored actions. Tournament rows are re-simulated from their seed,
+config and policies, which gives the same game while the code and parameters are
+unchanged. Pause on a moment and bookmark it; bookmarks are kept in
+`out/bookmarks.json` and open paused at that tick.
+
+```bash
+uv run python -m arena.cli watch --library out
+```
+
 **Measure speed and kill rates,** or each personality's time per move:
 
 ```bash
@@ -266,8 +278,11 @@ flowchart TB
 
   subgraph VIZ["arena/viz: viewer"]
     server["viz/server.py<br/>Session · App · Roster<br/>frames pulled on demand"]
-    static["viz/static/index.html · app.js · style.css<br/>Canvas page"]
+    static["viz/static/index.html · app.js · style.css<br/>Canvas page · replay library · bookmarks"]
+    library["viz/library.py<br/>indexes replay files + tournament matches.jsonl<br/>filters · bookmarks.json (reindex on mtime)"]
     static -- "/api/match/:id/frames" --> server
+    static -- "/api/library · /api/bookmarks" --> server
+    server --> library
   end
 
   subgraph RSI["arena/rsi: generic loop"]
@@ -308,6 +323,7 @@ flowchart TB
 
   cli["cli.py + __main__.py<br/>run-match · run-tournament · bench · watch<br/>check-personalities · rsi-demo · evolve · report · dashboard"]
 
+  OUT[("out/<br/>tournament matches.jsonl · summary.csv · kill_matrix.csv<br/>replay *.json · bookmarks.json")]
   RUNS[("runs/&lt;id&gt;/<br/>evolution.json · lineages/&lt;name&gt;/generations.jsonl<br/>params/&lt;name&gt;/v&lt;k&gt;.json · timing.jsonl<br/>report.md · progress.svg · dashboard.html")]
 
   AGENTS --> ENGINE
@@ -315,6 +331,8 @@ flowchart TB
   match --> registry
   server --> match
   server --> registry
+  library -- "load_replay" --> replay
+  library -. "reads out/**/matches.jsonl, *.json replays" .-> OUT
   entrants --> registry
   evaluator --> match
   evaluator --> pcheck
