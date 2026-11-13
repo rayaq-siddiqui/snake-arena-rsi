@@ -62,8 +62,19 @@ def main() -> None:
         boot = rng.choice(d, size=(10_000, len(d))).mean(axis=1)
         lo, hi = np.percentile(boot, [2.5, 97.5])
         rows[n] = {"mean": float(np.mean(s)), "diff": float(d.mean()), "ci": [float(lo), float(hi)]}
-        print(f"{n:22s} mean {np.mean(s):8.3f}  vs hill climb {d.mean():+7.3f} [{lo:+.3f}, {hi:+.3f}]")
-    Path(a.out).write_text(json.dumps({"settings": {k: v for k, v in vars(a).items() if k != "out"}, "results": rows, "scores": by}, indent=2))
+        print(
+            f"{n:22s} mean {np.mean(s):8.3f}  vs hill climb {d.mean():+7.3f} [{lo:+.3f}, {hi:+.3f}]"
+        )
+    Path(a.out).write_text(
+        json.dumps(
+            {
+                "settings": {k: v for k, v in vars(a).items() if k != "out"},
+                "results": rows,
+                "scores": by,
+            },
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":
