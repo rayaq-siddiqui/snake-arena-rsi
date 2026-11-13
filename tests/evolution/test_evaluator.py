@@ -1,3 +1,8 @@
+import os
+from concurrent.futures.process import BrokenProcessPool
+
+import pytest
+
 from arena.agents.registry import PERSONALITIES
 from arena.evolution.entrants import Entrant, hand_set, param_specs
 from arena.evolution.evaluator import (
@@ -59,3 +64,16 @@ def test_results_do_not_depend_on_the_worker_count() -> None:
         r3 = three.evaluate(cand, champ, seeds)
     r1 = one.evaluate(cand, champ, seeds)
     assert r1 == r3
+
+
+def _die_on_one(x: int) -> int:
+    if x == 1:
+        os._exit(1)
+    return x * 2
+
+
+def test_workers_start_a_fresh_pool_after_a_worker_dies() -> None:
+    with Workers(2) as pool:
+        with pytest.raises(BrokenProcessPool):
+            pool.map(_die_on_one, [0, 1, 2])
+        assert pool.map(_die_on_one, [0, 2, 3]) == [0, 4, 6]

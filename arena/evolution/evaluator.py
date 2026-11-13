@@ -16,6 +16,7 @@ import os
 import random
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures.process import BrokenProcessPool
 from dataclasses import dataclass, field
 from typing import Any, TypeVar
 
@@ -161,7 +162,12 @@ class Workers:
             return [fn(x) for x in items]
         if self._pool is None:
             self._pool = ProcessPoolExecutor(max_workers=self.count)
-        return list(self._pool.map(fn, items))
+        try:
+            return list(self._pool.map(fn, items))
+        except BrokenProcessPool:
+            # A broken pool fails every later call; drop it so the next call starts afresh.
+            self.close()
+            raise
 
     def close(self) -> None:
         if self._pool is not None:
