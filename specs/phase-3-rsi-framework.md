@@ -225,8 +225,10 @@ above, the code is the reference:
   baseline's.
 - **Toy noise.** Toy scores add a shared per-seed part (sd 5), which pairing cancels, and
   a per-candidate part (sd 1).
-- **Not built.** `LLMProposer` (optional, off by default; now plan step 5.5) and the
-  meta-run (plan step 5.1).
+- **`LLMProposer`** is built in `arena/rsi/llm.py` (optional, off by default; plan step
+  5.5) and tested with a fake model. It has not been compared against the default
+  proposers on equal budgets, which needs an API key.
+- **Not built.** The meta-run (plan step 5.1).
 
 Measured (cloud container, Python 3.13, 5-D quadratic, 60 generations, 10 run seeds; time
 is for all 10 runs):
