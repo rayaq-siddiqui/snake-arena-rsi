@@ -146,12 +146,22 @@ def build_prompt(
     )
 
 
+def _first_json_object(text: str) -> Any:
+    """The first complete JSON object in ``text``. A greedy ``{.*}`` match would run on
+    to the last brace, so a reply that adds a note with braces after its JSON fails."""
+    decoder = json.JSONDecoder()
+    for m in re.finditer(r"\{", text):
+        try:
+            data, _ = decoder.raw_decode(text, m.start())
+        except ValueError:
+            continue
+        return data
+    raise ValueError("no JSON object in the reply")
+
+
 def parse_params(text: str, champion: Candidate, space: Sequence[ParamSpec]) -> dict[str, float]:
     """Numbers only: unknown names dropped, missing ones kept, everything clipped."""
-    match = re.search(r"\{.*\}", text, re.DOTALL)
-    if match is None:
-        raise ValueError("no JSON object in the reply")
-    data = json.loads(match.group(0))
+    data = _first_json_object(text)
     proposed = data.get("params", data) if isinstance(data, dict) else None
     if not isinstance(proposed, dict):
         raise ValueError("the reply has no params object")

@@ -137,3 +137,9 @@ def test_state_round_trips() -> None:
     q.load_state(json.loads(json.dumps(p.state())))
     assert q.state() == p.state()
     assert q.calls == 1
+
+
+def test_a_note_with_braces_after_the_json_does_not_spoil_the_reply() -> None:
+    text = 'Here: {"params": {"a": 1.0}} (kept {k} as it was)'
+    assert parse_params(text, CHAMP, SPACE)["a"] == 1.0
+    assert parse_params('{not json} then {"a": 1.0}', CHAMP, SPACE)["a"] == 1.0
