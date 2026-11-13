@@ -16,7 +16,7 @@ from arena.sim.replay import (
     verify_replay,
 )
 
-CONFIG = GameConfig(width=16, height=16, score_target=5, max_ticks=1500)
+CONFIG = GameConfig(width=16, height=16, snake_length=5, score_target=5, max_ticks=1500)
 
 
 def recorded(seed: int, policy: str = "random_safe") -> Match:
@@ -83,7 +83,9 @@ def test_dropping_a_kill_event_fails_verification() -> None:
 
 
 def test_replays_saved_before_the_self_death_penalty_still_verify() -> None:
-    config = GameConfig(width=16, height=16, score_target=5, max_ticks=1500, self_death_penalty=0)
+    config = GameConfig(
+        width=16, height=16, snake_length=5, score_target=5, max_ticks=1500, self_death_penalty=0
+    )
     m = Match([make_policy("random_uniform") for _ in range(5)], 3, config, record=True)
     m.run()
     replay = json.loads(json.dumps(build_replay(m)))

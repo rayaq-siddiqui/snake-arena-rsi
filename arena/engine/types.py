@@ -26,10 +26,10 @@ EndReason = Literal["score_target", "tick_cap"]
 
 @dataclass(frozen=True)
 class GameConfig:
-    width: int = 100
-    height: int = 100
+    width: int = 150
+    height: int = 150
     num_snakes: int = 5
-    snake_length: int = 5
+    snake_length: int = 10
     respawn_delay: int = 10
     score_target: int = 100
     max_ticks: int = 100_000

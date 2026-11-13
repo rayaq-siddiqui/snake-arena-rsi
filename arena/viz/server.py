@@ -33,7 +33,7 @@ from arena.viz.library import Library
 MAX_SESSIONS = 16
 FRAME_BUFFER = 20_000
 MAX_FRAMES_PER_REQUEST = 5_000
-VIEWER_DEFAULTS = GameConfig(width=20, height=20, score_target=10)
+VIEWER_DEFAULTS = GameConfig(width=30, height=30, score_target=10)
 VIEWER_POLICY = "arena"
 STATIC_TYPES = {".html": "text/html", ".js": "text/javascript", ".css": "text/css"}
 

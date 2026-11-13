@@ -11,7 +11,7 @@ from arena.evolution.watch import run_roster
 from arena.sim.match import simulate_match
 from arena.viz.server import App
 
-VIEW = GameConfig(width=16, height=16, score_target=3, max_ticks=300)
+VIEW = GameConfig(width=16, height=16, snake_length=5, score_target=3, max_ticks=300)
 
 
 @pytest.fixture(scope="module")

@@ -22,7 +22,7 @@ def roundtrip(data: object) -> object:
 
 def test_config_defaults_match_spec() -> None:
     c = GameConfig()
-    assert (c.width, c.height, c.num_snakes, c.snake_length) == (100, 100, 5, 5)
+    assert (c.width, c.height, c.num_snakes, c.snake_length) == (150, 150, 5, 10)
     assert (c.respawn_delay, c.score_target, c.max_ticks) == (10, 100, 100_000)
     assert c.snake_ids == ("s0", "s1", "s2", "s3", "s4")
     assert c.self_death_penalty == 1

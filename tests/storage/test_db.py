@@ -15,7 +15,7 @@ BASELINE = Path(__file__).resolve().parents[2] / "experiments" / "2026-11-12-bas
 @pytest.fixture(scope="module")
 def data(tmp_path_factory: pytest.TempPathFactory) -> Path:
     root = tmp_path_factory.mktemp("data")
-    config = GameConfig(width=16, height=16, max_ticks=3_000)
+    config = GameConfig(width=16, height=16, snake_length=5, max_ticks=3_000)
     write_outputs(root / "t", list(run_matches(["random_safe"] * 5, [7, 8, 9], config)))
     shutil.copytree(BASELINE, root / "runs" / "baseline")
     return root

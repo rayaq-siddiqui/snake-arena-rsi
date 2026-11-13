@@ -45,7 +45,7 @@ def test_match_ends_by_target_or_cap() -> None:
 
 
 def careless_deaths(name: str) -> int:
-    config = GameConfig(width=30, height=30, max_ticks=2000)
+    config = GameConfig(width=30, height=30, snake_length=5, max_ticks=2000)
     result = simulate_match(five(name), 2, config)
     return sum(c.get("wall", 0) + c.get("self", 0) for c in result.death_causes.values())
 

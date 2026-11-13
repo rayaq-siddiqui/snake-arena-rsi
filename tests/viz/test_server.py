@@ -36,7 +36,7 @@ def post(url: str, body: dict[str, Any]) -> Any:
         return json.loads(r.read())
 
 
-SMALL = {"width": 16, "height": 16, "score_target": 3, "max_ticks": 3000}
+SMALL = {"width": 16, "height": 16, "snake_length": 5, "score_target": 3, "max_ticks": 3000}
 
 
 def play_all(base_url: str, match_id: str, chunk: int = 250) -> list[dict[str, Any]]:

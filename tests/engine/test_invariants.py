@@ -65,7 +65,8 @@ def run_and_check(seed: int, policy: str, config: GameConfig) -> None:
 @settings(max_examples=200, deadline=None)
 @given(seed=st.integers(0, 2**32), policy=st.sampled_from(["random_uniform", "random_safe"]))
 def test_invariants_hold_on_small_crowded_boards(seed: int, policy: str) -> None:
-    run_and_check(seed, policy, GameConfig(width=12, height=12, max_ticks=2000, score_target=10**6))
+    config = GameConfig(width=12, height=12, snake_length=5, max_ticks=2000, score_target=10**6)
+    run_and_check(seed, policy, config)
 
 
 def test_invariants_hold_on_the_default_board() -> None:
@@ -92,7 +93,7 @@ def test_ten_thousand_tick_matches_keep_every_invariant(seed: int) -> None:
 
 @pytest.mark.parametrize("seed", range(50))
 def test_initial_spawns_are_safe(seed: int) -> None:
-    config = GameConfig(width=16, height=16, num_snakes=8)
+    config = GameConfig(width=16, height=16, snake_length=5, num_snakes=8)
     state, events = new_game(config, seed)
     check_shape(state)
     check_spawns([], [e for e in events if isinstance(e, Spawn)], config)

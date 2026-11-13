@@ -8,8 +8,8 @@ def test_new_game_spawns_every_snake_without_overlap() -> None:
     for seed in range(50):
         state, events = new_game(GameConfig(), seed)
         cells = [c for s in state.snakes for c in s.body]
-        assert len(cells) == len(set(cells)) == 25
-        assert all(s.alive and len(s.body) == 5 and s.life_id == 1 for s in state.snakes)
+        assert len(cells) == len(set(cells)) == 50
+        assert all(s.alive and len(s.body) == 10 and s.life_id == 1 for s in state.snakes)
         assert [e.snake for e in events if isinstance(e, Spawn)] == list(state.config.snake_ids)
 
 

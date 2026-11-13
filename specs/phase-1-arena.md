@@ -11,20 +11,20 @@ match live or replay a saved one). In this phase every snake is a simple random 
 
 | Setting | Default | Notes |
 |---|---|---|
-| Board | 100 × 100, bounded, no wrap | `(0,0)` is top-left; `x` grows right, `y` grows down |
+| Board | 150 × 150, bounded, no wrap | `(0,0)` is top-left; `x` grows right, `y` grows down |
 | Snakes | 5 persistent identities | ids `s0`…`s4` until phase 2 names them; configurable 1–8 |
-| Snake length | Fixed **5** cells, no growth | configurable 3–10 |
+| Snake length | Fixed **10** cells, no growth | configurable 3–10 |
 | Directions | `UP`, `DOWN`, `LEFT`, `RIGHT` | a 180° reversal is treated as "continue straight" |
 | Movement | Simultaneous: every alive snake moves one cell per tick | |
-| Spawn | Seeded random straight run of 5 empty cells, with clearance | see §3 |
+| Spawn | Seeded random straight run of `length` empty cells, with clearance | see §3 |
 | Respawn delay | 10 ticks after death | retried every tick until a safe spot exists |
 | Score | +1 per credited kill, −1 per self-inflicted death (wall or self) | other deaths cost no points; the penalty is configurable (`self_death_penalty`, default 1, 0 turns it off) |
 | Win | First snake to **100 points** (score) | checked at the end of each tick |
 | Tick cap | 100,000 ticks | safety net; the match then ends by ranking (§5) |
 
 The win target and the tick cap are both configurable so tests and experiments can use
-short matches. The viewer defaults to a 20 × 20 board and first to 10 points (§9), because
-random snakes on 100 × 100 almost never reach 100 points before the cap (§10).
+short matches. The viewer defaults to a 30 × 30 board and first to 10 points (§9), because
+random snakes on 150 × 150 almost never reach 100 points before the cap (§10).
 
 ## 2. One tick, step by step
 
@@ -146,7 +146,7 @@ also exists as a control.
 ## 7. Simulation mode (headless)
 
 ```bash
-python -m arena.cli run-match --seed 42 [--width 100 --height 100 --length 5 \
+python -m arena.cli run-match --seed 42 [--width 150 --height 150 --length 10 \
     --target 100 --max-ticks 100000] [--replay out/match-42.json]
 python -m arena.cli run-tournament --matches 100 --seed-start 0 --out out/tournament/
 ```
@@ -211,7 +211,7 @@ python -m arena.cli watch --replay out/match-42.json
   typical laptop, single process. Measure it with `python -m arena.cli bench` and record
   the real number in the README. If the target isn't met, document the gap rather than
   hide it.
-- The 100 × 100 board with five 5-cell snakes is sparse; expect few kills per 1,000
+- The 150 × 150 board with five 10-cell snakes is sparse; expect few kills per 1,000
   ticks with random play. Measure and record it — phase 2 depends on that number.
 
 ## 11. Acceptance tests (all automated)

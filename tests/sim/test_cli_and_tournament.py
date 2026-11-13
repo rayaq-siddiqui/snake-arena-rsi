@@ -43,7 +43,7 @@ def test_tournament_outputs_do_not_depend_on_workers(tmp_path: Path) -> None:
 
 
 def test_summary_counts_add_up() -> None:
-    config = GameConfig(width=16, height=16, max_ticks=500, score_target=3)
+    config = GameConfig(width=16, height=16, snake_length=5, max_ticks=500, score_target=3)
     results = list(run_matches(["random_safe"] * 5, range(5), config))
     summaries = summarise(results)
     assert sum(s.wins for s in summaries) <= 5

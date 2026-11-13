@@ -6,7 +6,7 @@ from arena.sim.match import Match, simulate_match
 from arena.sim.replay import build_replay, save_replay
 from arena.sim.tournament import write_outputs
 
-SMALL = GameConfig(width=12, height=12, score_target=2, max_ticks=400)
+SMALL = GameConfig(width=12, height=12, snake_length=5, score_target=2, max_ticks=400)
 LINEUP = ["hunter", "survivor", "trapper", "predictor", "opportunist"]
 
 

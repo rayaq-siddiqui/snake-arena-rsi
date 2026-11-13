@@ -16,10 +16,10 @@ The contract for what Snake Arena RSI builds. Read in this order:
 
 | Setting | Value |
 |---|---|
-| Board | 100 × 100, walls, no wrap |
-| Snakes | 5, fixed length 5, respawn after 10 ticks |
+| Board | 150 × 150, walls, no wrap |
+| Snakes | 5, fixed length 10, respawn after 10 ticks |
 | Score | +1 per credited kill (enemy runs into your body) |
-| Win | First to 100 kills (tick cap 100,000); viewer defaults to first to 10 on 20 × 20 |
+| Win | First to 100 kills (tick cap 100,000); viewer defaults to first to 10 on 30 × 30 |
 | Evaluation episode | 5,000 ticks, fixed length, win target off |
 | Acceptance | 100 dev + 100 holdout paired games, ≥ +2% gain, 95% bootstrap CI > 0, guard metrics |
 

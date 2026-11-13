@@ -24,8 +24,17 @@ from arena.sim.tournament import SnakeSummary, run_matches, summarise
 BASELINE = "random_safe"
 
 
-def episode_config(width: int = 100, height: int = 100, ticks: int = 5000) -> GameConfig:
-    return GameConfig(width=width, height=height, max_ticks=ticks, score_target=10**9)
+def episode_config(
+    width: int = 150, height: int = 150, ticks: int = 5000, length: int = 10
+) -> GameConfig:
+    return GameConfig(
+        width=width, height=height, snake_length=length, max_ticks=ticks, score_target=10**9
+    )
+
+
+PHASE_2_CONFIG = episode_config(100, 100, 5000, 5)
+"""The setting the phase 2 thresholds were set and passed on (specs/plan.md, step 3.7);
+the check keeps it so its result stays comparable after the defaults grew."""
 
 
 @dataclass(frozen=True)
@@ -114,7 +123,7 @@ def run_check(
     seed_start: int = 0,
     progress: Callable[[str], None] = lambda _: None,
 ) -> CheckReport:
-    config = config or episode_config()
+    config = config or PHASE_2_CONFIG
     if config.num_snakes != len(PERSONALITIES):
         raise ValueError(f"the check needs {len(PERSONALITIES)} snakes")
     seeds = range(seed_start, seed_start + matches)

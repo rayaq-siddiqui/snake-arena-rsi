@@ -42,7 +42,7 @@ def test_matches_sample_behaviour_only_when_asked() -> None:
 
 
 def test_summary_reports_rates_behaviour_and_death_shares() -> None:
-    config = GameConfig(width=16, height=16, max_ticks=1500, score_target=10**6)
+    config = GameConfig(width=16, height=16, snake_length=5, max_ticks=1500, score_target=10**6)
     results = list(run_matches(["random_uniform"] * 5, range(3), config))
     row = summarise(results)[0].row()
     for key in ("kills_per_1000_alive", "deaths_per_1000_alive", "mean_enemy_distance"):

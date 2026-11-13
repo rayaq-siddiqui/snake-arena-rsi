@@ -31,7 +31,9 @@ DIGESTS = {
 
 def digest(case: str) -> str:
     names, size, ticks, seed = CASES[case]
-    config = GameConfig(width=size, height=size, max_ticks=ticks, score_target=10**9)
+    config = GameConfig(
+        width=size, height=size, snake_length=5, max_ticks=ticks, score_target=10**9
+    )
     match = Match([make_policy(n) for n in names], seed, config, record=True, metrics_every=50)
     result = match.run()
     blob = json.dumps(
