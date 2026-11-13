@@ -129,8 +129,8 @@ def heatmap_svg(state: Mapping[str, Any], holdout: Mapping[str, Any] | None = No
     """
     ax, ay = state["identity"]["axes"]
     nx, ny = ax["bins"], ay["bins"]
-    size, left, top = 44, 70, 34
-    width, height = left + nx * size + 20, top + ny * size + 60
+    size, left, top = 44, 70, 48
+    width, height = max(left + nx * size + 20, 480), top + ny * size + 60
     values: dict[str, float] = {k: c["fitness"] for k, c in state["cells"].items()}
     label = "dev"
     if holdout is not None:
@@ -141,8 +141,8 @@ def heatmap_svg(state: Mapping[str, Any], holdout: Mapping[str, Any] | None = No
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
         f'viewBox="0 0 {width} {height}" font-family="sans-serif" font-size="11">',
         f'<rect width="{width}" height="{height}" fill="#fff"/>',
-        f'<text x="{left}" y="18" font-size="13">{state["identity"]["problem"]}: '
-        f"kills per 1k ticks ({label})</text>",
+        f'<text x="14" y="18" font-size="13">{state["identity"]["problem"]}</text>',
+        f'<text x="14" y="36" font-size="12">kills per 1,000 ticks ({label})</text>',
     ]
     for key, v in sorted(values.items()):
         i, j = map(int, key.split(","))
