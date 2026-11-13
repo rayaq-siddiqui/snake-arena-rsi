@@ -67,6 +67,7 @@ class AdaptiveHarness:
         self.ops: dict[str, Proposer] = {n: make_proposer(n) for n in operators}
         self.batch = batch
         self.min_batch, self.max_batch = min_batch, max_batch
+        self.ceiling = max_batch
         self.priors = {k: float(v) for k, v in (priors or {}).items()}
         self.penalties = {k: float(v) for k, v in (penalties or {}).items()}
         self.explore = explore
@@ -260,7 +261,7 @@ class AdaptiveHarness:
         if "explore" in patch:
             self.explore = float(patch["explore"])
         if "max_batch" in patch:
-            self.max_batch = max(self.min_batch, int(patch["max_batch"]))
+            self.max_batch = min(self.ceiling, max(self.min_batch, int(patch["max_batch"])))
             self.batch = min(self.batch, self.max_batch)
 
     # -- persistence ---------------------------------------------------------------
@@ -293,7 +294,8 @@ class AdaptiveHarness:
         if "priors" in state:
             self.priors = {k: float(v) for k, v in state["priors"].items()}
         self.explore = float(state.get("explore", self.explore))
-        self.max_batch = int(state.get("max_batch", self.max_batch))
+        self.max_batch = min(self.ceiling, int(state.get("max_batch", self.max_batch)))
+        self.batch = min(self.batch, self.max_batch)
         if self.coach is not None and state.get("coach"):
             self.coach.load_state(state["coach"])
 

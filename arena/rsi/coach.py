@@ -10,7 +10,8 @@ what the policy is for, and returns a *harness patch*:
 * ``param_priors``: the weights, 0.25..4, the harness starts from and decays back to, i.e.
   the strategy prior it searches around;
 * ``explore``: the bandit's exploration constant, 0.2..3;
-* ``max_batch``: the most candidates per generation, 2..8.
+* ``max_batch``: the most candidates per generation, 2..6 (the harness's own ceiling,
+  so coaching never makes a generation longer than the harness alone could).
 
 What keeps it inside the rules (phase 3 spec, sections 4 and 6):
 
@@ -40,7 +41,7 @@ SYSTEM = (
     "champion. You see the policy's goal, what the harness has learned and how its recent "
     "candidates did against the champion on development games. Reply with only a JSON "
     'object: {"operator_bias": {operator: number -1..1}, "param_priors": {parameter: '
-    'number 0.25..4}, "explore": number 0.2..3, "max_batch": integer 2..8, "rationale": '
+    'number 0.25..4}, "explore": number 0.2..3, "max_batch": integer 2..6, "rationale": '
     '"two sentences"}. Omit keys you would leave unchanged. Favour operators and '
     "parameters that produced dev wins or accepts, steer away from ones that keep losing, "
     "and keep the policy's goal in mind."
@@ -50,7 +51,7 @@ LIMITS = {
     "operator_bias": (-1.0, 1.0),
     "param_priors": (0.25, 4.0),
     "explore": (0.2, 3.0),
-    "max_batch": (2.0, 8.0),
+    "max_batch": (2.0, 6.0),
 }
 
 
@@ -142,20 +143,25 @@ class HarnessCoach:
             "provider": self.provider,
             "prompt": prompt,
         }
-        try:
-            if self._complete is None:
-                self._complete = PROVIDERS[self.provider](self.model)
-            reply = self._complete(SYSTEM, prompt)
-        except Exception as exc:  # a failed call leaves the harness as it is
-            self.failures += 1
-            self._audit(record | {"error": repr(exc)})
-            return None
-        self.calls += 1
-        cost = reply.dollars
-        if cost is None:
-            tokens_in, tokens_out = reply.input_tokens, reply.output_tokens
-            cost = (tokens_in * self.prices[0] + tokens_out * self.prices[1]) / 1e6
-        self.dollars += cost
+        cost = 0.0
+        for _ in range(2):  # a reasoning model can spend its tokens and return no text
+            try:
+                if self._complete is None:
+                    self._complete = PROVIDERS[self.provider](self.model)
+                reply = self._complete(SYSTEM, prompt)
+            except Exception as exc:  # a failed call leaves the harness as it is
+                self.failures += 1
+                self._audit(record | {"error": repr(exc), "dollars": cost})
+                return None
+            self.calls += 1
+            spent = reply.dollars
+            if spent is None:
+                tokens_in, tokens_out = reply.input_tokens, reply.output_tokens
+                spent = (tokens_in * self.prices[0] + tokens_out * self.prices[1]) / 1e6
+            self.dollars += spent
+            cost += spent
+            if reply.text.strip() or reply.refused or self.dollars >= self.max_dollars:
+                break
         record |= {"reply": reply.text, "dollars": cost}
         try:
             if reply.refused:

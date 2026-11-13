@@ -39,13 +39,17 @@ REPLY = json.dumps(
 
 
 class Fake:
-    def __init__(self, text: str = REPLY, fail: bool = False) -> None:
-        self.text, self.fail, self.prompts = text, fail, []  # type: list[str]
+    def __init__(self, text: str = REPLY, fail: bool = False, empty: int = 0) -> None:
+        self.text, self.fail, self.empty = text, fail, empty
+        self.prompts: list[str] = []
 
     def __call__(self, system: str, prompt: str) -> Reply:
         self.prompts.append(prompt)
         if self.fail:
             raise RuntimeError("network down")
+        if self.empty > 0:
+            self.empty -= 1
+            return Reply("", 100, 4096, dollars=0.01)
         return Reply(self.text, 100, 50, dollars=0.01)
 
 
@@ -57,7 +61,7 @@ def test_patches_keep_only_known_names_and_clip_every_number() -> None:
     patch = parse_patch("Sure! " + REPLY + " {trailing}", list(OPERATORS), ["x0", "x1"])
     assert patch["operator_bias"] == {"random_restart": -1.0, "cma_es": 0.7}
     assert patch["param_priors"] == {"x0": 4.0, "x1": 0.25}
-    assert patch["explore"] == 0.5 and patch["max_batch"] == 8
+    assert patch["explore"] == 0.5 and patch["max_batch"] == 6
     assert "acceptance" not in patch
     with pytest.raises(ValueError):
         parse_patch("no json here", list(OPERATORS), ["x0"])
@@ -69,11 +73,11 @@ def test_the_coach_rewrites_the_harness_and_logs_it(tmp_path: Path) -> None:
     run(tmp_path / "run", h, generations=4).run()
     assert len(fake.prompts) == 2
     assert h.bias == {"cma_es": 0.7, "random_restart": -1.0}
-    assert h.priors["x0"] == 4.0 and h.explore == 0.5 and h.max_batch == 8
+    assert h.priors["x0"] == 4.0 and h.explore == 0.5 and h.max_batch == 6
     assert sum("coach" in e for e in h.journal) == 2
     audit = [json.loads(line) for line in (tmp_path / "audit.jsonl").read_text().splitlines()]
     assert [a["generation"] for a in audit] == [2, 4]
-    assert audit[0]["patch"]["max_batch"] == 8
+    assert audit[0]["patch"]["max_batch"] == 6
     assert h.summary()["coached"]["bias"] == {"cma_es": 0.7, "random_restart": -1.0}
 
 
@@ -115,3 +119,14 @@ def test_without_a_coach_the_harness_is_unchanged(tmp_path: Path) -> None:
     coached = run(tmp_path / "b", AdaptiveHarness(coach=idle), generations=3).run()
     assert plain.champion == coached.champion
     assert "coached" not in AdaptiveHarness().summary()
+
+
+def test_an_empty_reply_is_asked_once_more(tmp_path: Path) -> None:
+    fake = Fake(empty=1)
+    c = coach(tmp_path, fake)
+    patch = c.advise(2, {"parameters": []}, list(OPERATORS), ["x0"])
+    assert patch is not None and patch["max_batch"] == 6
+    assert c.calls == 2 and c.dollars == pytest.approx(0.02)
+    silent = coach(tmp_path, Fake(empty=5))
+    assert silent.advise(2, {}, list(OPERATORS), ["x0"]) is None
+    assert silent.calls == 2 and silent.failures == 1
