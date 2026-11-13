@@ -392,7 +392,7 @@ Behaviour table (100 matches, all five together, 5,000-tick episodes on 100 × 1
   by decision, not left out: phase 1 chose a stdlib server and a Canvas page with no web
   dependencies, and the viewer now covers the dashboard's screens (live arena, replay
   browser, `/experiments` with charts and run control, per-run `dashboard.html`).
-- `[~]` 5.8 A self-tuning harness per snake, and a cup to 100 (then 200) wins. The owner's goal:
+- `[x]` 5.8 A self-tuning harness per snake, and a cup to 100 (then 200) wins. The owner's goal:
   run the improvement loop until one snake has won 100 real matches, and let each snake
   tune its own search from what it learns in play, with its strategy in mind. Built:
   `arena/rsi/harness.py` (`AdaptiveHarness`, `--proposer harness`): a discounted UCB
@@ -414,13 +414,21 @@ Behaviour table (100 matches, all five together, 5,000-tick episodes on 100 × 1
   harness's learned state and the snake's strategy brief (`strategy_brief` in
   `arena/evolution/run.py`) and patch the harness's own settings (operator biases,
   parameter priors, exploration, largest batch), clipped and audit-logged, from dev
-  feedback only. *Status:* the long run (`evolve --profile arena --until-wins 200`) is in
-  progress; it gained the coach and moved to CPython 3.14 (same games, bit-identical
+  feedback only. *Done:* the long run (`evolve --profile arena --until-wins 200`,
+  `experiments/2026-11-13-arena-cup`) ended in generation 26, when the Hunter reached 204
+  cup wins (Trapper 135, Opportunist 134, Predictor 117, Survivor 34, random 0). The Hunter
+  won on its hand-set parameters: its two holdout winners were stopped by the death guard.
+  Survivor and Opportunist accepted changes that held on the final seeds; Trapper's
+  accepted change did not reach significance there. The coach ran from generation 9:
+  90 calls, 86 patches, $0.20. It moved every harness to gaussian steps, with
+  per-personality parameter priors, but no measurable gain is claimed without a matched
+  run that has no coach. Along the way the run gained the coach and moved to CPython 3.14 (same games, bit-identical
   results, about 18% less time on a 4-game benchmark) at a generation boundary, then to a
   bitset `territory` race on small boards (12 arena games: 52.0 s and 51.6 s before,
   25.2 s and 25.4 s after, same results; the 100 × 100 board keeps the list search, which
-  is faster there). Results
-  land in `experiments/` when it ends.
+  is faster there). From generation 11,
+  each generation took about 741 s instead of about 1,316 s, at 2.2–2.7 worker-seconds per
+  episode instead of 4.2–6.0.
 
 ---
 

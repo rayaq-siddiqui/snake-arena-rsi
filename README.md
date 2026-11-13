@@ -15,7 +15,11 @@ improved in 4), **one of the five snakes (Trapper)** **measurably improved itsel
 other four found nothing that passed the tests (see
 [Results](#results)).
 
-![The Snake Arena viewer: the five personalities and a random snake on a 30 × 30 board, with the leaderboard and settings](docs/viewer.gif)
+In the long arena cup run, each snake's search harness tuned itself and a language model
+coached each harness every generation. The **Hunter reached 204 cup wins** in generation 26
+([`2026-11-13-arena-cup`](experiments/2026-11-13-arena-cup/README.md)).
+
+![The Snake Arena viewer playing the arena-cup champions on a 30 × 30 board, then the cup standings race until the Hunter passes 200 wins](docs/viewer.gif)
 
 ## The game in one paragraph
 
@@ -281,13 +285,15 @@ profile (24 × 24, 2,000-tick episodes) where snakes meet often enough to measur
 
 ## Results
 
-Two phase 4 runs are committed, each with a README, report and dashboard (download
-`dashboard.html` and open it in a browser):
+Three phase 4 runs are committed, each with a README. The first two also have a report and
+a dashboard (download `dashboard.html` and open it in a browser). The arena cup keeps its
+match, timing, champion and coach-patch data instead:
 
 | Run | Setting | Generations | Lineages improved on final seeds |
 |---|---|---|---|
 | [`2026-11-12-default`](experiments/2026-11-12-default/README.md) | the specified default profile: 100 × 100, 5,000-tick episodes, 100 + 100 pairs | 7 of 10 (all stopped on patience) | **1 of 5**: Trapper, +0.053 kills / 1k ticks, 95% CI [+0.024, +0.087] |
 | [`2026-11-12-baseline`](experiments/2026-11-12-baseline/README.md) | reduced experiment profile: 24 × 24, 2,000-tick episodes, 40 + 40 pairs | 4 (all stopped on patience) | 0 of 5 |
+| [`2026-11-13-arena-cup`](experiments/2026-11-13-arena-cup/README.md) | `arena` profile: 30 × 30, 2,000-tick episodes, self-tuning harness, model coach from gen 9; stops at 200 cup wins | 26 (Hunter reached 204 wins) | **2 of 5**: Survivor +0.417, Opportunist +0.392 score / 1k ticks; Trapper's gain not significant |
 
 In the default run, **Trapper** accepted one change in generation 3: it keeps closer to
 rivals (`keep_distance 3 -> 2`, `w_space 6 -> 4.897`). That doubled its kills on the
