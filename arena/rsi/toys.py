@@ -72,6 +72,66 @@ class PureNoise(NoisyQuadratic):
 
 
 @dataclass
+class NoisyEllipsoid(NoisyQuadratic):
+    """A rotated, badly scaled quadratic: score = -sum_i w_i (R (x - x*))_i^2 + noise.
+
+    The weights ``w`` run geometrically from 1 to ``condition`` and are rescaled to
+    average 1, and ``R`` is a random rotation from ``problem_seed``, so the best moves
+    change several parameters together. Real policy weights often trade off like this
+    (raise one, lower another); a method that only nudges one parameter at a time
+    struggles here while one that learns a covariance should not.
+    """
+
+    condition: float = 100.0
+    rotation: np.ndarray = field(init=False)
+    weights: np.ndarray = field(init=False)
+
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        rng = np.random.default_rng([self.problem_seed, zlib.crc32(b"rotation")])
+        q, r = np.linalg.qr(rng.standard_normal((self.dim, self.dim)))
+        self.rotation = q * np.sign(np.diag(r))
+        w = self.condition ** (np.arange(self.dim) / max(1, self.dim - 1))
+        self.weights = w / w.mean()
+
+    def true_score(self, params: Mapping[str, float]) -> float:
+        x = np.array([params[f"x{i}"] for i in range(self.dim)])
+        y = self.rotation @ (x - self.optimum)
+        return -float(np.sum(self.weights * y**2))
+
+
+@dataclass
+class RareEvents(NoisyQuadratic):
+    """Scores are rare event counts, like kills in a short game: Poisson draws.
+
+    A candidate's true score is its expected count per episode,
+    ``peak * exp(-||x - x*||^2 / (2 width^2))``, so most of the space scores close to
+    zero. Each seed multiplies every candidate's rate by a shared gamma factor (an easy
+    or hard layout; pairing removes part of it, not all) before the Poisson draw, which is
+    the candidate's own luck. With ``flat`` every candidate has the rate ``peak``: the
+    rare-event version of ``PureNoise``, for checking false accepts on sparse, discrete,
+    mostly-zero differences.
+    """
+
+    peak: float = 1.0
+    width: float = 3.0
+    shape: float = 4.0
+    flat: bool = False
+
+    def true_score(self, params: Mapping[str, float]) -> float:
+        if self.flat:
+            return self.peak
+        x = np.array([params[f"x{i}"] for i in range(self.dim)])
+        return self.peak * float(np.exp(-np.sum((x - self.optimum) ** 2) / (2 * self.width**2)))
+
+    def score(self, c: Candidate, seed: int) -> float:
+        shared = np.random.default_rng([self.problem_seed, seed, zlib.crc32(b"layout")])
+        factor = shared.gamma(self.shape, 1 / self.shape)
+        own = np.random.default_rng([self.problem_seed, seed, zlib.crc32(c.id.encode())])
+        return float(own.poisson(self.true_score(c.params) * factor))
+
+
+@dataclass
 class CrashingEvaluator:
     """Wraps a problem; candidates with ``x0 > threshold`` look far better but crash on a
     few seeds. They must never be accepted."""
@@ -107,4 +167,9 @@ class SpyEvaluator:
         return self.inner.evaluate(a, b, seeds)
 
 
-PROBLEMS = {"quadratic": NoisyQuadratic, "noise": PureNoise}
+PROBLEMS: dict[str, type[NoisyQuadratic]] = {
+    "quadratic": NoisyQuadratic,
+    "noise": PureNoise,
+    "ellipsoid": NoisyEllipsoid,
+    "rare": RareEvents,
+}

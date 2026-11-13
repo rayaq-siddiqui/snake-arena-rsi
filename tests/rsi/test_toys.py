@@ -11,7 +11,14 @@ from rsi_helpers import quadratic_run
 
 from arena.rsi import Budget, PairedBootstrapRule, Run, RunConfig, make_proposer
 from arena.rsi.store import read_json
-from arena.rsi.toys import CrashingEvaluator, NoisyQuadratic, PureNoise, SpyEvaluator
+from arena.rsi.toys import (
+    CrashingEvaluator,
+    NoisyEllipsoid,
+    NoisyQuadratic,
+    PureNoise,
+    RareEvents,
+    SpyEvaluator,
+)
 from arena.rsi.types import Candidate, Feedback, History, ParamSpec
 
 
@@ -168,3 +175,30 @@ def test_the_proposer_never_sees_holdout_or_final_seeds(tmp_path: Path) -> None:
     seen = set(ints_in(spy.seen))
     assert set(seeds["dev"]) & seen, "the spy should at least see dev seeds"
     assert not hidden & seen
+
+
+def test_the_ellipsoid_is_a_rotated_badly_scaled_bowl() -> None:
+    e = NoisyEllipsoid(dim=4, problem_seed=2)
+    best = {f"x{i}": float(v) for i, v in enumerate(e.optimum)}
+    assert e.true_score(best) == 0.0
+    assert np.allclose(e.rotation @ e.rotation.T, np.eye(4))
+    assert np.isclose(e.weights.mean(), 1.0)
+    assert np.isclose(e.weights.max() / e.weights.min(), e.condition)
+    again = NoisyEllipsoid(dim=4, problem_seed=2)
+    assert np.array_equal(again.rotation, e.rotation)
+    c = Candidate.make(best, None, 0, "t", "")
+    assert e.score(c, 7) == again.score(c, 7)
+
+
+def test_rare_events_are_counts_that_peak_at_the_optimum() -> None:
+    r = RareEvents(dim=3, problem_seed=1)
+    best = {f"x{i}": float(v) for i, v in enumerate(r.optimum)}
+    far = {f"x{i}": -float(np.sign(v)) * 5.0 for i, v in enumerate(r.optimum)}
+    assert r.true_score(best) == r.peak and r.true_score(far) < 0.1 * r.peak
+    c = Candidate.make(best, None, 0, "t", "")
+    scores = [r.score(c, s) for s in range(400)]
+    assert all(s == int(s) >= 0 for s in scores)
+    assert abs(np.mean(scores) - r.peak) < 0.2
+    assert scores == [r.score(c, s) for s in range(400)]
+    flat = RareEvents(dim=3, problem_seed=1, flat=True, peak=0.3)
+    assert flat.true_score(far) == flat.true_score(best) == 0.3
