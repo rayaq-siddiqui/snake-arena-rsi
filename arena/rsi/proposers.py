@@ -313,6 +313,12 @@ PROPOSERS: dict[str, Callable[..., Proposer]] = {
 
 
 def make_proposer(name: str, **options: Any) -> Proposer:
+    """A built-in proposer by name; ``llm`` is the optional, opt-in ``LLMProposer``."""
+    if name == "llm":
+        from arena.rsi.llm import LLMProposer
+
+        return LLMProposer(**options)
     if name not in PROPOSERS:
-        raise ValueError(f"unknown proposer {name!r}; choose from {', '.join(PROPOSERS)}")
+        names = ", ".join([*PROPOSERS, "llm"])
+        raise ValueError(f"unknown proposer {name!r}; choose from {names}")
     return PROPOSERS[name](**options)

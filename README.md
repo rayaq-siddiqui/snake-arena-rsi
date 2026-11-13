@@ -129,6 +129,23 @@ uv run python -m arena.cli report runs/demo
 uv run python -m arena.cli watch --run runs/demo --vs-generation 0
 ```
 
+**Optional: a language-model proposer.** Nothing needs an API. If you want to try one,
+`--proposer llm` (on `evolve` or `rsi-demo`) asks Claude for each candidate's numbers.
+It sees only the parameter schema, the champion and recent dev-screen results, never a
+seed. Its reply is clipped to the parameter bounds, every call is logged to
+`llm_audit.jsonl`, and `--max-llm-tokens` / `--max-llm-dollars` stop the run when spent.
+A failed or unusable reply falls back to the hill climber for that proposal. It needs
+the `llm` extra and an `ANTHROPIC_API_KEY`. It has not yet been compared against the
+default improver.
+
+```bash
+uv sync --extra llm
+```
+
+```bash
+uv run python -m arena.cli evolve --quick --proposer llm --max-llm-dollars 2 --run-id llm
+```
+
 `--policy` takes one policy for every snake (`random_safe`, `hunter`, …), a comma list
 per snake, or the `personalities` lineup.
 
@@ -262,7 +279,11 @@ flowchart TB
     store["rsi/store.py<br/>run dir · atomic writes · immutable archive"]
     rreport["rsi/report.py<br/>toy-run report.md"]
     toys["rsi/toys.py<br/>noisy quadratic · pure noise · test evaluators"]
+    llm["rsi/llm.py<br/>optional LLMProposer: numbers only, clipped,<br/>token/dollar budget, llm_audit.jsonl,<br/>falls back to hill climb"]
     loop --> proposers
+    proposers -. "--proposer llm (lazy)" .-> llm
+    llm --> proposers
+    loop -- "spent() vs Budget.tokens / dollars" --> llm
     loop --> accept
     loop --> seeds
     loop --> store

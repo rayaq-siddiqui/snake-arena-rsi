@@ -6,12 +6,17 @@ import argparse
 import sys
 import time
 from collections.abc import Sequence
+from dataclasses import replace
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 from arena.agents import DEFAULT_POLICY, LINEUPS, POLICIES, make_policy
 from arena.agents.registry import expand_policies
 from arena.engine import GameConfig
 from arena.sim.match import Match, MatchResult
+
+if TYPE_CHECKING:
+    from arena.rsi.types import Proposer
 
 
 def add_game_options(
@@ -217,6 +222,29 @@ def cmd_watch(args: argparse.Namespace) -> int:
     )
 
 
+def proposer_options(args: argparse.Namespace, run_dir: Path) -> dict[str, Any]:
+    """Options for ``make_proposer``: only the opt-in ``llm`` proposer takes any."""
+    if args.proposer != "llm":
+        return {}
+    from arena.rsi.llm import DEFAULT_MODEL
+
+    return {
+        "model": args.llm_model or DEFAULT_MODEL,
+        "max_tokens": args.max_llm_tokens,
+        "max_dollars": args.max_llm_dollars,
+        "audit_path": run_dir / "llm_audit.jsonl",
+    }
+
+
+def add_llm_options(p: argparse.ArgumentParser) -> None:
+    g = p.add_argument_group(
+        "llm proposer (opt-in, needs the anthropic package and an API key; never the default)"
+    )
+    g.add_argument("--llm-model", help="model id (default: arena.rsi.llm.DEFAULT_MODEL)")
+    g.add_argument("--max-llm-tokens", type=int, help="token cap; after it, hill climbing")
+    g.add_argument("--max-llm-dollars", type=float, help="dollar cap; after it, hill climbing")
+
+
 def cmd_rsi_demo(args: argparse.Namespace) -> int:
     from arena.rsi import Budget, PairedBootstrapRule, Run, RunConfig, make_proposer
     from arena.rsi.toys import PROBLEMS
@@ -229,9 +257,8 @@ def cmd_rsi_demo(args: argparse.Namespace) -> int:
         patience=args.patience,
         budget=Budget(generations=args.generations),
     )
-    run = Run(
-        out, problem.space, problem, make_proposer(args.proposer), PairedBootstrapRule(), config
-    )
+    proposer = make_proposer(args.proposer, **proposer_options(args, out))
+    run = Run(out, problem.space, problem, proposer, PairedBootstrapRule(), config)
 
     def show(record: dict[str, object]) -> None:
         d = record["decision"]
@@ -252,9 +279,17 @@ def cmd_rsi_demo(args: argparse.Namespace) -> int:
 
 def cmd_evolve(args: argparse.Namespace) -> int:
     from arena.evolution.run import PROFILES, Evolution
+    from arena.rsi import make_proposer
 
     profile = PROFILES["quick" if args.quick else args.profile]
+    if args.proposer is not None:
+        profile = replace(profile, proposer=args.proposer)
     out = Path(args.runs_dir) / (args.run_id or f"{profile.name}-{args.run_seed}")
+    args.proposer = profile.proposer
+
+    def lineage_proposer(name: str) -> Proposer:
+        return make_proposer(profile.proposer, **proposer_options(args, out / "lineages" / name))
+
     evo = Evolution(
         out,
         profile,
@@ -263,6 +298,7 @@ def cmd_evolve(args: argparse.Namespace) -> int:
         args.workers,
         max_seconds=None if args.max_hours is None else args.max_hours * 3600,
         max_episodes=args.max_episodes,
+        proposer=lineage_proposer,
         log=lambda m: print(m, flush=True),
     )
     started = time.monotonic()
@@ -359,6 +395,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--run-seed", type=int, default=0)
     p.add_argument("--patience", type=int, default=None)
     p.add_argument("--out", help="run directory (default runs/<problem>-<proposer>-<seed>)")
+    add_llm_options(p)
     p.set_defaults(func=cmd_rsi_demo)
 
     p = sub.add_parser(
@@ -380,6 +417,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--max-episodes", type=int, help="stop a lineage once it has played this many episodes"
     )
+    p.add_argument("--proposer", help="override the profile's proposer, e.g. llm (opt-in)")
+    add_llm_options(p)
     p.set_defaults(func=cmd_evolve)
 
     p = sub.add_parser("report", help="phase 4: write report.md and charts for an evolve run")

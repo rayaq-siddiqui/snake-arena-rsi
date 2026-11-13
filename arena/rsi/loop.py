@@ -213,6 +213,13 @@ class Run:
             return "episode budget"
         if b.seconds is not None and state["seconds"] >= b.seconds:
             return "time budget"
+        spent = getattr(self.proposer, "spent", None)
+        if callable(spent):
+            used = spent()
+            if b.tokens is not None and used.get("tokens", 0) >= b.tokens:
+                return "token budget"
+            if b.dollars is not None and used.get("dollars", 0.0) >= b.dollars:
+                return "dollar budget"
         if c.patience is not None and state["since_accept"] >= c.patience:
             return f"no accept in {c.patience} generations"
         return None
