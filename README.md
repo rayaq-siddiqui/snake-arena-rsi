@@ -356,6 +356,10 @@ flowchart TB
     meta["rsi/meta.py<br/>meta-run: an outer Run tunes the hill climb's<br/>sigma · grow · shrink; each score = an inner Run on a toy"]
     meta --> loop
     meta --> toys
+    mapel["rsi/map_elites.py<br/>MAP-Elites archive over a behaviour grid<br/>dev seeds for search · holdout re-score at the end"]
+    mapel --> proposers
+    mapel --> seeds
+    mapel --> store
     proposers -. "--proposer llm (lazy)" .-> llm
     llm --> proposers
     loop -- "spent() vs Budget.tokens / dollars" --> llm
@@ -380,13 +384,15 @@ flowchart TB
     ereport --> evaluator
     dashboard --> ereport
     watch --> ereport
+    emap["evolution/map_elites.py<br/>one personality: kills vs aggression x caution<br/>vs hand-set reference · heatmap SVG"]
+    emap --> evaluator
   end
 
-  cli["cli.py + __main__.py<br/>run-match · run-tournament · bench · watch<br/>check-personalities · rsi-demo · rsi-meta · evolve · report<br/>dashboard · propose-code · index"]
+  cli["cli.py + __main__.py<br/>run-match · run-tournament · bench · watch<br/>check-personalities · rsi-demo · rsi-meta · evolve · report<br/>dashboard · propose-code · index · map-elites"]
 
   storage["storage/db.py<br/>SQLite index: runs · agents · policy_versions · generations<br/>candidate_evaluations · promotion_decisions · matches · kills<br/>rebuilt from the files, read-only queries"]
   OUT[("out/<br/>tournament matches.jsonl · summary.csv · kill_matrix.csv<br/>replay *.json · bookmarks.json")]
-  RUNS[("runs/&lt;id&gt;/<br/>evolution.json · lineages/&lt;name&gt;/generations.jsonl<br/>params/&lt;name&gt;/v&lt;k&gt;.json · timing.jsonl<br/>report.md · progress.svg · dashboard.html")]
+  RUNS[("runs/&lt;id&gt;/<br/>evolution.json · lineages/&lt;name&gt;/generations.jsonl<br/>params/&lt;name&gt;/v&lt;k&gt;.json · timing.jsonl<br/>report.md · progress.svg · dashboard.html<br/>map-elites-&lt;snake&gt;: map_elites.json · holdout.json · .svg")]
 
   AGENTS --> ENGINE
   match --> step
@@ -401,6 +407,8 @@ flowchart TB
   evaluator --> match
   evaluator --> pcheck
   run -- "one Run per lineage" --> loop
+  emap -- "MapElites" --> mapel
+  emap --> metrics
   evaluator -. "implements Evaluator" .-> rtypes
   ereport --> accept
   watch -- "Roster" --> server
@@ -408,6 +416,7 @@ flowchart TB
   store --> RUNS
   ereport --> RUNS
   dashboard --> RUNS
+  mapel --> RUNS
   codeprop -. "dev results only" .-> RUNS
   storage -. "reads" .-> RUNS
   storage -. "reads matches.jsonl" .-> OUT

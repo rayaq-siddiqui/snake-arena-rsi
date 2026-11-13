@@ -81,6 +81,7 @@ arena/
     proposers.py Six built-in proposers (incl. PBT-style `pbt`) in normalised parameter space.
     llm.py       Optional, opt-in LLMProposer (numbers only, budgeted, audit-logged).
     meta.py      Meta-run: an outer Run tunes GaussianHillClimb's settings on toys.
+    map_elites.py  MAP-Elites archive over a behaviour grid; holdout re-score at the end.
     loop.py      Run: propose -> dev screen -> holdout -> accept; budgets, resume.
     store.py     Run directory, atomic writes, immutable archive; report.py, toys.py.
   evolution/   (phase 4) Plugs snakes into the RSI framework.
@@ -90,6 +91,7 @@ arena/
     report.py    The experiment report: progress vs reference, cycle check, chart.
     watch.py     Archived champions as viewer policies and lineups.
     code_proposer.py  Opt-in, review-only LLM strategy-file patches (never run or applied).
+    map_elites.py  One personality's kills over the aggression x caution grid (step 5.2).
 tests/         Mirrors arena/ (tests/engine, tests/sim, tests/viz, tests/rsi, tests/evolution);
                tests/test_docs.py keeps the README diagram in sync.
 docs/          Screenshots.
@@ -136,6 +138,7 @@ uv run python -m arena.cli rsi-demo --problem quadratic           # RSI loop on 
 uv run python -m arena.cli rsi-meta --workers 4                   # the loop tunes its own hill climb
 uv run python -m arena.cli evolve --quick --proposer llm --max-llm-dollars 2 --run-id llm  # opt-in; needs the llm extra + API key
 uv run python -m arena.cli propose-code hunter --run runs/demo   # opt-in; review-only patch
+uv run python -m arena.cli map-elites hunter --batches 10 --workers 4   # behaviour-grid elites
 uv run python -m arena.cli evolve --quick --generations 3 --run-id demo   # snakes tune themselves
 uv run python -m arena.cli evolve --generations 10 --max-hours 12 --run-id long  # capped long run
 uv run python -m arena.cli index experiments runs out --db arena.db   # SQLite index (+ --sql)

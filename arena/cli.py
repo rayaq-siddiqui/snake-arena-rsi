@@ -373,6 +373,47 @@ def cmd_evolve(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_map_elites(args: argparse.Namespace) -> int:
+    from arena.evolution.evaluator import Workers
+    from arena.evolution.map_elites import heatmap_svg, snake_map_elites
+    from arena.evolution.run import PROFILES
+    from arena.rsi.map_elites import MapElitesConfig
+    from arena.rsi.store import read_json
+
+    settings = PROFILES[args.profile].settings
+    out = Path(args.out or f"runs/map-elites-{args.snake}-{args.run_seed}")
+    config = MapElitesConfig(
+        run_seed=args.run_seed,
+        batch=args.batch,
+        dev_pairs=args.dev_pairs,
+        holdout_pairs=args.holdout_pairs,
+    )
+    with Workers(args.workers) as workers:
+        me = snake_map_elites(args.snake, out, settings, workers, config)
+        while me.batches < args.batches and not (out / "STOP").exists():
+            me.step()
+            h = me.history[-1]
+            print(
+                f"batch {h['batch']:>3}: {h['cells']} cells, best {h['best']:.3f} kills/1k, "
+                f"{h['changed']} changed",
+                flush=True,
+            )
+        holdout = me.holdout(dict(me.start))
+    (out / "map_elites.svg").write_text(heatmap_svg(read_json(me.path), holdout))
+    base = holdout["baseline"]
+    print(
+        f"\nHoldout ({holdout['n']} seeds the search never saw): hand-set {args.snake} "
+        f"{base['fitness']:.3f} kills/1k in cell {base['cell']}."
+    )
+    for e in sorted(holdout["elites"], key=lambda e: -e["holdout_fitness"])[:5]:
+        print(
+            f"  cell {e['cell']}: {e['holdout_fitness']:.3f} kills/1k, vs hand-set "
+            f"{e['diff_vs_baseline']:+.3f} [{e['ci'][0]:+.3f}, {e['ci'][1]:+.3f}]"
+        )
+    print(f"Wrote {out / 'map_elites.json'}, holdout.json and map_elites.svg")
+    return 0
+
+
 def cmd_report(args: argparse.Namespace) -> int:
     from arena.evolution.dashboard import write as write_dashboard
     from arena.evolution.report import write
@@ -526,6 +567,21 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--proposer", help="override the profile's proposer, e.g. llm (opt-in)")
     add_llm_options(p)
     p.set_defaults(func=cmd_evolve)
+
+    p = sub.add_parser(
+        "map-elites",
+        help="step 5.2: best parameters per aggression x caution cell for one snake",
+    )
+    p.add_argument("snake", help="personality, e.g. hunter")
+    p.add_argument("--batches", type=int, default=20, help="total batches (re-running resumes)")
+    p.add_argument("--batch", type=int, default=16, help="parameter sets per batch")
+    p.add_argument("--profile", choices=["default", "quick", "experiment"], default="experiment")
+    p.add_argument("--dev-pairs", type=int, default=20, help="dev seeds every set plays")
+    p.add_argument("--holdout-pairs", type=int, default=40, help="holdout seeds for the report")
+    p.add_argument("--run-seed", type=int, default=0)
+    p.add_argument("--workers", type=int, default=None, help="processes (default: all cores)")
+    p.add_argument("--out", help="run directory (default runs/map-elites-<snake>-<seed>)")
+    p.set_defaults(func=cmd_map_elites)
 
     p = sub.add_parser("report", help="phase 4: write report.md and charts for an evolve run")
     p.add_argument("run", help="run directory, e.g. runs/demo")
