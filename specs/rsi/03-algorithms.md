@@ -63,7 +63,10 @@ Sample many, keep the best few, move and reshape the cloud toward them.
 **Analogy:** a search party that spreads out, then regroups around whoever found clues.
 **Sources:** Rubinstein (cross-entropy method, 1999); Hansen & Ostermeier (CMA-ES, 2001),
 which also learns which *directions* are promising.
-**In Snake Arena:** `CrossEntropy` ✅. CMA-ES is a natural upgrade 📖.
+**In Snake Arena:** `CrossEntropy` ✅ and the (1+1)-CMA-ES `cma_es` ✅ (Igel, Suttorp &
+Hansen, 2006, with Arnold & Hansen's 2010 active update): one candidate per generation
+that learns which parameter directions pay off. On the toy problems it beat the hill
+climber at equal budgets; numbers in [chapter 6](06-rsi-research.md).
 
 ### Evolution strategies at scale 📖
 
@@ -252,6 +255,8 @@ external evaluation target must stay fixed for improvement claims to mean anythi
 | **Holdout set** | Fresh test cases the improver never saw | Accept/reject decision ✅ |
 | **Multiple-comparisons awareness** | Try enough ideas and some look great by luck | Why dev ≠ holdout, and the pure-noise test ✅ |
 | **Goodhart's law** | "When a measure becomes a target, it ceases to be a good measure" | Guard metrics against kamikaze snakes ✅ |
+| **Group-sequential test** (O'Brien & Fleming, 1979; Lan & DeMets, 1983) | Peek at the results a few planned times and stop once the answer is clear, spending the error budget across the peeks | Opt-in `SequentialPairedRule` holdout ✅ |
+| **Racing** (Maron & Moore, 1993) | Drop a candidate as soon as it is clearly behind | Opt-in `SequentialPairedRule` dev screen ✅ |
 
 ---
 

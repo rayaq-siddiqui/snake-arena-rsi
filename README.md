@@ -358,12 +358,12 @@ flowchart TB
   subgraph RSI["arena/rsi: generic loop"]
     rtypes["rsi/types.py<br/>ParamSpec · Candidate · PairedResult<br/>Evaluator / Proposer / AcceptanceRule protocols"]
     seeds["rsi/seeds.py<br/>disjoint dev / holdout / final pools"]
-    proposers["rsi/proposers.py<br/>random restart · hill climb · coordinate<br/>cross-entropy · archive crossover · pbt (dev results only)"]
-    accept["rsi/accept.py<br/>PairedBootstrapRule + guards"]
-    loop["rsi/loop.py<br/>Run: propose → dev screen → holdout → decide"]
+    proposers["rsi/proposers.py<br/>random restart · hill climb · coordinate<br/>cross-entropy · archive crossover · pbt · cma_es (dev results only)"]
+    accept["rsi/accept.py<br/>PairedBootstrapRule, SequentialPairedRule + guards"]
+    loop["rsi/loop.py<br/>Run: propose → dev screen → holdout → decide<br/>(staged looks for a sequential rule)"]
     store["rsi/store.py<br/>run dir · atomic writes · immutable archive"]
     rreport["rsi/report.py<br/>toy-run report.md"]
-    toys["rsi/toys.py<br/>noisy quadratic · pure noise · test evaluators"]
+    toys["rsi/toys.py<br/>noisy quadratic · ellipsoid · rare events · pure noise · test evaluators"]
     llm["rsi/llm.py<br/>optional LLMProposer: numbers only, clipped,<br/>token/dollar budget, llm_audit.jsonl,<br/>falls back to hill climb"]
     loop --> proposers
     harness["rsi/harness.py<br/>AdaptiveHarness: a UCB bandit over the proposers<br/>+ learned parameter weights, guard penalties,<br/>batch size (dev feedback only)"]
@@ -377,6 +377,7 @@ flowchart TB
     mapel --> store
     proposers -. "--proposer llm (lazy)" .-> llm
     llm --> proposers
+    proposers -- "z_score (cma_es active update)" --> accept
     loop -- "spent() vs Budget.tokens / dollars" --> llm
     loop --> accept
     loop --> seeds

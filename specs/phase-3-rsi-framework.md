@@ -246,6 +246,21 @@ above, the code is the reference:
   5-D, 3,000 episodes −0.301 [−2.254, +1.608]; 10-D, 12,000 episodes −0.101
   [−2.634, +3.175]. `cross_entropy` and `random_restart` were significantly worse in all
   three. The hill climber stays the default.
+- **Opt-in upgrades from the research review** ([`rsi/06-rsi-research.md`](rsi/06-rsi-research.md),
+  benchmarked in `experiments/2026-11-13-rsi-upgrades`; defaults unchanged):
+  - `SequentialPairedRule` (`arena/rsi/accept.py`): dev racing in chunks, plus a
+    group-sequential holdout z test with O'Brien-Fleming-type alpha spending
+    (one-sided α = 0.025 over looks at 25/50/100% of decision + extension seeds),
+    futility stops, the 2% gain floor and guard metrics. The loop stages evaluation for
+    any rule implementing the `SequentialRule` protocol; other rules run unchanged.
+    On toys it reached a 10%-regret target in 44–61% of the bootstrap rule's median
+    episodes, and on pure noise accepted 2.7% / 1.7% of holdout tests (Gaussian / rare
+    events) against the bootstrap rule's 3.4% / 3.3%.
+  - `cma_es` (`OnePlusOneCMA` in `proposers.py`): the (1+1)-CMA-ES with active
+    covariance update. It beat the hill climber at equal episode budgets on the 5-D
+    quadratic (+0.30 [+0.13, +0.50]), 5-D and 10-D ellipsoids and rare-event counts.
+  - Toys `NoisyEllipsoid` (rotated, condition 100) and `RareEvents` (Poisson counts,
+    `flat=True` for pure noise) in `toys.py`.
 
 Measured (cloud container, Python 3.13, 5-D quadratic, 60 generations, 10 run seeds; time
 is for all 10 runs):

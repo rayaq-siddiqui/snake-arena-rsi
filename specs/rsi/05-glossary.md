@@ -17,6 +17,7 @@
 | **Final seeds** | Games kept untouched until the end, used only for the report |
 | **Generation** | One improvement attempt for each of the five snakes |
 | **Goodhart's law** | When a number becomes the goal, it stops measuring what you wanted |
+| **Group-sequential test** | Checking results at a few planned points and stopping early when clear, with the total error rate fixed in advance |
 | **Guard metric** | A secondary number that must not get much worse (e.g. deaths) |
 | **Hill climbing** | Small change; keep it if better; repeat |
 | **Holdout seeds** | Fresh games the proposer never sees; used for the real accept/reject decision |
@@ -26,6 +27,7 @@
 | **Parameter / weight** | A knob in a snake's strategy, e.g. how much it fears walls |
 | **Policy** | The function that picks a snake's move each tick |
 | **Proposer / improver** | The code that suggests candidates |
+| **Racing** | Testing candidates a little at a time and dropping any that is clearly behind |
 | **Recursive self-improvement (RSI)** | Improving, then using the improved version to improve again — and improving how you improve |
 | **Reference portfolio** | The original hand-made snakes, kept as a fixed yardstick |
 | **Reward hacking** | Scoring well by exploiting the scoring rather than by getting good |

@@ -77,8 +77,8 @@ arena/
   rsi/         The generic RSI framework (NumPy); must not import engine/agents/sim.
     types.py     ParamSpec, Candidate, PairedResult, Decision, Feedback, Budget, protocols.
     seeds.py     Disjoint dev / holdout / final seed pools; rng_for(seed, gen, purpose).
-    accept.py    PairedBootstrapRule and guard metrics.
-    proposers.py Six built-in proposers (incl. PBT-style `pbt`) in normalised parameter space.
+    accept.py    PairedBootstrapRule, opt-in SequentialPairedRule, guard metrics.
+    proposers.py Seven built-in proposers (incl. PBT-style `pbt`, `cma_es`) in normalised space.
     llm.py       Optional, opt-in LLMProposer (numbers only, budgeted, audit-logged).
     harness.py   AdaptiveHarness: UCB over the proposers, learned parameter weights, batch.
     meta.py      Meta-run: an outer Run tunes GaussianHillClimb's settings on toys.

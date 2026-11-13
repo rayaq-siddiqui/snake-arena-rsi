@@ -10,6 +10,9 @@ who can follow a high-school maths class. Read in order:
    with sources and what Snake Arena uses.
 4. [Pitfalls](04-pitfalls.md) — how self-improvement fools itself, and the rail for each.
 5. [Glossary](05-glossary.md) — every term in one table.
+6. [RSI research](06-rsi-research.md) — the literature on noisy comparisons, sequential
+   testing, racing, holdout reuse and CMA-ES; what changed because of it, with benchmark
+   numbers; open directions.
 
 **The one-line summary:** propose a change, test it fairly against the old version on
 fresh games, keep it only if it's clearly better, save it, and repeat — and never let the

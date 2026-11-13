@@ -5,6 +5,7 @@ The contract for what Snake Arena RSI builds. Read in this order:
 | File | What it covers |
 |---|---|
 | [`rsi/`](rsi/README.md) | Background: RSI explained simply, with worked examples and algorithms |
+| [`rsi/06-rsi-research.md`](rsi/06-rsi-research.md) | Research review: sequential testing, racing, holdout reuse, CMA-ES, and the measured upgrades |
 | [`phase-1-arena.md`](phase-1-arena.md) | Engine rules, random snakes, simulation and visualization modes |
 | [`phase-2-personalities.md`](phase-2-personalities.md) | Five parameterized personalities |
 | [`phase-3-rsi-framework.md`](phase-3-rsi-framework.md) | The generic, snake-agnostic RSI framework |
