@@ -430,7 +430,11 @@ def make_proposer(name: str, **options: Any) -> Proposer:
         from arena.rsi.llm import LLMProposer
 
         return LLMProposer(**options)
+    if name == "harness":
+        from arena.rsi.harness import AdaptiveHarness
+
+        return AdaptiveHarness(**options)
     if name not in PROPOSERS:
-        names = ", ".join([*PROPOSERS, "llm"])
+        names = ", ".join([*PROPOSERS, "harness", "llm"])
         raise ValueError(f"unknown proposer {name!r}; choose from {names}")
     return PROPOSERS[name](**options)
