@@ -60,7 +60,7 @@ function showError(message) {
 function formSettings() {
   const data = new FormData(form);
   const config = {};
-  for (const key of ["width", "height", "num_snakes", "snake_length", "score_target", "respawn_delay", "max_ticks"]) {
+  for (const key of ["width", "height", "num_snakes", "snake_length", "score_target", "respawn_delay", "max_ticks", "self_death_penalty"]) {
     config[key] = Number(data.get(key));
   }
   return { seed: Number(data.get("seed")), policy: data.get("policy"), config };
@@ -275,6 +275,11 @@ function label(id) {
   return (m && m.label) || id;
 }
 
+function points(standing) {
+  const score = standing.score ?? standing.kills;
+  return `${score} point${score === 1 ? "" : "s"}`;
+}
+
 function showEnd() {
   const s = view.summary;
   if (!s) return;
@@ -282,11 +287,11 @@ function showEnd() {
   const top = s.standings.filter((x) => x.rank === 1);
   let text;
   if (s.end_reason === "score_target") {
-    text = top.length === 1 ? `${top[0].snake} wins with ${top[0].kills} kills` : `Tie for first at ${top[0].kills} kills`;
+    text = top.length === 1 ? `${top[0].snake} wins with ${points(top[0])}` : `Tie for first at ${points(top[0])}`;
   } else if (s.end_reason === "tick_cap") {
     text = top.length === 1
-      ? `Tick cap reached — ${top[0].snake} leads with ${top[0].kills} kills`
-      : `Tick cap reached — tied at ${top[0].kills} kills`;
+      ? `Tick cap reached — ${top[0].snake} leads with ${points(top[0])}`
+      : `Tick cap reached — tied at ${points(top[0])}`;
   } else {
     text = `Replay ended at tick ${fmt(s.tick)}`;
   }
@@ -401,7 +406,7 @@ function updateBoard(force) {
   view.lastBoardUpdate = now;
   if (!view.meta || !view.cur) return;
   const policies = Object.fromEntries(view.meta.snakes.map((s) => [s.id, s.policy]));
-  const rows = [...view.cur.snakes].sort((a, b) => b.k - a.k || a.d - b.d || b.at - a.at || a.id.localeCompare(b.id));
+  const rows = [...view.cur.snakes].sort((a, b) => b.s - a.s || a.d - b.d || b.at - a.at || a.id.localeCompare(b.id));
   const body = $("#leaderboard tbody");
   body.innerHTML = rows.map((s) => {
     const alive = s.b.length > 0;
@@ -409,7 +414,7 @@ function updateBoard(force) {
     const life = alive ? `${fmt(s.lt)} t` : s.r > 0 ? `respawn ${s.r}` : "waiting";
     return `<tr class="${alive ? "" : "dead"}"><td><span class="swatch" style="background:${colorOf(s.id)}"></span></td>`
       + `<td>${label(s.id)}<span class="policy">${label(s.id) === s.id ? policies[s.id] || "" : s.id}</span></td>`
-      + `<td>${s.k}</td><td>${s.d}</td><td>${kd}</td><td>${life}</td></tr>`;
+      + `<td>${s.s}</td><td>${s.k}</td><td>${s.d}</td><td>${kd}</td><td>${life}</td></tr>`;
   }).join("");
   const c = view.meta.config;
   const mode = view.meta.mode === "replay" ? "replay" : "live";

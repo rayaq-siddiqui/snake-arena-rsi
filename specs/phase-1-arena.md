@@ -18,13 +18,13 @@ match live or replay a saved one). In this phase every snake is a simple random 
 | Movement | Simultaneous: every alive snake moves one cell per tick | |
 | Spawn | Seeded random straight run of 5 empty cells, with clearance | see §3 |
 | Respawn delay | 10 ticks after death | retried every tick until a safe spot exists |
-| Score | +1 per credited kill | deaths cost no points |
-| Win | First snake to **100 kills** | checked at the end of each tick |
+| Score | +1 per credited kill, −1 per self-inflicted death (wall or self) | other deaths cost no points; the penalty is configurable (`self_death_penalty`, default 1, 0 turns it off) |
+| Win | First snake to **100 points** (score) | checked at the end of each tick |
 | Tick cap | 100,000 ticks | safety net; the match then ends by ranking (§5) |
 
 The win target and the tick cap are both configurable so tests and experiments can use
-short matches. The viewer defaults to a 20 × 20 board and first to 10 kills (§9), because
-random snakes on 100 × 100 almost never reach 100 kills before the cap (§10).
+short matches. The viewer defaults to a 20 × 20 board and first to 10 points (§9), because
+random snakes on 100 × 100 almost never reach 100 points before the cap (§10).
 
 ## 2. One tick, step by step
 
@@ -47,12 +47,13 @@ randomness is the `rng_state` stored inside `GameState`, used for spawning.
    The *collision snapshot* is: all alive snakes' bodies **minus their tails**, plus
    nothing else. (Heads are already in the bodies.)
 5. **Find deaths, all from the same snapshot, independent of iteration order:**
-   - **Wall:** new head is off the board. No kill credit.
+   - **Wall:** new head is off the board. No kill credit; the snake loses a point.
    - **Head-on:** two or more new heads land on the same cell. All of them die. No kill
      credit.
    - **Head-swap:** A's new head is B's old head and B's new head is A's old head. Both
      die. No kill credit.
-   - **Self:** new head lands on the snake's own snapshot body. No kill credit.
+   - **Self:** new head lands on the snake's own snapshot body. No kill credit; the snake
+     loses a point.
    - **Body:** new head lands on another snake B's snapshot body. The mover dies and
      **B gets +1 kill — even if B also dies this same tick.**
    - A snake can die from more than one cause in one tick; it dies once. A cell in the
@@ -190,12 +191,13 @@ python -m arena.cli watch --replay out/match-42.json
   in chunks (`GET /api/match/<id>/frames?from=N&count=K`); the server computes ticks only
   when asked. (This replaced the earlier Server-Sent Events idea: pull-based chunks make
   pause and speed purely client-side.) Replay mode re-runs a replay's stored actions.
-- Settings form: seed, board size, snake count and length, kills to win (default 10),
-  respawn delay, tick cap and policy. "Finish now" runs the match to the end instantly.
+- Settings form: seed, board size, snake count and length, points to win (default 10),
+  respawn delay, tick cap, self-death penalty and policy (default `arena`: the five
+  personalities plus one `random_safe` snake). "Finish now" runs the match to the end instantly.
   Replays can be downloaded from a live match and loaded back.
 - Dark board, five clearly different colours, a distinct head marker, smooth
   interpolation between ticks.
-- Side panel leaderboard: snake, kills, deaths, K/D, current life length, respawn
+- Side panel leaderboard (sorted by score): snake, score, kills, deaths, K/D, current life length, respawn
   countdown.
 - Kill feed: `s2 eliminated s4`; head-on crashes show `s1 × s3 — head-on, no killer`.
 - Controls: play/pause, step one tick, speed 1× / 2× / 5× / 10× / 50× / max, start, new seed.
@@ -219,8 +221,8 @@ python -m arena.cli watch --replay out/match-42.json
 - **Shape invariant:** every alive snake has exactly `length` unique, 4-connected cells,
   all on the board, after every tick of 10,000-tick random matches on many seeds.
 - **Movement:** a head moves exactly one cell per tick and never reverses.
-- **Wall:** moving off the board kills, no credit.
-- **Self:** running into your own body kills, no credit.
+- **Wall:** moving off the board kills, no credit, −1 point.
+- **Self:** running into your own body kills, no credit, −1 point.
 - **Body:** A hits B's body ⇒ A dies, B +1.
 - **Simultaneous credit:** A hits B's body while B hits a wall the same tick ⇒ both die,
   B still gets +1.

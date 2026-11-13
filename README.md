@@ -21,8 +21,9 @@ other four found nothing that passed the tests (see
 
 Five snakes, each a fixed 5 cells long, move one cell per tick at the same time. Hit a
 wall, yourself, or another snake and you die. If you die by running into another
-snake's body, *that* snake gets a point. Head-on crashes kill both and award nothing.
-Dead snakes respawn after 10 ticks and keep their score. First to 100 kills wins; a
+snake's body, *that* snake gets a point. Hitting a wall or yourself costs you a point.
+Head-on crashes kill both and award nothing. Dead snakes respawn after 10 ticks and keep
+their score. First to 100 points wins; a
 100,000-tick cap ends matches that never get there.
 
 ## Quick start
@@ -34,14 +35,15 @@ uv sync
 ```
 
 **Watch a match in the browser** (opens http://127.0.0.1:8000/). It defaults to the
-five personalities on a 20 × 20 board, first to 10 kills; every setting can be changed in
+five personalities plus a random snake (`random_safe`: any move that doesn't die at once)
+on a 20 × 20 board, first to 10 points; every setting can be changed in
 the page or with flags such as `--width 40 --target 25 --policy random_safe`.
 
 ```bash
 uv run python -m arena.cli watch
 ```
 
-**Simulate a full match headless** on the default 100 × 100 board, first to 100 kills,
+**Simulate a full match headless** on the default 100 × 100 board, first to 100 points,
 capped at 100,000 ticks:
 
 ```bash
@@ -49,14 +51,14 @@ uv run python -m arena.cli run-match --seed 42
 ```
 
 ```text
-Match seed 42: 100x100 board, 5 snakes x 5 cells, first to 100 kills, cap 100,000 ticks
+Match seed 42: 100x100 board, 5 snakes x 5 cells, first to 100 points (-1 per wall or own-body death), cap 100,000 ticks
 Ended at tick 100,000 (tick_cap), winner s4
 
-rank  snake  policy          kills deaths    K/D alive ticks
-   1  s4     random_safe         2     20   0.10      99,780
-   2  s0     random_safe         1     22   0.05      99,758
+rank  snake  policy          score kills deaths    K/D alive ticks
+   1  s4     random_safe         1     2     20   0.10      99,780
+   2  s1     random_safe        -1     0     20   0.00      99,780
    ...
-100,000 ticks in 3.65s (27,367 ticks/s)
+100,000 ticks in 3.48s (28,720 ticks/s)
 ```
 
 **Run a tournament** of seeded matches over several processes (results don't depend on

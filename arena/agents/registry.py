@@ -33,7 +33,10 @@ PERSONALITIES: tuple[str, ...] = (
 )
 """The phase 2 lineup in seat order s0..s4; ``--policy personalities`` expands to it."""
 
-LINEUPS: dict[str, tuple[str, ...]] = {"personalities": PERSONALITIES}
+ARENA: tuple[str, ...] = (*PERSONALITIES, RandomSafe.name)
+"""The five personalities plus a random snake that moves anywhere safe, in seats s0..s5."""
+
+LINEUPS: dict[str, tuple[str, ...]] = {"personalities": PERSONALITIES, "arena": ARENA}
 
 
 def make_policy(name: str) -> Policy:
@@ -50,8 +53,9 @@ STYLES: dict[str, tuple[str, str]] = {
     Trapper.name: ("Trapper", "#e0af68"),
     Predictor.name: ("Predictor", "#7aa2f7"),
     Opportunist.name: ("Opportunist", "#bb9af7"),
+    RandomSafe.name: ("Random", "#a9b1d6"),
 }
-"""Display name and colour (red, green, yellow, blue, purple) for each personality."""
+"""Display name and colour (red, green, yellow, blue, purple; grey for the random snake)."""
 
 
 def expand_policies(spec: str, count: int) -> list[str]:

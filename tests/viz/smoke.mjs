@@ -18,7 +18,7 @@ await page.goto(url);
 await page.waitForFunction(() => /tick \d/.test(document.querySelector("#status").textContent));
 if ((await page.locator("#leaderboard tbody tr").count()) !== 5) await fail("expected 5 leaderboard rows");
 if (!/Hunter/.test(await page.textContent("#leaderboard"))) await fail("leaderboard lacks personality names");
-if ((await page.inputValue("select[name=policy]")) !== "personalities") await fail("policy select not on the lineup");
+if ((await page.inputValue("select[name=policy]")) !== "arena") await fail("policy select not on the lineup");
 await page.waitForTimeout(1500);
 const t1 = await tickOf();
 if (t1 < 5) await fail(`ticks did not advance (${t1})`);

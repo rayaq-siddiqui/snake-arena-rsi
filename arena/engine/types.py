@@ -19,6 +19,8 @@ OPPOSITE: dict[Direction, Direction] = {
 }
 
 DeathCause = Literal["wall", "self", "body", "head_on", "head_swap"]
+SELF_INFLICTED: frozenset[DeathCause] = frozenset({"wall", "self"})
+"""Death causes that cost the victim ``GameConfig.self_death_penalty`` points."""
 EndReason = Literal["score_target", "tick_cap"]
 
 
@@ -34,6 +36,7 @@ class GameConfig:
     spawn_attempts: int = 100
     spawn_clearance: int = 2
     spawn_lookahead: int = 3
+    self_death_penalty: int = 1
 
     def __post_init__(self) -> None:
         problems = []
@@ -53,6 +56,8 @@ class GameConfig:
             problems.append("max_ticks must be at least 1")
         if self.spawn_attempts < 0 or self.spawn_clearance < 0 or self.spawn_lookahead < 0:
             problems.append("spawn settings must be non-negative")
+        if self.self_death_penalty < 0:
+            problems.append("self_death_penalty must be non-negative")
         if problems:
             raise ValueError("; ".join(problems))
 
@@ -69,7 +74,10 @@ class GameConfig:
         unknown = set(data) - known
         if unknown:
             raise ValueError(f"unknown config keys: {sorted(unknown)}")
-        return cls(**{k: int(v) for k, v in data.items()})
+        values = {k: int(v) for k, v in data.items()}
+        # Configs saved before the self-death penalty existed were played without it.
+        values.setdefault("self_death_penalty", 0)
+        return cls(**values)
 
 
 @dataclass(frozen=True)
@@ -84,10 +92,16 @@ class SnakeState:
     respawn_in: int = 0
     alive_ticks: int = 0
     life_ticks: int = 0
+    penalty: int = 0
 
     @property
     def head(self) -> Cell:
         return self.body[0]
+
+    @property
+    def score(self) -> int:
+        """Kills minus the points lost to self-inflicted deaths (wall or own body)."""
+        return self.kills - self.penalty
 
     def to_dict(self) -> dict[str, Any]:
         data = asdict(self)
@@ -192,9 +206,18 @@ class Standing:
     kills: int
     deaths: int
     alive_ticks: int
+    penalty: int = 0
+
+    @property
+    def score(self) -> int:
+        return self.kills - self.penalty
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        return {**asdict(self), "score": self.score}
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Standing:
+        return cls(**{k: v for k, v in data.items() if k != "score"})
 
 
 @dataclass(frozen=True)
@@ -226,7 +249,7 @@ def event_from_dict(data: dict[str, Any]) -> Event:
     if kind == "action_fallback":
         return ActionFallback(**values)
     if kind == "match_end":
-        values["standings"] = tuple(Standing(**s) for s in values["standings"])
+        values["standings"] = tuple(Standing.from_dict(s) for s in values["standings"])
         return MatchEnd(**values)
     raise ValueError(f"unknown event type: {kind}")
 

@@ -10,6 +10,7 @@ from arena.engine.spawn import find_spawn
 from arena.engine.types import (
     DELTAS,
     OPPOSITE,
+    SELF_INFLICTED,
     ActionFallback,
     Cell,
     Death,
@@ -110,8 +111,11 @@ def step(state: GameState, actions: Mapping[SnakeId, object]) -> tuple[GameState
             deaths[s.id] = ("head_on", None)
 
     kills: dict[SnakeId, int] = {}
+    lost: dict[SnakeId, int] = {}
     for victim, (cause, killer) in deaths.items():
         events.append(Death(tick, victim, killer, cause, new_heads[victim]))
+        if cause in SELF_INFLICTED:
+            lost[victim] = config.self_death_penalty
         if killer is not None:
             events.append(Kill(tick, killer, victim))
             kills[killer] = kills.get(killer, 0) + 1
@@ -132,6 +136,7 @@ def step(state: GameState, actions: Mapping[SnakeId, object]) -> tuple[GameState
                 config.respawn_delay,
                 s.alive_ticks,
                 0,
+                s.penalty + lost.get(s.id, 0),
             )
         elif s.alive:
             body = (new_heads[s.id], *s.body[:-1])
@@ -146,6 +151,7 @@ def step(state: GameState, actions: Mapping[SnakeId, object]) -> tuple[GameState
                 0,
                 s.alive_ticks + 1,
                 s.life_ticks + 1,
+                s.penalty,
             )
         else:
             if gained or s.respawn_in:
@@ -160,6 +166,7 @@ def step(state: GameState, actions: Mapping[SnakeId, object]) -> tuple[GameState
                     max(0, s.respawn_in - 1),
                     s.alive_ticks,
                     s.life_ticks,
+                    s.penalty,
                 )
             if s.respawn_in == 0:
                 to_spawn.append(len(committed))
@@ -183,7 +190,7 @@ def step(state: GameState, actions: Mapping[SnakeId, object]) -> tuple[GameState
     snakes = tuple(committed)
     finished = False
     end_reason: EndReason | None = None
-    if any(s.kills >= config.score_target for s in snakes):
+    if any(s.score >= config.score_target for s in snakes):
         finished, end_reason = True, "score_target"
     elif tick >= config.max_ticks:
         finished, end_reason = True, "tick_cap"
@@ -201,16 +208,16 @@ def step(state: GameState, actions: Mapping[SnakeId, object]) -> tuple[GameState
 
 
 def rank(snakes: tuple[SnakeState, ...]) -> tuple[Standing, ...]:
-    """Most kills, then fewest deaths, then most alive ticks; exact ties share a rank."""
+    """Highest score, then fewest deaths, then most alive ticks; exact ties share a rank."""
 
     def key(s: SnakeState) -> tuple[int, int, int]:
-        return (-s.kills, s.deaths, -s.alive_ticks)
+        return (-s.score, s.deaths, -s.alive_ticks)
 
     ordered = sorted(snakes, key=lambda s: (key(s), s.id))
     standings: list[Standing] = []
     for i, s in enumerate(ordered):
         position = standings[-1].rank if i > 0 and key(s) == key(ordered[i - 1]) else i + 1
-        standings.append(Standing(s.id, position, s.kills, s.deaths, s.alive_ticks))
+        standings.append(Standing(s.id, position, s.kills, s.deaths, s.alive_ticks, s.penalty))
     return tuple(standings)
 
 

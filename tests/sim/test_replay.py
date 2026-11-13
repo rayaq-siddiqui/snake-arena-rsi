@@ -69,9 +69,9 @@ def test_replay_names_each_snakes_policy_with_a_source_hash() -> None:
 @pytest.mark.parametrize("seed", range(10))
 def test_scores_recomputed_from_events_match_standings(seed: int) -> None:
     replay = build_replay(recorded(seed))
-    counted = scores_from_events(replay["events"])
+    counted = scores_from_events(replay["events"], CONFIG.self_death_penalty)
     for s in replay["final_standings"]:
-        assert counted.get(s["snake"], (0, 0)) == (s["kills"], s["deaths"])
+        assert counted.get(s["snake"], (0, 0, 0)) == (s["score"], s["kills"], s["deaths"])
 
 
 def test_dropping_a_kill_event_fails_verification() -> None:
@@ -79,4 +79,22 @@ def test_dropping_a_kill_event_fails_verification() -> None:
     kills = [i for i, e in enumerate(replay["events"]) if e["type"] == "kill"]
     assert kills
     del replay["events"][kills[0]]
+    assert not verify_replay(replay)
+
+
+def test_replays_saved_before_the_self_death_penalty_still_verify() -> None:
+    config = GameConfig(width=16, height=16, score_target=5, max_ticks=1500, self_death_penalty=0)
+    m = Match([make_policy("random_uniform") for _ in range(5)], 3, config, record=True)
+    m.run()
+    replay = json.loads(json.dumps(build_replay(m)))
+    del replay["config"]["self_death_penalty"]
+    for s in replay["final_standings"]:
+        del s["penalty"], s["score"]
+    for e in replay["events"]:
+        if e["type"] == "match_end":
+            for s in e["standings"]:
+                del s["penalty"], s["score"]
+    assert any(e["type"] == "death" and e["cause"] in ("wall", "self") for e in replay["events"])
+    assert verify_replay(replay)
+    replay["config"]["self_death_penalty"] = 1
     assert not verify_replay(replay)

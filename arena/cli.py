@@ -33,13 +33,19 @@ def add_game_options(
     )
     g.add_argument("--length", type=int, default=d.snake_length, help="snake length (%(default)s)")
     g.add_argument(
-        "--target", type=int, default=d.score_target, help="kills needed to win (%(default)s)"
+        "--target", type=int, default=d.score_target, help="points needed to win (%(default)s)"
     )
     g.add_argument(
         "--max-ticks", type=int, default=d.max_ticks, help="tick cap (default %(default)s)"
     )
     g.add_argument(
         "--respawn", type=int, default=d.respawn_delay, help="respawn delay (%(default)s)"
+    )
+    g.add_argument(
+        "--self-penalty",
+        type=int,
+        default=d.self_death_penalty,
+        help="points lost for running into a wall or your own body (%(default)s)",
     )
     g.add_argument(
         "--policy",
@@ -50,14 +56,16 @@ def add_game_options(
 
 
 def config_from(args: argparse.Namespace) -> GameConfig:
+    lineup = LINEUPS.get(str(getattr(args, "policy", "")).strip())
     return GameConfig(
         width=args.width,
         height=args.height,
-        num_snakes=args.snakes,
+        num_snakes=len(lineup) if lineup else args.snakes,
         snake_length=args.length,
         score_target=args.target,
         max_ticks=args.max_ticks,
         respawn_delay=args.respawn,
+        self_death_penalty=args.self_penalty,
     )
 
 
@@ -68,7 +76,8 @@ def policy_names(spec: str, count: int) -> list[str]:
 def describe(config: GameConfig) -> str:
     return (
         f"{config.width}x{config.height} board, {config.num_snakes} snakes x "
-        f"{config.snake_length} cells, first to {config.score_target} kills, "
+        f"{config.snake_length} cells, first to {config.score_target} points "
+        f"(-{config.self_death_penalty} per wall or own-body death), "
         f"cap {config.max_ticks:,} ticks"
     )
 
@@ -79,15 +88,15 @@ def format_result(result: MatchResult) -> str:
         f"Ended at tick {result.ticks:,} ({result.end_reason})"
         + (f", winner {result.winner}" if result.winner else ", no single winner"),
         "",
-        f"{'rank':>4}  {'snake':<5}  {'policy':<15} {'kills':>5} {'deaths':>6} "
-        f"{'K/D':>6} {'alive ticks':>11}",
+        f"{'rank':>4}  {'snake':<5}  {'policy':<15} {'score':>5} {'kills':>5} "
+        f"{'deaths':>6} {'K/D':>6} {'alive ticks':>11}",
     ]
     names = dict(zip(result.config.snake_ids, result.policies, strict=True))
     for s in result.standings:
         kd = s.kills / s.deaths if s.deaths else float(s.kills)
         lines.append(
-            f"{s.rank:>4}  {s.snake:<5}  {names[s.snake]:<15} {s.kills:>5} {s.deaths:>6} "
-            f"{kd:>6.2f} {s.alive_ticks:>11,}"
+            f"{s.rank:>4}  {s.snake:<5}  {names[s.snake]:<15} {s.score:>5} {s.kills:>5} "
+            f"{s.deaths:>6} {kd:>6.2f} {s.alive_ticks:>11,}"
         )
     causes = {k: v for k, v in result.death_causes.items() if v}
     if causes:

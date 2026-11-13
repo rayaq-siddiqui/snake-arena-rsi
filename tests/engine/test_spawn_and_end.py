@@ -105,6 +105,18 @@ def test_ranking_tie_breakers_and_shared_rank() -> None:
     assert got == [("s1", 1), ("s0", 2), ("s4", 3), ("s2", 4), ("s3", 4)]
 
 
+def test_ranking_uses_score_so_self_deaths_cost_places() -> None:
+    from arena.engine import SnakeState
+
+    snakes = (
+        SnakeState(id="s0", kills=3, penalty=2),
+        SnakeState(id="s1", kills=2),
+        SnakeState(id="s2", kills=0, penalty=1),
+    )
+    standings = rank(snakes)
+    assert [(s.snake, s.score) for s in standings] == [("s1", 2), ("s0", 1), ("s2", -1)]
+
+
 def test_two_snakes_reaching_the_target_together_are_ranked_by_tie_breakers() -> None:
     config = GameConfig(width=10, height=10, snake_length=3, score_target=1)
     state = make_state(

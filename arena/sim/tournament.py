@@ -33,6 +33,7 @@ class SnakeSummary:
     match_ticks: int
     death_causes: dict[str, int] = field(default_factory=dict)
     behaviour: Behaviour = field(default_factory=Behaviour)
+    score: int = 0
 
     @property
     def kills_per_1000_ticks(self) -> float:
@@ -59,6 +60,7 @@ class SnakeSummary:
             "policy": self.policy,
             "matches": self.matches,
             "wins": self.wins,
+            "mean_score": round(self.score / self.matches, 4),
             "mean_kills": round(self.kills / self.matches, 4),
             "mean_deaths": round(self.deaths / self.matches, 4),
             "kd": round(self.kd, 4),
@@ -119,6 +121,7 @@ def summarise(results: Sequence[MatchResult]) -> list[SnakeSummary]:
                 matches=len(results),
                 wins=sum(r.winner == sid for r in results),
                 kills=sum(s.kills for s in mine),
+                score=sum(s.score for s in mine),
                 deaths=sum(s.deaths for s in mine),
                 alive_ticks=sum(s.alive_ticks for s in mine),
                 match_ticks=sum(r.ticks for r in results),

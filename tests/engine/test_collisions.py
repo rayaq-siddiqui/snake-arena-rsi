@@ -14,7 +14,7 @@ def kills(events: list) -> list[tuple[str, str]]:
 
 
 def scores(state) -> dict[str, int]:
-    return {s.id: s.kills for s in state.snakes}
+    return {s.id: s.score for s in state.snakes}
 
 
 def test_straight_move_advances_and_keeps_length() -> None:
@@ -38,19 +38,34 @@ def test_invalid_action_continues_straight_and_is_logged() -> None:
     assert [e.kind for e in events] == ["action_fallback"]
 
 
-def test_wall_kills_without_credit() -> None:
+def test_wall_kills_without_credit_and_costs_a_point() -> None:
     state = make_state({"s0": line((0, 5), "RIGHT", 5)})
     nxt, events = step(state, {"s0": "LEFT"})
     assert deaths(events) == {"s0": ("wall", None)}
     assert not nxt.snake("s0").alive and nxt.snake("s0").deaths == 1
     assert kills(events) == []
+    assert nxt.snake("s0").kills == 0 and scores(nxt)["s0"] == -1
 
 
-def test_own_body_kills_without_credit() -> None:
+def test_own_body_kills_without_credit_and_costs_a_point() -> None:
     body = [(2, 2), (3, 2), (3, 3), (2, 3), (1, 3)]
     nxt, events = step(make_state({"s0": body}), {"s0": "DOWN"})
     assert deaths(events) == {"s0": ("self", None)}
+    assert scores(nxt)["s0"] == -1
+
+
+def test_self_death_penalty_is_configurable_and_survives_respawn() -> None:
+    config = GameConfig(width=10, height=10, snake_length=5, self_death_penalty=0)
+    state = make_state({"s0": line((0, 5), "RIGHT", 5)}, config=config)
+    nxt, _ = step(state, {"s0": "LEFT"})
     assert scores(nxt)["s0"] == 0
+
+    config = GameConfig(width=10, height=10, snake_length=5, self_death_penalty=3)
+    state, _ = step(make_state({"s0": line((0, 5), "RIGHT", 5)}, config=config), {"s0": "LEFT"})
+    for _ in range(config.respawn_delay):
+        state, _ = step(state, {})
+    s0 = state.snake("s0")
+    assert s0.alive and s0.life_id == 1 and s0.score == -3 and s0.penalty == 3
 
 
 def test_own_vacated_tail_is_safe() -> None:
@@ -72,7 +87,7 @@ def test_owner_is_credited_even_if_it_dies_the_same_tick() -> None:
     state = make_state({"s0": line((2, 5), "LEFT", 3), "s1": line((3, 0), "DOWN", 7)})
     nxt, events = step(state, {"s0": "RIGHT", "s1": "UP"})
     assert deaths(events) == {"s0": ("body", "s1"), "s1": ("wall", None)}
-    assert scores(nxt)["s1"] == 1
+    assert nxt.snake("s1").kills == 1 and scores(nxt)["s1"] == 0
     assert not nxt.snake("s1").alive
 
 

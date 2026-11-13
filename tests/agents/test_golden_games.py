@@ -22,10 +22,10 @@ CASES = {
 }
 
 DIGESTS = {
-    "personalities-20": "50ca9a5caebba34f3214ddb002f3523a24badb93128101b79c9cd77e8d95e5c2",
-    "personalities-100": "30c055e2d80283aff0e004b7b611004a78af94938593b6439cb43399f7bcfa0c",
-    "mixed-30": "093eb919bbd3d0b80f7d7af54bf90b84a7aac790d197ebde1dd76bb73d9493d0",
-    "mixed-16": "e8086023e6a64b863fcca883fb9ed0408f58f814fdfae4763b107b891e117581",
+    "personalities-20": "7c606df2e5b865aa7e0b4c5ad94c11e2719e1f3c36bdffd67a35c2c01bb2cc21",
+    "personalities-100": "5de8274c7d9165422983250684e699fd1b7f6609f0d297485a730fc11a119f9a",
+    "mixed-30": "960b9863f57ff9aa37955bd496ee1c19e9deea9386575eaf8ff723463dadc150",
+    "mixed-16": "7fb19c3d8407b826bf58dadb86de07910d6d00fdd99cb106944d58936d11ce81",
 }
 
 

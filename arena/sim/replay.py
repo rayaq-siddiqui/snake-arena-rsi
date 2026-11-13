@@ -11,7 +11,16 @@ from typing import Any
 
 import arena
 from arena.agents import Policy
-from arena.engine import Event, GameConfig, GameState, new_game, rank, step
+from arena.engine import (
+    SELF_INFLICTED,
+    Event,
+    GameConfig,
+    GameState,
+    Standing,
+    new_game,
+    rank,
+    step,
+)
 from arena.sim.match import Match
 
 SCHEMA_VERSION = 1
@@ -80,11 +89,22 @@ def resimulate(replay: dict[str, Any]) -> tuple[GameState, list[Event]]:
     return state, events
 
 
-def scores_from_events(events: list[dict[str, Any]]) -> dict[str, tuple[int, int]]:
-    """(kills, deaths) per snake, counted from Kill and Death events alone."""
+def scores_from_events(
+    events: list[dict[str, Any]], self_death_penalty: int = 1
+) -> dict[str, tuple[int, int, int]]:
+    """(score, kills, deaths) per snake, counted from Kill and Death events alone.
+
+    Score is kills minus ``self_death_penalty`` for every wall or own-body death.
+    """
     kills = Counter(e["killer"] for e in events if e["type"] == "kill")
     deaths = Counter(e["victim"] for e in events if e["type"] == "death")
-    return {sid: (kills[sid], deaths[sid]) for sid in kills.keys() | deaths.keys()}
+    own = Counter(
+        e["victim"] for e in events if e["type"] == "death" and e["cause"] in SELF_INFLICTED
+    )
+    return {
+        sid: (kills[sid] - self_death_penalty * own[sid], kills[sid], deaths[sid])
+        for sid in kills.keys() | deaths.keys()
+    }
 
 
 def verify_replay(replay: dict[str, Any]) -> bool:
@@ -95,11 +115,19 @@ def verify_replay(replay: dict[str, Any]) -> bool:
     except ValueError:
         return False
     stored = [e for e in replay["events"] if e["type"] != "action_fallback"]
-    standings = [s.to_dict() for s in rank(state.snakes)]
-    if [e.to_dict() for e in events] != stored or standings != replay["final_standings"]:
+    final = [Standing.from_dict(s) for s in replay["final_standings"]]
+    if [e.to_dict() for e in events] != _upgraded(stored) or list(rank(state.snakes)) != final:
         return False
-    counted = scores_from_events(replay["events"])
-    return all(
-        counted.get(s["snake"], (0, 0)) == (s["kills"], s["deaths"])
-        for s in replay["final_standings"]
-    )
+    counted = scores_from_events(replay["events"], state.config.self_death_penalty)
+    return all(counted.get(s.snake, (0, 0, 0)) == (s.score, s.kills, s.deaths) for s in final)
+
+
+def _upgraded(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Stored events in today's format: replays saved before the self-death penalty
+    have match-end standings without ``penalty`` and ``score``."""
+    out = []
+    for e in events:
+        if e["type"] == "match_end":
+            e = {**e, "standings": [Standing.from_dict(s).to_dict() for s in e["standings"]]}
+        out.append(e)
+    return out

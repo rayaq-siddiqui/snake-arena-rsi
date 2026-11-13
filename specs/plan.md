@@ -73,13 +73,14 @@ land as **one to three small commits**, has concrete **targets**, and ends with 
   crowded tiny board; property test: no spawn ever overlaps a living snake.
 
 ### 1.5 Match end and ranking `[x]`
-- Win at `score_target`, end at `max_ticks`, ranking by kills → deaths → alive ticks →
+- Win at `score_target`, end at `max_ticks`, ranking by score (kills − self-death
+  penalties) → deaths → alive ticks →
   shared rank.
 - **Targets:** tests for single winner, simultaneous crossers, tick-cap end, full ties.
 
 ### 1.6 Invariant fuzzing `[x]`
 - `tests/engine/test_invariants.py` with `hypothesis` + a `RandomUniform` driver:
-  shape invariant, one-cell moves, no reversals, scores == count of `Kill` events.
+  shape invariant, one-cell moves, no reversals, kills == count of `Kill` events, score == kills − penalties.
 - **Targets:** 200 seeds × 2,000 ticks run in < 60 s in CI.
 - **Done when:** M1 of the vision is satisfied: golden tests + invariants pass.
 

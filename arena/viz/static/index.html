@@ -39,7 +39,7 @@
       <section>
         <h2>Leaderboard</h2>
         <table id="leaderboard">
-          <thead><tr><th></th><th>Snake</th><th>Kills</th><th>Deaths</th><th>K/D</th><th>Life</th></tr></thead>
+          <thead><tr><th></th><th>Snake</th><th title="Kills minus points lost to wall and own-body deaths">Score</th><th>Kills</th><th>Deaths</th><th>K/D</th><th>Life</th></tr></thead>
           <tbody></tbody>
         </table>
       </section>
@@ -49,13 +49,14 @@
         <form id="settings">
           <div class="grid2">
             <label>Seed <input name="seed" type="number" min="0" required></label>
-            <label>Kills to win <input name="score_target" type="number" min="1" required></label>
+            <label>Points to win <input name="score_target" type="number" min="1" required></label>
             <label>Width <input name="width" type="number" min="10" max="500" required></label>
             <label>Height <input name="height" type="number" min="10" max="500" required></label>
             <label>Snakes <input name="num_snakes" type="number" min="1" max="8" required></label>
             <label>Length <input name="snake_length" type="number" min="3" max="10" required></label>
             <label>Respawn delay <input name="respawn_delay" type="number" min="1" required></label>
             <label>Tick cap <input name="max_ticks" type="number" min="1" required></label>
+            <label title="Points lost for running into a wall or your own body">Self-death penalty <input name="self_death_penalty" type="number" min="0" required></label>
           </div>
           <label>Policy <select name="policy"></select></label>
           <div class="buttons">

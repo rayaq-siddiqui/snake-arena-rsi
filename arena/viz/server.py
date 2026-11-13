@@ -34,7 +34,7 @@ MAX_SESSIONS = 16
 FRAME_BUFFER = 20_000
 MAX_FRAMES_PER_REQUEST = 5_000
 VIEWER_DEFAULTS = GameConfig(width=20, height=20, score_target=10)
-VIEWER_POLICY = "personalities"
+VIEWER_POLICY = "arena"
 STATIC_TYPES = {".html": "text/html", ".js": "text/javascript", ".css": "text/css"}
 
 
@@ -88,6 +88,7 @@ def frame(state: GameState, events: list[Event]) -> dict[str, Any]:
                 "id": s.id,
                 "b": [list(c) for c in s.body],
                 "life": s.life_id,
+                "s": s.score,
                 "k": s.kills,
                 "d": s.deaths,
                 "r": s.respawn_in,
@@ -202,8 +203,8 @@ class Session:
         for name, seats in self.roster.lineups.items():
             if seats == self.policies:
                 return name
-        for name in LINEUPS:
-            if expand_policies(name, self.config.num_snakes) == self.policies:
+        for name, lineup in LINEUPS.items():
+            if list(lineup) == self.policies:
                 return name
         return self.policies[0] if len(set(self.policies)) == 1 else None
 
@@ -296,6 +297,8 @@ class App:
             spec = ",".join(str(n) for n in spec)
         if str(spec).strip() in self.roster.lineups:
             overrides["num_snakes"] = len(self.roster.lineups[str(spec).strip()])
+        elif str(spec).strip() in LINEUPS:
+            overrides["num_snakes"] = len(LINEUPS[str(spec).strip()])
         config = GameConfig.from_dict({**self.defaults.to_dict(), **overrides})
         names = self.roster.expand(str(spec), config.num_snakes)
         seed = int(body.get("seed", self.seed))
