@@ -6,6 +6,12 @@ holdout seeds and the acceptance rule. The proposer then learns from ``Feedback`
 holds dev results and the accept bit, never holdout data. Every random choice comes from
 ``rng_for(run_seed, generation, purpose)``, and proposer state is checkpointed after each
 generation, so the same config replays to the same decisions, resumed or not.
+
+With a ``SequentialRule`` (such as ``SequentialPairedRule``) both stages are staged: dev
+seeds are played in chunks and a candidate that is clearly worse (or clearly better)
+stops early, and holdout seeds are played up to the rule's planned looks, stopping at the
+first look that decides. The seeds and their order are the same as an unstaged run's;
+only how many get played changes. Any other rule runs exactly as before.
 """
 
 from __future__ import annotations
@@ -31,6 +37,7 @@ from arena.rsi.types import (
     PairedResult,
     ParamSpec,
     Proposer,
+    SequentialRule,
     defaults,
     validate,
 )
@@ -224,6 +231,57 @@ class Run:
             return f"no accept in {c.patience} generations"
         return None
 
+    def _staged_dev(
+        self,
+        rule: SequentialRule,
+        cand: Candidate,
+        champion: Candidate,
+        seeds: Sequence[int],
+        state: dict[str, Any],
+    ) -> tuple[PairedResult, str | None]:
+        """Dev in chunks, stopping when the rule says the candidate is clearly worse or
+        clearly better (racing). Returns the dev result so far and the rule's verdict."""
+        dev: PairedResult | None = None
+        verdict: str | None = None
+        done = 0
+        for n in rule.dev_looks(len(seeds)):
+            part = self._evaluate(cand, champion, seeds[done:n])
+            state["episodes"] += 2 * part.n
+            dev = part if dev is None else dev.extend(part)
+            done = n
+            verdict = rule.dev_interim(dev)
+            if verdict is not None:
+                break
+        assert dev is not None
+        return dev, verdict
+
+    def _staged_holdout(
+        self,
+        rule: SequentialRule,
+        cand: Candidate,
+        champion: Candidate,
+        dev: PairedResult,
+        g: int,
+        pools: SeedPools,
+        state: dict[str, Any],
+    ) -> Decision:
+        """Holdout at the rule's planned looks over the decision plus extension seeds."""
+        seeds, extra = pools.holdout_block(g)
+        sample = seeds + extra
+        looks = rule.holdout_looks(len(seeds), len(extra))
+        rng = rng_for(self.config.run_seed, g, "bootstrap")
+        holdout: PairedResult | None = None
+        done = 0
+        for n in looks:
+            part = self._evaluate(cand, champion, sample[done:n])
+            state["episodes"] += 2 * part.n
+            holdout = part if holdout is None else holdout.extend(part)
+            done = n
+            decision = rule.decide_at(dev, holdout, looks, rng)
+            if decision is not None:
+                return decision
+        raise AssertionError("a sequential rule must decide at its last look")
+
     def _generation(
         self,
         g: int,
@@ -239,6 +297,8 @@ class Run:
         entries: list[dict[str, Any]] = []
         screened: list[tuple[Candidate, PairedResult, int]] = []
         invalid: list[tuple[Candidate, str]] = []
+        staged = self.rule if isinstance(self.rule, SequentialRule) else None
+        stopped: set[str] = set()
         for i in range(self.proposer.batch):
             cand = self.proposer.propose(champion, history, self.space, rng)
             problems = validate(cand.params, self.space)
@@ -251,21 +311,33 @@ class Run:
             if problems:
                 invalid.append((cand, "; ".join(problems)))
                 continue
-            dev = self._evaluate(cand, champion, pools.dev_slice(seed, g, i))
-            state["episodes"] += 2 * dev.n
+            dev_seeds = pools.dev_slice(seed, g, i)
+            if staged is None:
+                dev = self._evaluate(cand, champion, dev_seeds)
+                state["episodes"] += 2 * dev.n
+            else:
+                dev, verdict = self._staged_dev(staged, cand, champion, dev_seeds, state)
+                if verdict == "stop":
+                    stopped.add(cand.id)
             screened.append((cand, dev, i))
 
         best: tuple[Candidate, PairedResult, int] | None = None
-        if screened:
-            best = max(screened, key=lambda t: (t[1].failures == 0, t[1].mean_diff, -t[2]))
+        live = [t for t in screened if t[0].id not in stopped] or screened
+        if live:
+            best = max(live, key=lambda t: (t[1].failures == 0, t[1].mean_diff, -t[2]))
         if best is None:
             why = "; ".join(f"{c.id}: {p}" for c, p in invalid) or "no candidate proposed"
             decision = Decision(False, "validate", f"no valid candidate ({why})")
         else:
             cand, dev, _ = best
             early = self.rule.passes_dev(dev)
+            if early is None and cand.id in stopped:
+                why = f"stopped early on dev after {dev.n} pairs (mean {dev.mean_diff:+.4g})"
+                early = Decision(False, "dev", why, {"dev": dev.summary()})
             if early is not None:
                 decision = early
+            elif staged is not None:
+                decision = self._staged_holdout(staged, cand, champion, dev, g, pools, state)
             else:
                 seeds, extra = pools.holdout_block(g)
                 holdout = self._evaluate(cand, champion, seeds)

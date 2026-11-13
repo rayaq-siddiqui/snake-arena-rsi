@@ -11,7 +11,7 @@ import json
 import math
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
-from typing import Any, Literal, Protocol
+from typing import Any, Literal, Protocol, runtime_checkable
 
 import numpy as np
 
@@ -300,3 +300,28 @@ class AcceptanceRule(Protocol):
     ) -> Decision: ...
 
     def to_dict(self) -> dict[str, Any]: ...
+
+
+@runtime_checkable
+class SequentialRule(AcceptanceRule, Protocol):
+    """An acceptance rule that spends episodes in stages (``SequentialPairedRule``).
+
+    The loop plays dev in chunks of ``dev_looks`` and asks ``dev_interim`` after each one
+    (``stop``: reject now, ``pass``: go to holdout now, None: play on), then plays holdout
+    in chunks of ``holdout_looks`` and asks ``decide_at`` after each one, which returns
+    the decision or None to play on (never None at the last look).
+    """
+
+    def dev_looks(self, pairs: int) -> tuple[int, ...]: ...
+
+    def dev_interim(self, dev: PairedResult) -> Literal["pass", "stop"] | None: ...
+
+    def holdout_looks(self, decision_pairs: int, extension_pairs: int) -> tuple[int, ...]: ...
+
+    def decide_at(
+        self,
+        dev: PairedResult,
+        holdout: PairedResult,
+        looks: Sequence[int],
+        rng: np.random.Generator | None = None,
+    ) -> Decision | None: ...

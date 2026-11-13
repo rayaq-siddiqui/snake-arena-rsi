@@ -21,11 +21,17 @@ def write_report(store: RunStore, result: RunResult, space: Sequence[ParamSpec])
     ident = config["identity"]
     records = store.records()
     rule = ident["rule"]
-    detail = (
-        f" (min gain {rule['min_rel_gain']:.0%}, {rule['resamples']:,} bootstrap resamples)"
-        if "min_rel_gain" in rule
-        else ""
-    )
+    if "resamples" in rule:
+        detail = (
+            f" (min gain {rule['min_rel_gain']:.0%}, {rule['resamples']:,} bootstrap resamples)"
+        )
+    elif "alpha" in rule:
+        detail = (
+            f" (min gain {rule['min_rel_gain']:.0%}, false-accept alpha {rule['alpha']:g} "
+            f"over holdout looks at {rule['holdout_fractions']})"
+        )
+    else:
+        detail = ""
     lines = [
         f"# RSI run: {ident['config']['problem']}",
         "",
