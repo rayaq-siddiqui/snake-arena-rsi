@@ -165,6 +165,21 @@ Runs started in a terminal show up too: `evolve` writes `runs/<id>.pid` while it
 uv run python -m arena.cli watch --runs-dir runs
 ```
 
+**Query everything with SQL.** `index` reads every evolve run and tournament
+`matches.jsonl` under the folders you give into one SQLite file (tables `runs`,
+`agents`, `policy_versions`, `generations`, `candidate_evaluations`,
+`promotion_decisions`, `matches`, `match_participants`, `kills`). The files stay the
+record; re-running `index` replaces each source's rows, so it is safe while a run is
+writing. `--sql` runs a read-only query, or open the file with any SQLite tool.
+
+```bash
+uv run python -m arena.cli index experiments runs out --db arena.db
+```
+
+```bash
+uv run python -m arena.cli index --db arena.db --sql "SELECT run_id, agent, SUM(accept) FROM promotion_decisions GROUP BY 1, 2"
+```
+
 **Optional: a language-model proposer.** Nothing needs an API. If you want to try one,
 `--proposer llm` (on `evolve` or `rsi-demo`) asks Claude for each candidate's numbers.
 It sees only the parameter schema, the champion and recent dev-screen results, never a
@@ -367,8 +382,9 @@ flowchart TB
     watch --> ereport
   end
 
-  cli["cli.py + __main__.py<br/>run-match · run-tournament · bench · watch<br/>check-personalities · rsi-demo · rsi-meta · evolve · report<br/>dashboard · propose-code"]
+  cli["cli.py + __main__.py<br/>run-match · run-tournament · bench · watch<br/>check-personalities · rsi-demo · rsi-meta · evolve · report<br/>dashboard · propose-code · index"]
 
+  storage["storage/db.py<br/>SQLite index: runs · agents · policy_versions · generations<br/>candidate_evaluations · promotion_decisions · matches · kills<br/>rebuilt from the files, read-only queries"]
   OUT[("out/<br/>tournament matches.jsonl · summary.csv · kill_matrix.csv<br/>replay *.json · bookmarks.json")]
   RUNS[("runs/&lt;id&gt;/<br/>evolution.json · lineages/&lt;name&gt;/generations.jsonl<br/>params/&lt;name&gt;/v&lt;k&gt;.json · timing.jsonl<br/>report.md · progress.svg · dashboard.html")]
 
@@ -393,6 +409,8 @@ flowchart TB
   ereport --> RUNS
   dashboard --> RUNS
   codeprop -. "dev results only" .-> RUNS
+  storage -. "reads" .-> RUNS
+  storage -. "reads matches.jsonl" .-> OUT
   codeprop -- "Complete, prices" --> llm
   cli --> SIM
   cli --> VIZ

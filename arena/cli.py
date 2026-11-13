@@ -407,6 +407,27 @@ def cmd_propose_code(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_index(args: argparse.Namespace) -> int:
+    from arena.storage.db import connect, index_paths, query
+
+    if args.paths:
+        db = connect(args.db)
+        try:
+            t = index_paths(db, args.paths)
+        finally:
+            db.close()
+        print(
+            f"Indexed {t['runs']} runs ({t['generations']} lineage generations) and "
+            f"{t['matches']} matches from {t['match_files']} files into {args.db}"
+        )
+    if args.sql:
+        cols, rows = query(args.db, args.sql)
+        print("\t".join(cols))
+        for row in rows:
+            print("\t".join("" if v is None else str(v) for v in row))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="arena", description="Snake Arena RSI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -531,6 +552,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--max-llm-dollars", type=float, default=1.0, help="stop asking after this (default 1)"
     )
     p.set_defaults(func=cmd_propose_code)
+
+    p = sub.add_parser("index", help="index runs and tournaments into SQLite; query it")
+    p.add_argument("paths", nargs="*", help="folders to scan, e.g. out runs experiments")
+    p.add_argument("--db", default="arena.db", help="SQLite file (default arena.db)")
+    p.add_argument("--sql", help="run this read-only query after indexing")
+    p.set_defaults(func=cmd_index)
 
     p = sub.add_parser("watch", help="open the browser viewer (live match or replay)")
     from arena.viz.server import VIEWER_DEFAULTS, VIEWER_POLICY

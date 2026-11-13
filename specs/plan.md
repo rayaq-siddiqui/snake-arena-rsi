@@ -350,7 +350,16 @@ Behaviour table (100 matches, all five together, 5,000-tick episodes on 100 × 1
   calls it. `tests/evolution/test_code_proposer.py` covers the patch, the checks, the
   seed firewall and unusable replies with a fake model. No real model has been asked yet
   (that needs an API key).
-- `[ ]` 5.7 Full React dashboard and SQLite storage from the vision.
+- `[x]` 5.7 Full React dashboard and SQLite storage from the vision. SQLite is built:
+  `arena/storage/db.py` (`index`, stdlib `sqlite3`) reads evolve runs and tournament
+  `matches.jsonl` into the vision's tables (`runs`, `agents`, `policy_versions`,
+  `generations`, `candidate_evaluations`, `promotion_decisions`, `matches`,
+  `match_participants`, plus `kills` as per-match killer/victim counts, since per-tick
+  kill events live in replays). The JSON files stay the source of truth; the index is
+  rebuilt from them idempotently and queried read-only. The React dashboard is replaced
+  by decision, not left out: phase 1 chose a stdlib server and a Canvas page with no web
+  dependencies, and the viewer now covers the dashboard's screens (live arena, replay
+  browser, `/experiments` with charts and run control, per-run `dashboard.html`).
 
 ---
 
@@ -369,6 +378,7 @@ stretch item or a deliberate scope change recorded in the phase specs, not a hid
 | 5. Offline evolution driver: propose, test, promote | Built with the local parameter-search improver, so it needs no API | `arena/rsi`, `arena/evolution`, steps 3–4 |
 | 5. LLM provider adapter | Built, opt-in (step 5.5): Anthropic SDK behind a `Complete` callable, numbers only, token/dollar caps, audit log, hill-climb fallback. Not yet compared against the default improver (needs an API key) | `arena/rsi/llm.py` |
 | 6. Generation history and version inspection | Built: `report.md`, `progress.svg`, live `dashboard.html`, `watch --run` | `arena/evolution` |
+| §4 SQLite for experiment metadata | Built: `index` rebuilds a SQLite file from run and tournament files (the files stay the record) and runs read-only queries | `arena/storage/db.py`, `tests/storage/test_db.py` |
 | §7 Experiments screen: start and stop batches from the browser | Built: `/experiments` in the viewer lists runs, starts or resumes one as an `evolve` process, stops it through its `STOP` file, and charts accepted versions, the kill matrix, decisions and the log | `arena/viz/experiments.py`, `tests/viz/test_experiments.py` |
 | §7 Replay browser with filters, replay bookmarks | Built: the viewer lists replay files and tournament matches, filters by winner, policy and end reason, and keeps bookmarks that open paused at their tick | `arena/viz/library.py`, `tests/viz/test_library.py` |
 | §7 Performance: 100,000 ticks/s (aspirational) | Met on 4 cores: full `RandomSafe` matches total 117,000–124,400 ticks/s over 4 worker processes (`bench --workers 4`), the engine alone 190,000–194,000. Not met in one process (~50,000 engine only, ~31,000 with `RandomSafe`); measured below | Measurements, `arena/sim/bench.py` |

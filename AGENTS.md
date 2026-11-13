@@ -72,6 +72,7 @@ arena/
   viz/         server.py (stdlib HTTP, pull-based frames) + static/ (Canvas page);
                library.py (replay browser: stored games, filters, bookmarks);
                experiments.py (experiments screen: list, start, stop evolve runs).
+  storage/     db.py: SQLite index over run and tournament files (stdlib sqlite3), read-only queries.
   cli.py       `python -m arena.cli run-match | run-tournament | bench | watch | evolve | report`.
   rsi/         The generic RSI framework (NumPy); must not import engine/agents/sim.
     types.py     ParamSpec, Candidate, PairedResult, Decision, Feedback, Budget, protocols.
@@ -137,6 +138,7 @@ uv run python -m arena.cli evolve --quick --proposer llm --max-llm-dollars 2 --r
 uv run python -m arena.cli propose-code hunter --run runs/demo   # opt-in; review-only patch
 uv run python -m arena.cli evolve --quick --generations 3 --run-id demo   # snakes tune themselves
 uv run python -m arena.cli evolve --generations 10 --max-hours 12 --run-id long  # capped long run
+uv run python -m arena.cli index experiments runs out --db arena.db   # SQLite index (+ --sql)
 uv run python -m arena.cli report runs/demo                       # report.md + progress.svg
 uv run python -m arena.cli watch --run runs/demo --vs-generation 0   # evolved vs original
 ```

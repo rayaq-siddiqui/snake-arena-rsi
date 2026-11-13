@@ -12,3 +12,4 @@ out/
 runs/
 proposals/
 node_modules/
+arena.db
