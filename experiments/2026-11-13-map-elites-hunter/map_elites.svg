@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="460" viewBox="0 0 480 460" font-family="sans-serif" font-size="11">
+<rect width="480" height="460" fill="#fff"/>
+<text x="14" y="18" font-size="13">hunter on 24x24, 2000 ticks, vs the hand-set reference snakes</text>
+<text x="14" y="36" font-size="12">kills per 1,000 ticks (holdout)</text>
+<rect x="158" y="136" width="42" height="42" rx="3" fill="rgb(220,228,250)"><title>cell 2,5: 0.025</title></rect>
+<text x="179.0" y="161.0" text-anchor="middle" fill="#222">0.03</text>
+<rect x="158" y="92" width="42" height="42" rx="3" fill="rgb(220,228,250)"><title>cell 2,6: 0.025</title></rect>
+<text x="179.0" y="117.0" text-anchor="middle" fill="#222">0.03</text>
+<rect x="202" y="180" width="42" height="42" rx="3" fill="rgb(227,235,255)"><title>cell 3,4: 0.013</title></rect>
+<text x="223.0" y="205.0" text-anchor="middle" fill="#222">0.01</text>
+<rect x="202" y="136" width="42" height="42" rx="3" fill="rgb(185,193,215)"><title>cell 3,5: 0.087</title></rect>
+<text x="223.0" y="161.0" text-anchor="middle" fill="#222">0.09</text>
+<rect x="202" y="92" width="42" height="42" rx="3" fill="rgb(45,53,75)"><title>cell 3,6: 0.338</title></rect>
+<text x="223.0" y="117.0" text-anchor="middle" fill="#fff">0.34</text>
+<rect x="246" y="224" width="42" height="42" rx="3" fill="rgb(171,179,201)"><title>cell 4,3: 0.113</title></rect>
+<text x="267.0" y="249.0" text-anchor="middle" fill="#222">0.11</text>
+<rect x="246" y="180" width="42" height="42" rx="3" fill="rgb(178,186,208)"><title>cell 4,4: 0.100</title></rect>
+<text x="267.0" y="205.0" text-anchor="middle" fill="#222">0.10</text>
+<rect x="246" y="136" width="42" height="42" rx="3" fill="rgb(220,228,250)"><title>cell 4,5: 0.025</title></rect>
+<text x="267.0" y="161.0" text-anchor="middle" fill="#222">0.03</text>
+<rect x="246" y="92" width="42" height="42" rx="3" fill="rgb(227,235,255)"><title>cell 4,6: 0.013</title></rect>
+<text x="267.0" y="117.0" text-anchor="middle" fill="#222">0.01</text>
+<rect x="290" y="268" width="42" height="42" rx="3" fill="rgb(235,243,255)"><title>cell 5,2: 0.000</title></rect>
+<text x="311.0" y="293.0" text-anchor="middle" fill="#222">0.00</text>
+<rect x="290" y="224" width="42" height="42" rx="3" fill="rgb(220,228,250)"><title>cell 5,3: 0.025</title></rect>
+<text x="311.0" y="249.0" text-anchor="middle" fill="#222">0.03</text>
+<rect x="290" y="180" width="42" height="42" rx="3" fill="rgb(199,207,229)"><title>cell 5,4: 0.062</title></rect>
+<text x="311.0" y="205.0" text-anchor="middle" fill="#222">0.06</text>
+<rect x="290" y="136" width="42" height="42" rx="3" fill="rgb(220,228,250)"><title>cell 5,5: 0.025</title></rect>
+<text x="311.0" y="161.0" text-anchor="middle" fill="#222">0.03</text>
+<rect x="290" y="92" width="42" height="42" rx="3" fill="rgb(206,214,236)"><title>cell 5,6: 0.050</title></rect>
+<text x="311.0" y="117.0" text-anchor="middle" fill="#222">0.05</text>
+<rect x="334" y="312" width="42" height="42" rx="3" fill="rgb(227,235,255)"><title>cell 6,1: 0.013</title></rect>
+<text x="355.0" y="337.0" text-anchor="middle" fill="#222">0.01</text>
+<rect x="334" y="268" width="42" height="42" rx="3" fill="rgb(235,243,255)"><title>cell 6,2: 0.000</title></rect>
+<text x="355.0" y="293.0" text-anchor="middle" fill="#222">0.00</text>
+<rect x="334" y="224" width="42" height="42" rx="3" fill="rgb(235,243,255)"><title>cell 6,3: 0.000</title></rect>
+<text x="355.0" y="249.0" text-anchor="middle" fill="#222">0.00</text>
+<rect x="334" y="180" width="42" height="42" rx="3" fill="rgb(227,235,255)"><title>cell 6,4: 0.013</title></rect>
+<text x="355.0" y="205.0" text-anchor="middle" fill="#222">0.01</text>
+<rect x="334" y="136" width="42" height="42" rx="3" fill="rgb(235,243,255)"><title>cell 6,5: 0.000</title></rect>
+<text x="355.0" y="161.0" text-anchor="middle" fill="#222">0.00</text>
+<rect x="334" y="92" width="42" height="42" rx="3" fill="rgb(235,243,255)"><title>cell 6,6: 0.000</title></rect>
+<text x="355.0" y="117.0" text-anchor="middle" fill="#222">0.00</text>
+<rect x="378" y="268" width="42" height="42" rx="3" fill="rgb(227,235,255)"><title>cell 7,2: 0.013</title></rect>
+<text x="399.0" y="293.0" text-anchor="middle" fill="#222">0.01</text>
+<rect x="378" y="224" width="42" height="42" rx="3" fill="rgb(235,243,255)"><title>cell 7,3: 0.000</title></rect>
+<text x="399.0" y="249.0" text-anchor="middle" fill="#222">0.00</text>
+<rect x="378" y="136" width="42" height="42" rx="3" fill="rgb(235,243,255)"><title>cell 7,5: 0.000</title></rect>
+<text x="399.0" y="161.0" text-anchor="middle" fill="#222">0.00</text>
+<rect x="378" y="92" width="42" height="42" rx="3" fill="rgb(235,243,255)"><title>cell 7,6: 0.000</title></rect>
+<text x="399.0" y="117.0" text-anchor="middle" fill="#222">0.00</text>
+<rect x="157" y="91" width="44" height="44" fill="none" stroke="#d33" stroke-width="2"><title>hand-set snake</title></rect>
+<text x="70" y="416">0</text>
+<text x="420" y="416" text-anchor="end">12+</text>
+<text x="246.0" y="432" text-anchor="middle">mean distance to nearest enemy head (low = aggressive)</text>
+<text x="64" y="400" text-anchor="end">30</text>
+<text x="64" y="58" text-anchor="end">80+</text>
+<text x="14" y="224.0" text-anchor="middle" transform="rotate(-90 14 224.0)">reachable cells (high = cautious)</text>
+<text x="70" y="448">red outline: the hand-set snake (0.025 on the same holdout seeds)</text>
+</svg>

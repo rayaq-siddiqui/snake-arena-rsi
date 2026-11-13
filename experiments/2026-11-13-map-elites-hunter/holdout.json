@@ -1,0 +1,799 @@
+{
+  "baseline": {
+    "cell": "2,6",
+    "descriptors": [
+      4.306170985104519,
+      69.21667292527225
+    ],
+    "fitness": 0.025,
+    "params": {
+      "keep_distance": 1.0,
+      "keep_repel": 0.0,
+      "pull_radius": 0.0,
+      "random_tiebreak": 1.0,
+      "search_radius": 12.0,
+      "space_cap": 60.0,
+      "trap_margin": 2.0,
+      "w_cut_off": 12.0,
+      "w_head_on_risk": -40.0,
+      "w_immediate_death": -1000.0,
+      "w_nearest_enemy_head": -30.0,
+      "w_space": 6.0,
+      "w_space_vs_length": 20.0,
+      "w_straightness": 0.01,
+      "w_territory": 20.0
+    }
+  },
+  "batches": 10,
+  "elites": [
+    {
+      "cell": "2,5",
+      "ci": [
+        -0.05,
+        0.05
+      ],
+      "dev_fitness": 0.075,
+      "diff_vs_baseline": 0.0,
+      "holdout_cell": "2,5",
+      "holdout_descriptors": [
+        3.954308093994778,
+        66.50261096605745
+      ],
+      "holdout_fitness": 0.025,
+      "params": {
+        "keep_distance": 10.0,
+        "keep_repel": 2.572549503442189,
+        "pull_radius": 200.0,
+        "random_tiebreak": 0.0,
+        "search_radius": 9.0,
+        "space_cap": 172.0,
+        "trap_margin": 2.2785422712823444,
+        "w_cut_off": -46.95129526430185,
+        "w_head_on_risk": 137.699694235472,
+        "w_immediate_death": -1590.0159077825042,
+        "w_nearest_enemy_head": 98.5581383831435,
+        "w_space": 108.03592693545676,
+        "w_space_vs_length": 133.00230329476273,
+        "w_straightness": -3.4932591902352783,
+        "w_territory": -200.0
+      }
+    },
+    {
+      "cell": "2,6",
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "dev_fitness": 0.025,
+      "diff_vs_baseline": 0.0,
+      "holdout_cell": "2,6",
+      "holdout_descriptors": [
+        4.306170985104519,
+        69.21667292527225
+      ],
+      "holdout_fitness": 0.025,
+      "params": {
+        "keep_distance": 1.0,
+        "keep_repel": 0.0,
+        "pull_radius": 0.0,
+        "random_tiebreak": 1.0,
+        "search_radius": 12.0,
+        "space_cap": 60.0,
+        "trap_margin": 2.0,
+        "w_cut_off": 12.0,
+        "w_head_on_risk": -40.0,
+        "w_immediate_death": -1000.0,
+        "w_nearest_enemy_head": -30.0,
+        "w_space": 6.0,
+        "w_space_vs_length": 20.00000000000003,
+        "w_straightness": 0.00999999999999801,
+        "w_territory": 20.00000000000003
+      }
+    },
+    {
+      "cell": "3,4",
+      "ci": [
+        -0.0625,
+        0.025
+      ],
+      "dev_fitness": 0.05,
+      "diff_vs_baseline": -0.0125,
+      "holdout_cell": "3,5",
+      "holdout_descriptors": [
+        5.296927883363708,
+        61.362796146836764
+      ],
+      "holdout_fitness": 0.0125,
+      "params": {
+        "keep_distance": 10.0,
+        "keep_repel": 1.6069341034051652,
+        "pull_radius": 200.0,
+        "random_tiebreak": 0.0,
+        "search_radius": 12.0,
+        "space_cap": 175.0,
+        "trap_margin": 2.372673012946602,
+        "w_cut_off": -118.94551267036778,
+        "w_head_on_risk": 158.38377602665668,
+        "w_immediate_death": -3140.7039917253737,
+        "w_nearest_enemy_head": 100.95461236827055,
+        "w_space": 117.22791031562633,
+        "w_space_vs_length": 123.30397735463214,
+        "w_straightness": -2.158563021408842,
+        "w_territory": -200.0
+      }
+    },
+    {
+      "cell": "3,5",
+      "ci": [
+        -0.0125,
+        0.1375
+      ],
+      "dev_fitness": 0.15,
+      "diff_vs_baseline": 0.0625,
+      "holdout_cell": "3,5",
+      "holdout_descriptors": [
+        4.715823605706874,
+        63.71024643320363
+      ],
+      "holdout_fitness": 0.0875,
+      "params": {
+        "keep_distance": 10.0,
+        "keep_repel": 3.8971588460166053,
+        "pull_radius": 178.0,
+        "random_tiebreak": 0.0,
+        "search_radius": 14.0,
+        "space_cap": 157.0,
+        "trap_margin": 3.052857296078404,
+        "w_cut_off": -109.62438731443414,
+        "w_head_on_risk": 13.396165496468228,
+        "w_immediate_death": -2470.185576319337,
+        "w_nearest_enemy_head": 102.08990626267354,
+        "w_space": -31.64553271016814,
+        "w_space_vs_length": 126.19893765127699,
+        "w_straightness": -10.0,
+        "w_territory": -65.19246937419786
+      }
+    },
+    {
+      "cell": "3,6",
+      "ci": [
+        0.2,
+        0.4375
+      ],
+      "dev_fitness": 0.275,
+      "diff_vs_baseline": 0.3125,
+      "holdout_cell": "3,6",
+      "holdout_descriptors": [
+        4.867030041830397,
+        69.45126124984155
+      ],
+      "holdout_fitness": 0.3375,
+      "params": {
+        "keep_distance": 2.0,
+        "keep_repel": 0.7180112344073999,
+        "pull_radius": 67.0,
+        "random_tiebreak": 1.0,
+        "search_radius": 29.0,
+        "space_cap": 51.0,
+        "trap_margin": 3.1936276564764055,
+        "w_cut_off": 160.13275658126105,
+        "w_head_on_risk": 85.69575127786806,
+        "w_immediate_death": -3844.6552341274232,
+        "w_nearest_enemy_head": -38.97140460437694,
+        "w_space": -89.04065962035479,
+        "w_space_vs_length": -113.99364022928816,
+        "w_straightness": -10.0,
+        "w_territory": 96.72319167556896
+      }
+    },
+    {
+      "cell": "4,3",
+      "ci": [
+        0.0,
+        0.175
+      ],
+      "dev_fitness": 0.075,
+      "diff_vs_baseline": 0.0875,
+      "holdout_cell": "4,3",
+      "holdout_descriptors": [
+        7.3394041888903345,
+        52.1696370495642
+      ],
+      "holdout_fitness": 0.1125,
+      "params": {
+        "keep_distance": 10.0,
+        "keep_repel": 0.872538603257135,
+        "pull_radius": 140.0,
+        "random_tiebreak": 0.0,
+        "search_radius": 13.0,
+        "space_cap": 123.0,
+        "trap_margin": 2.360467956126704,
+        "w_cut_off": -200.0,
+        "w_head_on_risk": -60.55152171828749,
+        "w_immediate_death": -2056.0918084614086,
+        "w_nearest_enemy_head": -3.501675230244274,
+        "w_space": 98.42895511999052,
+        "w_space_vs_length": 177.51679167638486,
+        "w_straightness": -0.6665704972726285,
+        "w_territory": -183.58004967477643
+      }
+    },
+    {
+      "cell": "4,4",
+      "ci": [
+        0.0,
+        0.1625
+      ],
+      "dev_fitness": 0.075,
+      "diff_vs_baseline": 0.075,
+      "holdout_cell": "5,3",
+      "holdout_descriptors": [
+        7.5479738562091505,
+        54.44640522875817
+      ],
+      "holdout_fitness": 0.1,
+      "params": {
+        "keep_distance": 10.0,
+        "keep_repel": 2.7933754871551453,
+        "pull_radius": 183.0,
+        "random_tiebreak": 0.0,
+        "search_radius": 14.0,
+        "space_cap": 152.0,
+        "trap_margin": 1.9878902548591841,
+        "w_cut_off": -88.80341972726156,
+        "w_head_on_risk": 70.6376492580685,
+        "w_immediate_death": -942.9111043259654,
+        "w_nearest_enemy_head": 63.40105361549064,
+        "w_space": 10.659824076525183,
+        "w_space_vs_length": 194.0435198321727,
+        "w_straightness": -7.018870628577871,
+        "w_territory": -137.87006524275398
+      }
+    },
+    {
+      "cell": "4,5",
+      "ci": [
+        -0.0375,
+        0.0375
+      ],
+      "dev_fitness": 0.025,
+      "diff_vs_baseline": 0.0,
+      "holdout_cell": "4,5",
+      "holdout_descriptors": [
+        6.2477261243052045,
+        67.03827690752905
+      ],
+      "holdout_fitness": 0.025,
+      "params": {
+        "keep_distance": 6.0,
+        "keep_repel": 4.586344813423376,
+        "pull_radius": 138.0,
+        "random_tiebreak": 1.0,
+        "search_radius": 20.0,
+        "space_cap": 146.0,
+        "trap_margin": 1.867234189273423,
+        "w_cut_off": -185.46322645271567,
+        "w_head_on_risk": -200.0,
+        "w_immediate_death": -946.8255141302893,
+        "w_nearest_enemy_head": 174.93891283420504,
+        "w_space": 160.1625415524506,
+        "w_space_vs_length": -199.1926863071764,
+        "w_straightness": -3.5171124049282954,
+        "w_territory": 69.78228728592171
+      }
+    },
+    {
+      "cell": "4,6",
+      "ci": [
+        -0.0625,
+        0.025
+      ],
+      "dev_fitness": 0.05,
+      "diff_vs_baseline": -0.0125,
+      "holdout_cell": "3,6",
+      "holdout_descriptors": [
+        5.920485850237917,
+        69.79727022289006
+      ],
+      "holdout_fitness": 0.0125,
+      "params": {
+        "keep_distance": 8.0,
+        "keep_repel": 0.7347198566745644,
+        "pull_radius": 88.0,
+        "random_tiebreak": 0.0,
+        "search_radius": 20.0,
+        "space_cap": 84.0,
+        "trap_margin": 3.217603059382582,
+        "w_cut_off": 178.34008353887424,
+        "w_head_on_risk": -191.59596320520956,
+        "w_immediate_death": -737.367256201338,
+        "w_nearest_enemy_head": -43.93993158467774,
+        "w_space": 115.30481430163394,
+        "w_space_vs_length": -47.21790279099892,
+        "w_straightness": -1.3208440241785606,
+        "w_territory": 177.3305773941023
+      }
+    },
+    {
+      "cell": "5,2",
+      "ci": [
+        -0.0625,
+        0.0
+      ],
+      "dev_fitness": 0.025,
+      "diff_vs_baseline": -0.025,
+      "holdout_cell": "5,2",
+      "holdout_descriptors": [
+        8.270115689587938,
+        48.648121669049786
+      ],
+      "holdout_fitness": 0.0,
+      "params": {
+        "keep_distance": 8.0,
+        "keep_repel": 1.7736296794968416,
+        "pull_radius": 75.0,
+        "random_tiebreak": 0.0,
+        "search_radius": 20.0,
+        "space_cap": 126.0,
+        "trap_margin": 4.664235301415948,
+        "w_cut_off": -152.44474083432561,
+        "w_head_on_risk": 197.08083324076682,
+        "w_immediate_death": -4807.5029738278035,
+        "w_nearest_enemy_head": -80.73320290577834,
+        "w_space": -29.519437707126087,
+        "w_space_vs_length": 132.9413692327421,
+        "w_straightness": 2.068969595609433,
+        "w_territory": -78.94872031771189
+      }
+    },
+    {
+      "cell": "5,3",
+      "ci": [
+        -0.05,
+        0.05
+      ],
+      "dev_fitness": 0.1,
+      "diff_vs_baseline": 0.0,
+      "holdout_cell": "5,3",
+      "holdout_descriptors": [
+        8.176848453067645,
+        50.61090718405873
+      ],
+      "holdout_fitness": 0.025,
+      "params": {
+        "keep_distance": 10.0,
+        "keep_repel": 2.4735791320681155,
+        "pull_radius": 159.0,
+        "random_tiebreak": 0.0,
+        "search_radius": 17.0,
+        "space_cap": 121.0,
+        "trap_margin": 1.7470408678394143,
+        "w_cut_off": -200.0,
+        "w_head_on_risk": 8.389320642980238,
+        "w_immediate_death": -2355.7060279591974,
+        "w_nearest_enemy_head": 19.542629029069218,
+        "w_space": 136.10658720633813,
+        "w_space_vs_length": 182.49097853657588,
+        "w_straightness": -5.412212339069898,
+        "w_territory": -200.0
+      }
+    },
+    {
+      "cell": "5,4",
+      "ci": [
+        -0.025,
+        0.1
+      ],
+      "dev_fitness": 0.05,
+      "diff_vs_baseline": 0.0375,
+      "holdout_cell": "5,4",
+      "holdout_descriptors": [
+        8.270883508682976,
+        55.62377994676131
+      ],
+      "holdout_fitness": 0.0625,
+      "params": {
+        "keep_distance": 2.0,
+        "keep_repel": 1.6638464498784766,
+        "pull_radius": 2.0,
+        "random_tiebreak": 1.0,
+        "search_radius": 4.0,
+        "space_cap": 126.0,
+        "trap_margin": 3.160148503749375,
+        "w_cut_off": 11.066939149670901,
+        "w_head_on_risk": -41.11207446456751,
+        "w_immediate_death": -2957.7891699869515,
+        "w_nearest_enemy_head": -112.47153942442633,
+        "w_space": -146.8694301825537,
+        "w_space_vs_length": 119.99395838590647,
+        "w_straightness": 7.733509811685991,
+        "w_territory": 97.0459334358307
+      }
+    },
+    {
+      "cell": "5,5",
+      "ci": [
+        -0.05,
+        0.05
+      ],
+      "dev_fitness": 0.025,
+      "diff_vs_baseline": 0.0,
+      "holdout_cell": "5,5",
+      "holdout_descriptors": [
+        7.822130429340343,
+        64.28614344723995
+      ],
+      "holdout_fitness": 0.025,
+      "params": {
+        "keep_distance": 1.0,
+        "keep_repel": 2.1667804633065826,
+        "pull_radius": 28.0,
+        "random_tiebreak": 1.0,
+        "search_radius": 9.0,
+        "space_cap": 75.0,
+        "trap_margin": 2.6179553052888864,
+        "w_cut_off": 61.00041444616102,
+        "w_head_on_risk": 7.449915909256788,
+        "w_immediate_death": -1034.5114770229025,
+        "w_nearest_enemy_head": -39.52743588041221,
+        "w_space": -155.36540637010089,
+        "w_space_vs_length": 177.0172448994744,
+        "w_straightness": 7.7031414817932,
+        "w_territory": 135.8967849670144
+      }
+    },
+    {
+      "cell": "5,6",
+      "ci": [
+        -0.025,
+        0.075
+      ],
+      "dev_fitness": 0.125,
+      "diff_vs_baseline": 0.025,
+      "holdout_cell": "5,6",
+      "holdout_descriptors": [
+        8.05134281200632,
+        70.48683517640863
+      ],
+      "holdout_fitness": 0.05,
+      "params": {
+        "keep_distance": 7.0,
+        "keep_repel": 1.7219171382169285,
+        "pull_radius": 80.0,
+        "random_tiebreak": 0.0,
+        "search_radius": 24.0,
+        "space_cap": 132.0,
+        "trap_margin": 2.8665631905722386,
+        "w_cut_off": 200.0,
+        "w_head_on_risk": -147.09472510888205,
+        "w_immediate_death": 0.0,
+        "w_nearest_enemy_head": 11.450990848727486,
+        "w_space": 148.58200597560943,
+        "w_space_vs_length": -115.11191002003129,
+        "w_straightness": -1.545839524848427,
+        "w_territory": 152.4623093982271
+      }
+    },
+    {
+      "cell": "6,1",
+      "ci": [
+        -0.05,
+        0.025
+      ],
+      "dev_fitness": 0.025,
+      "diff_vs_baseline": -0.0125,
+      "holdout_cell": "6,1",
+      "holdout_descriptors": [
+        10.263374485596708,
+        42.410879629629626
+      ],
+      "holdout_fitness": 0.0125,
+      "params": {
+        "keep_distance": 4.0,
+        "keep_repel": 4.5239137220677765,
+        "pull_radius": 163.0,
+        "random_tiebreak": 1.0,
+        "search_radius": 9.0,
+        "space_cap": 200.0,
+        "trap_margin": 1.6681005932754491,
+        "w_cut_off": -193.35768956152089,
+        "w_head_on_risk": -130.1861458367992,
+        "w_immediate_death": -794.436240874632,
+        "w_nearest_enemy_head": -165.2551800283785,
+        "w_space": -191.95703444729295,
+        "w_space_vs_length": -26.080816079504444,
+        "w_straightness": -9.460847069149391,
+        "w_territory": -167.6687154477843
+      }
+    },
+    {
+      "cell": "6,2",
+      "ci": [
+        -0.0625,
+        0.0
+      ],
+      "dev_fitness": 0.025,
+      "diff_vs_baseline": -0.025,
+      "holdout_cell": "6,2",
+      "holdout_descriptors": [
+        9.379750130140552,
+        48.36022904737116
+      ],
+      "holdout_fitness": 0.0,
+      "params": {
+        "keep_distance": 0.0,
+        "keep_repel": 4.657030060318481,
+        "pull_radius": 87.0,
+        "random_tiebreak": 0.0,
+        "search_radius": 28.0,
+        "space_cap": 11.0,
+        "trap_margin": 1.813183533575084,
+        "w_cut_off": -26.68411688515627,
+        "w_head_on_risk": -96.59118277617948,
+        "w_immediate_death": -3121.4265451234623,
+        "w_nearest_enemy_head": 124.92547110038555,
+        "w_space": -200.0,
+        "w_space_vs_length": 184.77475144683433,
+        "w_straightness": 6.870434539644137,
+        "w_territory": -69.94317604766337
+      }
+    },
+    {
+      "cell": "6,3",
+      "ci": [
+        -0.0625,
+        0.0
+      ],
+      "dev_fitness": 0.0,
+      "diff_vs_baseline": -0.025,
+      "holdout_cell": "5,3",
+      "holdout_descriptors": [
+        8.962514199166982,
+        50.903950523791494
+      ],
+      "holdout_fitness": 0.0,
+      "params": {
+        "keep_distance": 8.0,
+        "keep_repel": 4.628466724702326,
+        "pull_radius": 125.0,
+        "random_tiebreak": 1.0,
+        "search_radius": 4.0,
+        "space_cap": 170.0,
+        "trap_margin": 2.51890085696451,
+        "w_cut_off": -54.85086639305288,
+        "w_head_on_risk": -35.802590284916874,
+        "w_immediate_death": -279.0202473059462,
+        "w_nearest_enemy_head": -131.23470796467575,
+        "w_space": -103.30246044854574,
+        "w_space_vs_length": -125.64844256869057,
+        "w_straightness": -9.508052899149131,
+        "w_territory": -10.834654131209646
+      }
+    },
+    {
+      "cell": "6,4",
+      "ci": [
+        -0.0625,
+        0.025
+      ],
+      "dev_fitness": 0.025,
+      "diff_vs_baseline": -0.0125,
+      "holdout_cell": "6,4",
+      "holdout_descriptors": [
+        9.390287769784173,
+        60.37191675231244
+      ],
+      "holdout_fitness": 0.0125,
+      "params": {
+        "keep_distance": 9.0,
+        "keep_repel": 1.7871488858093754,
+        "pull_radius": 51.0,
+        "random_tiebreak": 0.0,
+        "search_radius": 15.0,
+        "space_cap": 64.0,
+        "trap_margin": 2.8465918038216627,
+        "w_cut_off": 161.3995508489507,
+        "w_head_on_risk": -151.78989800567516,
+        "w_immediate_death": 0.0,
+        "w_nearest_enemy_head": -21.41918560381805,
+        "w_space": 137.81934976667787,
+        "w_space_vs_length": -108.37192521086982,
+        "w_straightness": 1.1782607697474567,
+        "w_territory": 200.0
+      }
+    },
+    {
+      "cell": "6,5",
+      "ci": [
+        -0.0625,
+        0.0
+      ],
+      "dev_fitness": 0.0,
+      "diff_vs_baseline": -0.025,
+      "holdout_cell": "7,5",
+      "holdout_descriptors": [
+        10.551920341394025,
+        66.46135609293503
+      ],
+      "holdout_fitness": 0.0,
+      "params": {
+        "keep_distance": 7.0,
+        "keep_repel": 3.9690245904499326,
+        "pull_radius": 152.0,
+        "random_tiebreak": 1.0,
+        "search_radius": 11.0,
+        "space_cap": 177.0,
+        "trap_margin": 2.7230822604514717,
+        "w_cut_off": -143.36396220227917,
+        "w_head_on_risk": -42.724695764614296,
+        "w_immediate_death": 0.0,
+        "w_nearest_enemy_head": -157.15590929035028,
+        "w_space": -165.9117972421462,
+        "w_space_vs_length": -80.72147849945569,
+        "w_straightness": -10.0,
+        "w_territory": -146.50190635816114
+      }
+    },
+    {
+      "cell": "6,6",
+      "ci": [
+        -0.0625,
+        0.0
+      ],
+      "dev_fitness": 0.0,
+      "diff_vs_baseline": -0.025,
+      "holdout_cell": "7,6",
+      "holdout_descriptors": [
+        10.668276195074844,
+        67.78223080637373
+      ],
+      "holdout_fitness": 0.0,
+      "params": {
+        "keep_distance": 9.0,
+        "keep_repel": 3.677471772677694,
+        "pull_radius": 200.0,
+        "random_tiebreak": 1.0,
+        "search_radius": 5.0,
+        "space_cap": 182.0,
+        "trap_margin": 4.144648942677388,
+        "w_cut_off": -137.06710458593,
+        "w_head_on_risk": -30.385993206604354,
+        "w_immediate_death": 0.0,
+        "w_nearest_enemy_head": -141.76920006840678,
+        "w_space": -182.76074156591233,
+        "w_space_vs_length": -160.3600532189654,
+        "w_straightness": -9.505640912164731,
+        "w_territory": -198.7365438022231
+      }
+    },
+    {
+      "cell": "7,2",
+      "ci": [
+        -0.0625,
+        0.025
+      ],
+      "dev_fitness": 0.0,
+      "diff_vs_baseline": -0.0125,
+      "holdout_cell": "7,2",
+      "holdout_descriptors": [
+        10.7202304737516,
+        43.579129321382844
+      ],
+      "holdout_fitness": 0.0125,
+      "params": {
+        "keep_distance": 10.0,
+        "keep_repel": 3.9695553767391996,
+        "pull_radius": 200.0,
+        "random_tiebreak": 1.0,
+        "search_radius": 7.0,
+        "space_cap": 166.0,
+        "trap_margin": 4.809139422972131,
+        "w_cut_off": -127.93800959819514,
+        "w_head_on_risk": 6.0113728787457035,
+        "w_immediate_death": -770.1885511674582,
+        "w_nearest_enemy_head": -120.79592084147343,
+        "w_space": -155.29697344836475,
+        "w_space_vs_length": -138.63404504363803,
+        "w_straightness": -10.0,
+        "w_territory": -175.73866315418493
+      }
+    },
+    {
+      "cell": "7,3",
+      "ci": [
+        -0.0625,
+        0.0
+      ],
+      "dev_fitness": 0.075,
+      "diff_vs_baseline": -0.025,
+      "holdout_cell": "7,3",
+      "holdout_descriptors": [
+        11.33902377339403,
+        52.492539200809304
+      ],
+      "holdout_fitness": 0.0,
+      "params": {
+        "keep_distance": 4.0,
+        "keep_repel": 4.31046451048214,
+        "pull_radius": 173.0,
+        "random_tiebreak": 1.0,
+        "search_radius": 22.0,
+        "space_cap": 164.0,
+        "trap_margin": 1.5813176685833432,
+        "w_cut_off": -190.39939631234395,
+        "w_head_on_risk": -187.79375629185603,
+        "w_immediate_death": -555.2887622301914,
+        "w_nearest_enemy_head": 115.84543964789395,
+        "w_space": 66.26315579386926,
+        "w_space_vs_length": -199.88532561919632,
+        "w_straightness": 1.5247796202143462,
+        "w_territory": 25.060944274750597
+      }
+    },
+    {
+      "cell": "7,5",
+      "ci": [
+        -0.0625,
+        0.0
+      ],
+      "dev_fitness": 0.0,
+      "diff_vs_baseline": -0.025,
+      "holdout_cell": "7,5",
+      "holdout_descriptors": [
+        10.684011352885525,
+        66.95033112582782
+      ],
+      "holdout_fitness": 0.0,
+      "params": {
+        "keep_distance": 10.0,
+        "keep_repel": 2.5909834358916757,
+        "pull_radius": 200.0,
+        "random_tiebreak": 1.0,
+        "search_radius": 5.0,
+        "space_cap": 174.0,
+        "trap_margin": 4.011469217606034,
+        "w_cut_off": -194.35933516617274,
+        "w_head_on_risk": 15.325077094263577,
+        "w_immediate_death": 0.0,
+        "w_nearest_enemy_head": -200.0,
+        "w_space": -200.0,
+        "w_space_vs_length": -126.5763379127526,
+        "w_straightness": -6.005800776500764,
+        "w_territory": -183.90515713235598
+      }
+    },
+    {
+      "cell": "7,6",
+      "ci": [
+        -0.0625,
+        0.0
+      ],
+      "dev_fitness": 0.0,
+      "diff_vs_baseline": -0.025,
+      "holdout_cell": "7,6",
+      "holdout_descriptors": [
+        10.546234509056244,
+        68.81267874165873
+      ],
+      "holdout_fitness": 0.0,
+      "params": {
+        "keep_distance": 10.0,
+        "keep_repel": 3.4716817798925472,
+        "pull_radius": 200.0,
+        "random_tiebreak": 1.0,
+        "search_radius": 4.0,
+        "space_cap": 158.0,
+        "trap_margin": 3.814105043538996,
+        "w_cut_off": -200.0,
+        "w_head_on_risk": -38.01257195012789,
+        "w_immediate_death": 0.0,
+        "w_nearest_enemy_head": -142.84168494768196,
+        "w_space": -200.0,
+        "w_space_vs_length": -132.89381551583966,
+        "w_straightness": -9.681357165846169,
+        "w_territory": -200.0
+      }
+    }
+  ],
+  "n": 40
+}

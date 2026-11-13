@@ -130,15 +130,17 @@ stepping stones to solutions a greedy search would never reach.
 somewhere new.
 **Source:** Lehman & Stanley, 2011.
 
-### MAP-Elites (quality diversity) 🔜
+### MAP-Elites (quality diversity) ✅
 
 **Idea:** make a grid of *behaviour types* (e.g. "aggressive & central", "cautious &
 near walls") and keep the **best** solution in each cell. You end up with a whole map of
 strong, different strategies.
 **Source:** Mouret & Clune, 2015.
-**In Snake Arena:** a stretch goal using the phase 2 behaviour metrics (aggression ×
-caution) as the grid. It would show whether, say, a cautious Hunter can beat an
-aggressive one.
+**In Snake Arena:** `arena/rsi/map_elites.py` (generic) and `arena.cli map-elites
+<snake>`, with the phase 2 behaviour metrics (aggression × caution) as the grid. For the
+Hunter it found an elite that kills 0.338 per 1,000 ticks on holdout seeds against the
+hand-set Hunter's 0.025 (+0.312, 95% CI [+0.200, +0.438]) at about the same caution and
+slightly lower aggression; see `experiments/2026-11-13-map-elites-hunter`.
 
 ---
 

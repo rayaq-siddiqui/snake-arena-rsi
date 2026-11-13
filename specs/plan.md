@@ -332,7 +332,14 @@ Behaviour table (100 matches, all five together, 5,000-tick episodes on 100 × 1
   and on 60 final toy problems the gain over the defaults was +0.240 with a 95% CI of
   [−0.233, +0.806]. So the improver measured itself and found no significant improvement
   over its hand-set defaults; nothing was changed in `GaussianHillClimb`.
-- `[ ]` 5.2 MAP-Elites over the behaviour grid (aggression × caution).
+- `[x]` 5.2 MAP-Elites over the behaviour grid (aggression × caution). Built as the
+  generic archive `arena/rsi/map_elites.py` (dev-seed search, holdout re-score with paired
+  bootstrap CIs) and `arena/evolution/map_elites.py` (`arena.cli map-elites <snake>`), with
+  enemy-head distance × reachable cells as the 8 × 8 grid. Measured in
+  `experiments/2026-11-13-map-elites-hunter` (10 batches × 16, 3,200 dev games, 24 cells):
+  on 40 holdout seeds the best elite (cell 3,6) kills 0.338 per 1,000 ticks against the
+  hand-set Hunter's 0.025, +0.312 with a 95% CI of [+0.200, +0.438]. Most other elites
+  are within noise of the hand-set Hunter.
 - `[x]` 5.3 PBT-style parallel candidates per lineage. Built as the generic
   `PopulationHillClimb` proposer (`--proposer pbt` for `rsi-demo` and `evolve`): 4
   members, each with its own position and σ, propose one candidate each per generation;

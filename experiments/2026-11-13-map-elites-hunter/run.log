@@ -1,0 +1,18 @@
+batch   1: 11 cells, best 0.075 kills/1k, 12 changed
+batch   2: 17 cells, best 0.075 kills/1k, 7 changed
+batch   3: 18 cells, best 0.075 kills/1k, 2 changed
+batch   4: 19 cells, best 0.125 kills/1k, 2 changed
+batch   5: 22 cells, best 0.125 kills/1k, 6 changed
+batch   6: 22 cells, best 0.150 kills/1k, 4 changed
+batch   7: 23 cells, best 0.150 kills/1k, 4 changed
+batch   8: 24 cells, best 0.150 kills/1k, 2 changed
+batch   9: 24 cells, best 0.275 kills/1k, 2 changed
+batch  10: 24 cells, best 0.275 kills/1k, 1 changed
+
+Holdout (40 seeds the search never saw): hand-set hunter 0.025 kills/1k in cell 2,6.
+  cell 3,6: 0.338 kills/1k, vs hand-set +0.312 [+0.200, +0.438]
+  cell 4,3: 0.113 kills/1k, vs hand-set +0.087 [+0.000, +0.175]
+  cell 4,4: 0.100 kills/1k, vs hand-set +0.075 [+0.000, +0.163]
+  cell 3,5: 0.087 kills/1k, vs hand-set +0.062 [-0.013, +0.138]
+  cell 5,4: 0.062 kills/1k, vs hand-set +0.037 [-0.025, +0.100]
+Wrote runs/map-elites-hunter/map_elites.json, holdout.json and map_elites.svg
