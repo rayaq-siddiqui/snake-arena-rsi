@@ -130,7 +130,7 @@ library; dev tools are pytest, hypothesis, ruff and mypy (strict).
 uv sync                                   # install
 scripts/jj-setup.sh                       # jj colocated repo + jj fix config (once per checkout)
 jj fix                                    # ruff --fix + ruff format on the files you changed
-uv run pytest                             # all tests (~105 s; includes engine fuzzing)
+uv run pytest                             # all tests (~5 min on 4 cores; includes engine fuzzing)
 uv run ruff check . && uv run ruff format --check . && uv run mypy   # lint, format, types
 uv run python -m arena.cli run-match --seed 42                     # one headless match
 uv run python -m arena.cli run-tournament --matches 100 --workers 4 --out out/t

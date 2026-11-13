@@ -51,15 +51,19 @@ uv run python -m arena.cli run-match --seed 42
 ```
 
 ```text
-Match seed 42: 100x100 board, 5 snakes x 5 cells, first to 100 points (-1 per wall or own-body death), cap 100,000 ticks
-Ended at tick 100,000 (tick_cap), winner s4
+Match seed 42: 150x150 board, 5 snakes x 10 cells, first to 100 points (-1 per wall or own-body death), cap 100,000 ticks
+Ended at tick 100,000 (tick_cap), winner s2
 
 rank  snake  policy          score kills deaths    K/D alive ticks
-   1  s4     random_safe         1     2     20   0.10      99,780
-   2  s1     random_safe        -1     0     20   0.00      99,780
+   1  s2     random_safe      -226     0    234   0.00      97,426
+   2  s4     random_safe      -227     1    242   0.00      97,338
    ...
-100,000 ticks in 3.48s (28,720 ticks/s)
+100,000 ticks in 3.93s (25,450 ticks/s)
 ```
+
+Random snakes only look one move ahead, so with 10-cell bodies they often turn into
+a pocket of their own body and die there (226-283 own-body deaths per snake in this match):
+scores go negative unless a policy plans further.
 
 **Run a tournament** of seeded matches over several processes (results don't depend on
 the worker count), writing `matches.jsonl`, `summary.csv` and a 5 × 5 `kill_matrix.csv`:
