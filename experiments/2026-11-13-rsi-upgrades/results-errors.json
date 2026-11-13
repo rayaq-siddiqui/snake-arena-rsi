@@ -1,0 +1,49 @@
+{
+  "settings": {
+    "seeds": 10,
+    "problem": "quadratic",
+    "dim": 5,
+    "episodes": 12000,
+    "pairs": 50,
+    "target": 0.1,
+    "workers": 2,
+    "configs": null,
+    "errors": true
+  },
+  "gaussian+bootstrap": {
+    "accepted": 33,
+    "generations": 2000,
+    "holdout_tests": 970,
+    "episodes": 307600
+  },
+  "gaussian+sequential": {
+    "accepted": 19,
+    "generations": 2000,
+    "holdout_tests": 711,
+    "episodes": 205590
+  },
+  "gaussian+seq-min10": {
+    "accepted": 15,
+    "generations": 2000,
+    "holdout_tests": 615,
+    "episodes": 174914
+  },
+  "rare+bootstrap": {
+    "accepted": 30,
+    "generations": 2000,
+    "holdout_tests": 897,
+    "episodes": 322500
+  },
+  "rare+sequential": {
+    "accepted": 12,
+    "generations": 2000,
+    "holdout_tests": 702,
+    "episodes": 225480
+  },
+  "rare+seq-min10": {
+    "accepted": 11,
+    "generations": 2000,
+    "holdout_tests": 627,
+    "episodes": 196652
+  }
+}

@@ -1,0 +1,892 @@
+{
+  "settings": {
+    "seeds": 20,
+    "problem": "ellipsoid",
+    "dim": 10,
+    "episodes": 12000,
+    "pairs": 50,
+    "target": 0.1,
+    "workers": 2,
+    "configs": null,
+    "errors": false
+  },
+  "results": {
+    "gaussian_hill_climb+bootstrap": {
+      "mean": -6.389654081083361,
+      "diff": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ],
+      "reached_target": 7,
+      "median_episodes_to_target": 7400.0,
+      "mean_generations": 91.2,
+      "accepted": 270,
+      "accepted_not_better": 1
+    },
+    "gaussian_hill_climb+sequential": {
+      "mean": -3.675943763513762,
+      "diff": 2.7137103175695976,
+      "ci": [
+        0.6353643431885393,
+        6.279595856192021
+      ],
+      "reached_target": 11,
+      "median_episodes_to_target": 4490.0,
+      "mean_generations": 147.3,
+      "accepted": 311,
+      "accepted_not_better": 2
+    },
+    "cma_es+bootstrap": {
+      "mean": -3.2934814398884207,
+      "diff": 3.096172641194939,
+      "ci": [
+        0.4933617134908237,
+        7.101882603040256
+      ],
+      "reached_target": 11,
+      "median_episodes_to_target": 9600.0,
+      "mean_generations": 105.6,
+      "accepted": 211,
+      "accepted_not_better": 0
+    },
+    "cma_es+sequential": {
+      "mean": -2.351229444847094,
+      "diff": 4.038424636236266,
+      "ci": [
+        1.6518421231902776,
+        8.008313575365145
+      ],
+      "reached_target": 16,
+      "median_episodes_to_target": 4290.0,
+      "mean_generations": 179.6,
+      "accepted": 245,
+      "accepted_not_better": 3
+    },
+    "random_restart+sequential": {
+      "mean": -12.329699022147512,
+      "diff": -5.94004494106415,
+      "ci": [
+        -9.03237734867035,
+        -1.3807959978203805
+      ],
+      "reached_target": 1,
+      "median_episodes_to_target": 10810.0,
+      "mean_generations": 294.5,
+      "accepted": 64,
+      "accepted_not_better": 0
+    }
+  },
+  "raw": {
+    "gaussian_hill_climb+bootstrap": [
+      {
+        "score": -5.028916729195261,
+        "to_target": null,
+        "generations": 83,
+        "accepted": 9,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -2.09770990565681,
+        "to_target": 7900,
+        "generations": 92,
+        "accepted": 16,
+        "accepted_not_better": 0,
+        "episodes": 12200
+      },
+      {
+        "score": -4.826035379108308,
+        "to_target": null,
+        "generations": 88,
+        "accepted": 9,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -4.35765731902424,
+        "to_target": null,
+        "generations": 86,
+        "accepted": 11,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -4.372297000286081,
+        "to_target": null,
+        "generations": 86,
+        "accepted": 8,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -6.528564847471499,
+        "to_target": 3400,
+        "generations": 96,
+        "accepted": 19,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -5.002465214805722,
+        "to_target": null,
+        "generations": 95,
+        "accepted": 20,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -4.018254726065506,
+        "to_target": null,
+        "generations": 78,
+        "accepted": 6,
+        "accepted_not_better": 1,
+        "episodes": 12000
+      },
+      {
+        "score": -6.851392285110397,
+        "to_target": null,
+        "generations": 85,
+        "accepted": 10,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -1.030487395274198,
+        "to_target": 9100,
+        "generations": 96,
+        "accepted": 15,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -1.9741097362607736,
+        "to_target": 5600,
+        "generations": 93,
+        "accepted": 8,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -4.63015979905058,
+        "to_target": null,
+        "generations": 93,
+        "accepted": 19,
+        "accepted_not_better": 0,
+        "episodes": 12100
+      },
+      {
+        "score": -6.633528658693351,
+        "to_target": null,
+        "generations": 89,
+        "accepted": 12,
+        "accepted_not_better": 0,
+        "episodes": 12100
+      },
+      {
+        "score": -4.2623270870709575,
+        "to_target": 7200,
+        "generations": 94,
+        "accepted": 15,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -5.515529582826819,
+        "to_target": 7800,
+        "generations": 106,
+        "accepted": 20,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -7.00287904678835,
+        "to_target": null,
+        "generations": 96,
+        "accepted": 17,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -3.515397997364468,
+        "to_target": null,
+        "generations": 93,
+        "accepted": 17,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -4.280434363769041,
+        "to_target": 7400,
+        "generations": 95,
+        "accepted": 18,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -7.229480026126731,
+        "to_target": null,
+        "generations": 91,
+        "accepted": 10,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -38.6354545217181,
+        "to_target": null,
+        "generations": 89,
+        "accepted": 11,
+        "accepted_not_better": 0,
+        "episodes": 12100
+      }
+    ],
+    "gaussian_hill_climb+sequential": [
+      {
+        "score": -4.384161819305299,
+        "to_target": null,
+        "generations": 119,
+        "accepted": 9,
+        "accepted_not_better": 0,
+        "episodes": 12060
+      },
+      {
+        "score": -1.8956602780359928,
+        "to_target": 3140,
+        "generations": 155,
+        "accepted": 17,
+        "accepted_not_better": 0,
+        "episodes": 12130
+      },
+      {
+        "score": -5.010664419748445,
+        "to_target": null,
+        "generations": 152,
+        "accepted": 10,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -3.5611545004223326,
+        "to_target": null,
+        "generations": 132,
+        "accepted": 11,
+        "accepted_not_better": 1,
+        "episodes": 12000
+      },
+      {
+        "score": -4.489929985213421,
+        "to_target": null,
+        "generations": 146,
+        "accepted": 7,
+        "accepted_not_better": 0,
+        "episodes": 12030
+      },
+      {
+        "score": -4.569911287551137,
+        "to_target": 1890,
+        "generations": 136,
+        "accepted": 22,
+        "accepted_not_better": 0,
+        "episodes": 12120
+      },
+      {
+        "score": -3.176368653927899,
+        "to_target": 5680,
+        "generations": 167,
+        "accepted": 21,
+        "accepted_not_better": 1,
+        "episodes": 12000
+      },
+      {
+        "score": -3.6918771655943257,
+        "to_target": null,
+        "generations": 125,
+        "accepted": 7,
+        "accepted_not_better": 0,
+        "episodes": 12030
+      },
+      {
+        "score": -6.350617970907965,
+        "to_target": null,
+        "generations": 128,
+        "accepted": 11,
+        "accepted_not_better": 0,
+        "episodes": 12050
+      },
+      {
+        "score": -1.0242569921674014,
+        "to_target": 5090,
+        "generations": 152,
+        "accepted": 16,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -2.0120340823526113,
+        "to_target": 3160,
+        "generations": 145,
+        "accepted": 9,
+        "accepted_not_better": 0,
+        "episodes": 12010
+      },
+      {
+        "score": -2.878073383495088,
+        "to_target": 6710,
+        "generations": 156,
+        "accepted": 20,
+        "accepted_not_better": 0,
+        "episodes": 12020
+      },
+      {
+        "score": -5.47619570253232,
+        "to_target": null,
+        "generations": 165,
+        "accepted": 14,
+        "accepted_not_better": 0,
+        "episodes": 12120
+      },
+      {
+        "score": -1.7620690720662677,
+        "to_target": 4490,
+        "generations": 154,
+        "accepted": 20,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -2.1983888421286353,
+        "to_target": 4190,
+        "generations": 159,
+        "accepted": 27,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -2.2698841222218955,
+        "to_target": 8250,
+        "generations": 155,
+        "accepted": 27,
+        "accepted_not_better": 0,
+        "episodes": 12140
+      },
+      {
+        "score": -4.092513663302241,
+        "to_target": null,
+        "generations": 152,
+        "accepted": 13,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -4.353243812431653,
+        "to_target": 4070,
+        "generations": 165,
+        "accepted": 21,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -5.780797574946737,
+        "to_target": null,
+        "generations": 142,
+        "accepted": 10,
+        "accepted_not_better": 0,
+        "episodes": 12270
+      },
+      {
+        "score": -4.541071941923576,
+        "to_target": 7440,
+        "generations": 141,
+        "accepted": 19,
+        "accepted_not_better": 0,
+        "episodes": 12200
+      }
+    ],
+    "cma_es+bootstrap": [
+      {
+        "score": -3.0688449330737853,
+        "to_target": null,
+        "generations": 103,
+        "accepted": 7,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -5.423042769615443,
+        "to_target": null,
+        "generations": 106,
+        "accepted": 12,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -1.642134501470425,
+        "to_target": 9600,
+        "generations": 100,
+        "accepted": 10,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -3.4445551193428026,
+        "to_target": null,
+        "generations": 107,
+        "accepted": 10,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -1.6547005478812677,
+        "to_target": null,
+        "generations": 108,
+        "accepted": 7,
+        "accepted_not_better": 0,
+        "episodes": 12100
+      },
+      {
+        "score": -2.9859936929452884,
+        "to_target": 1300,
+        "generations": 107,
+        "accepted": 10,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -2.713501850915792,
+        "to_target": 9500,
+        "generations": 105,
+        "accepted": 12,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -0.8815945647936005,
+        "to_target": 12000,
+        "generations": 107,
+        "accepted": 9,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -1.9491220102817666,
+        "to_target": 9600,
+        "generations": 106,
+        "accepted": 11,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -1.9459537849586352,
+        "to_target": null,
+        "generations": 107,
+        "accepted": 9,
+        "accepted_not_better": 0,
+        "episodes": 12200
+      },
+      {
+        "score": -0.8927717224533274,
+        "to_target": 6100,
+        "generations": 108,
+        "accepted": 7,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -5.197143617687667,
+        "to_target": null,
+        "generations": 106,
+        "accepted": 9,
+        "accepted_not_better": 0,
+        "episodes": 12200
+      },
+      {
+        "score": -2.8702440284315642,
+        "to_target": 11200,
+        "generations": 105,
+        "accepted": 15,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -7.063200170715442,
+        "to_target": null,
+        "generations": 107,
+        "accepted": 12,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -7.635639947355411,
+        "to_target": 5000,
+        "generations": 104,
+        "accepted": 12,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -2.8240857192548328,
+        "to_target": 9600,
+        "generations": 106,
+        "accepted": 12,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -2.683721515822563,
+        "to_target": null,
+        "generations": 106,
+        "accepted": 11,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -5.686288353907589,
+        "to_target": 9400,
+        "generations": 101,
+        "accepted": 15,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -3.429446629301891,
+        "to_target": null,
+        "generations": 108,
+        "accepted": 9,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -1.8776433175593157,
+        "to_target": 9700,
+        "generations": 105,
+        "accepted": 12,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      }
+    ],
+    "cma_es+sequential": [
+      {
+        "score": -2.6874144834896714,
+        "to_target": null,
+        "generations": 169,
+        "accepted": 8,
+        "accepted_not_better": 0,
+        "episodes": 12170
+      },
+      {
+        "score": -3.701032726553615,
+        "to_target": 5700,
+        "generations": 177,
+        "accepted": 13,
+        "accepted_not_better": 0,
+        "episodes": 12170
+      },
+      {
+        "score": -1.3470827865493553,
+        "to_target": 6380,
+        "generations": 157,
+        "accepted": 9,
+        "accepted_not_better": 0,
+        "episodes": 12010
+      },
+      {
+        "score": -2.308456006678234,
+        "to_target": 9950,
+        "generations": 173,
+        "accepted": 11,
+        "accepted_not_better": 0,
+        "episodes": 12130
+      },
+      {
+        "score": -0.8857445614954492,
+        "to_target": 5840,
+        "generations": 177,
+        "accepted": 11,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -2.2293167825723903,
+        "to_target": 570,
+        "generations": 182,
+        "accepted": 13,
+        "accepted_not_better": 0,
+        "episodes": 12170
+      },
+      {
+        "score": -2.3058595693717012,
+        "to_target": 3960,
+        "generations": 180,
+        "accepted": 13,
+        "accepted_not_better": 0,
+        "episodes": 12280
+      },
+      {
+        "score": -0.9839740502450333,
+        "to_target": null,
+        "generations": 169,
+        "accepted": 8,
+        "accepted_not_better": 0,
+        "episodes": 12070
+      },
+      {
+        "score": -2.31239465406212,
+        "to_target": 3960,
+        "generations": 161,
+        "accepted": 11,
+        "accepted_not_better": 0,
+        "episodes": 12020
+      },
+      {
+        "score": -0.786249661646439,
+        "to_target": 4080,
+        "generations": 186,
+        "accepted": 12,
+        "accepted_not_better": 0,
+        "episodes": 12110
+      },
+      {
+        "score": -1.0916752231959865,
+        "to_target": 4140,
+        "generations": 173,
+        "accepted": 9,
+        "accepted_not_better": 0,
+        "episodes": 12040
+      },
+      {
+        "score": -5.054515986938644,
+        "to_target": null,
+        "generations": 174,
+        "accepted": 11,
+        "accepted_not_better": 0,
+        "episodes": 12190
+      },
+      {
+        "score": -2.826616863956204,
+        "to_target": 4680,
+        "generations": 196,
+        "accepted": 13,
+        "accepted_not_better": 0,
+        "episodes": 12060
+      },
+      {
+        "score": -4.372310946633693,
+        "to_target": 7240,
+        "generations": 188,
+        "accepted": 17,
+        "accepted_not_better": 1,
+        "episodes": 12020
+      },
+      {
+        "score": -5.595702679549701,
+        "to_target": 2080,
+        "generations": 184,
+        "accepted": 15,
+        "accepted_not_better": 0,
+        "episodes": 12010
+      },
+      {
+        "score": -0.33986228276958763,
+        "to_target": 3920,
+        "generations": 182,
+        "accepted": 18,
+        "accepted_not_better": 1,
+        "episodes": 12010
+      },
+      {
+        "score": -1.9919067118669604,
+        "to_target": 4970,
+        "generations": 196,
+        "accepted": 11,
+        "accepted_not_better": 1,
+        "episodes": 12050
+      },
+      {
+        "score": -1.6257558174950242,
+        "to_target": 4130,
+        "generations": 195,
+        "accepted": 18,
+        "accepted_not_better": 0,
+        "episodes": 12060
+      },
+      {
+        "score": -3.119334305190425,
+        "to_target": null,
+        "generations": 184,
+        "accepted": 11,
+        "accepted_not_better": 0,
+        "episodes": 12010
+      },
+      {
+        "score": -1.459382796681637,
+        "to_target": 4440,
+        "generations": 189,
+        "accepted": 13,
+        "accepted_not_better": 0,
+        "episodes": 12030
+      }
+    ],
+    "random_restart+sequential": [
+      {
+        "score": -9.396631834161738,
+        "to_target": null,
+        "generations": 298,
+        "accepted": 1,
+        "accepted_not_better": 0,
+        "episodes": 12020
+      },
+      {
+        "score": -11.269178408951333,
+        "to_target": null,
+        "generations": 297,
+        "accepted": 3,
+        "accepted_not_better": 0,
+        "episodes": 12030
+      },
+      {
+        "score": -5.9460326431006525,
+        "to_target": null,
+        "generations": 298,
+        "accepted": 2,
+        "accepted_not_better": 0,
+        "episodes": 12020
+      },
+      {
+        "score": -15.365897426096696,
+        "to_target": null,
+        "generations": 299,
+        "accepted": 1,
+        "accepted_not_better": 0,
+        "episodes": 12010
+      },
+      {
+        "score": -11.94681839553093,
+        "to_target": null,
+        "generations": 299,
+        "accepted": 1,
+        "accepted_not_better": 0,
+        "episodes": 12010
+      },
+      {
+        "score": -8.985184252790651,
+        "to_target": 10810,
+        "generations": 285,
+        "accepted": 7,
+        "accepted_not_better": 0,
+        "episodes": 12010
+      },
+      {
+        "score": -12.93178122404786,
+        "to_target": null,
+        "generations": 288,
+        "accepted": 5,
+        "accepted_not_better": 0,
+        "episodes": 12030
+      },
+      {
+        "score": -8.889472218785782,
+        "to_target": null,
+        "generations": 300,
+        "accepted": 0,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -6.725656669366197,
+        "to_target": null,
+        "generations": 291,
+        "accepted": 5,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -10.523855952264766,
+        "to_target": null,
+        "generations": 294,
+        "accepted": 3,
+        "accepted_not_better": 0,
+        "episodes": 12020
+      },
+      {
+        "score": -14.265977115413088,
+        "to_target": null,
+        "generations": 295,
+        "accepted": 3,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -12.026583946689154,
+        "to_target": null,
+        "generations": 295,
+        "accepted": 4,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -23.239550686064668,
+        "to_target": null,
+        "generations": 290,
+        "accepted": 3,
+        "accepted_not_better": 0,
+        "episodes": 12010
+      },
+      {
+        "score": -12.370723384401941,
+        "to_target": null,
+        "generations": 297,
+        "accepted": 3,
+        "accepted_not_better": 0,
+        "episodes": 12030
+      },
+      {
+        "score": -13.608653238897201,
+        "to_target": null,
+        "generations": 291,
+        "accepted": 5,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -17.492912250916273,
+        "to_target": null,
+        "generations": 288,
+        "accepted": 5,
+        "accepted_not_better": 0,
+        "episodes": 12030
+      },
+      {
+        "score": -15.699945921319003,
+        "to_target": null,
+        "generations": 298,
+        "accepted": 2,
+        "accepted_not_better": 0,
+        "episodes": 12020
+      },
+      {
+        "score": -12.888226073746631,
+        "to_target": null,
+        "generations": 295,
+        "accepted": 4,
+        "accepted_not_better": 0,
+        "episodes": 12000
+      },
+      {
+        "score": -13.101669507664147,
+        "to_target": null,
+        "generations": 298,
+        "accepted": 2,
+        "accepted_not_better": 0,
+        "episodes": 12020
+      },
+      {
+        "score": -9.919229292741484,
+        "to_target": null,
+        "generations": 294,
+        "accepted": 5,
+        "accepted_not_better": 0,
+        "episodes": 12010
+      }
+    ]
+  }
+}
