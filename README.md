@@ -10,8 +10,9 @@ really wins more. Repeat that loop and you have a small, watchable lab for
 Five personalities play (Hunter, Survivor, Trapper, Predictor, Opportunist). A generic,
 snake-agnostic improvement loop (`arena/rsi`) is proven on toy problems, and each snake
 now runs its own lineage on that loop (`evolve`), with a report and a live dashboard.
-In a 3-generation run of the specified experiment, **one of the five snakes (Trapper)**
-**measurably improved itself**; the other four found nothing that passed the tests (see
+In the specified experiment (given 10 generations, it stopped after 7 when no snake had
+improved in 4), **one of the five snakes (Trapper)** **measurably improved itself**; the
+other four found nothing that passed the tests (see
 [Results](#results)).
 
 ![The Snake Arena viewer: five random snakes on a 20 × 20 board with the leaderboard and settings](docs/viewer.png)
@@ -175,14 +176,15 @@ Two phase 4 runs are committed, each with a README, report and dashboard (downlo
 
 | Run | Setting | Generations | Lineages improved on final seeds |
 |---|---|---|---|
-| [`2026-11-12-default`](experiments/2026-11-12-default/README.md) | the specified default profile: 100 × 100, 5,000-tick episodes, 100 + 100 pairs | 3 | **1 of 5**: Trapper, +0.053 kills / 1k ticks, 95% CI [+0.024, +0.087] |
+| [`2026-11-12-default`](experiments/2026-11-12-default/README.md) | the specified default profile: 100 × 100, 5,000-tick episodes, 100 + 100 pairs | 7 of 10 (all stopped on patience) | **1 of 5**: Trapper, +0.053 kills / 1k ticks, 95% CI [+0.024, +0.087] |
 | [`2026-11-12-baseline`](experiments/2026-11-12-baseline/README.md) | reduced experiment profile: 24 × 24, 2,000-tick episodes, 40 + 40 pairs | 4 (all stopped on patience) | 0 of 5 |
 
 In the default run, **Trapper** accepted one change in generation 3: it keeps closer to
 rivals (`keep_distance 3 -> 2`, `w_space 6 -> 4.897`). That doubled its kills on the
 holdout seeds while its deaths per alive tick halved. The gain held on the untouched final
 seeds and against the hand-set reference snakes, and the hall-of-fame check shows no
-cycle. The other four lineages accepted nothing. Several proposals looked better but had
+cycle. The other four lineages accepted nothing, and generations 4-7 found nothing more for any
+lineage. Several proposals looked better but had
 intervals reaching zero, and one Opportunist change that bought kills with self-crashes
 was stopped by the death guard.
 
@@ -345,7 +347,7 @@ The viewer and the CLI use the same engine, so a seed plays out identically in b
    Predictor, Opportunist.
 3. **RSI framework** ✅ — a generic propose → test → keep-or-reject loop that knows nothing
    about snakes, with honest statistics, held-out tests, and a hall of fame.
-4. **Snakes that improve themselves** ✅ (one of five improved in the 3-generation run) —
+4. **Snakes that improve themselves** ✅ (one of five improved in the specified run) —
    each snake plugs into the framework and tunes its own parameters, generation after
    generation, with a report, a live dashboard and an evolved-vs-original viewer.
 
@@ -360,9 +362,9 @@ The viewer and the CLI use the same engine, so a seed plays out identically in b
 ## Limitations
 
 - Improvement is slow and expensive: kills are rare, so each decision needs hundreds of
-  5,000-tick games (36-54 minutes per generation on 4 cores), and only one of five
-  lineages improved in 3 generations. The full 10-generation default run has not been
-  done.
+  5,000-tick games (36-54 minutes per generation on 4 cores while all five lineages are
+  active; 3.3 hours for the whole run), and only one of five lineages improved. A local
+  parameter search with patience 4 runs out of ideas quickly here.
 - The improver tunes parameters only. It never edits code, as `specs/vision.md`
   requires until a real sandbox exists.
 - The viewer is a local development tool (no auth); it binds to 127.0.0.1 by default.
