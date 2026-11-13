@@ -342,7 +342,19 @@ Behaviour table (100 matches, all five together, 5,000-tick episodes on 100 × 1
   so the hill climber stays the default. On the snakes, `evolve --quick --proposer pbt`
   was checked for one generation (4 candidates screened per lineage, the population
   checkpointed); a measured snake comparison has not been run.
-- `[ ]` 5.4 Exploiter snakes trained to beat current champions (AlphaStar-style league).
+- `[x]` 5.4 Exploiter snakes trained to beat current champions (AlphaStar-style league).
+  Built in `arena/evolution/exploit.py` (`exploit <run> <snake>`): an ordinary `Run` whose
+  every game is against the run's champions frozen after generation G, started from the
+  personality's own champion, so its final check is the **exploit gap**. An exploiter
+  with an accepted change is registered in `<run>/league.json`
+  (`arena/evolution/league.py`) and joins its personality's hall of fame after the
+  generation it was registered; champions, versions and committed generations never
+  change. Measured in `experiments/2026-11-13-exploiters` against the 4-generation
+  experiment-profile run: the Trapper exploiter found a gap of +0.110 kills/1k, 95% CI
+  [+0.060, +0.170] on 100 final seeds (one change, `w_straightness` 0.01 → −2.113); the
+  Hunter exploiter found none in 4 generations because kills are rare enough that its
+  dev screens tied. The league's effect on later generations of a long run has not been
+  measured yet.
 - `[x]` 5.5 Optional `LLMProposer` (numbers-only, bounded, budgeted, audit-logged, never
   sees holdout/final seeds); compare against `GaussianHillClimb` under equal episode
   budgets. Built in `arena/rsi/llm.py`, opt-in with `--proposer llm` and the `llm` extra;

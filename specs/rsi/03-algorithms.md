@@ -101,7 +101,11 @@ specialists, and exploiters built to find your weaknesses.
 **Why:** strategy games have rock-paper-scissors cycles. Only playing your latest self
 can go in circles ([Example F](02-worked-examples.md#example-f--rock-paper-scissors-why-we-keep-a-hall-of-fame)).
 **In Snake Arena:** opponent mixtures with halls of fame and a fixed reference portfolio
-✅; dedicated exploiter snakes 🔜.
+✅; exploiter snakes ✅: `exploit <run> <snake>` trains one against the frozen champions
+and, if it finds a weakness, adds it to the run's league so later generations play it. A
+Trapper exploiter beat the Trapper champion's kill rate against those champions by +0.11
+kills/1k, 95% CI [+0.06, +0.17]
+([experiment](../../experiments/2026-11-13-exploiters/README.md)).
 
 ### Population Based Training (PBT) ✅
 
