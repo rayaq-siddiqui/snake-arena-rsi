@@ -124,3 +124,52 @@ def test_a_change_note_ignores_round_trip_noise() -> None:
     note = describe_change({"a": 20.0, "b": 0.5}, {"a": 20.00000000000003, "b": 0.75}, space)
     assert note == "b 0.5->0.75"
     assert describe_change({"a": 20.0, "b": 0.5}, {"a": 20.0, "b": 0.5}, space) == "no change"
+
+
+def test_pbt_members_move_on_dev_wins_and_the_worst_copies_the_best() -> None:
+    space = (ParamSpec("a", "float", 0.0, 1.0, 0.5), ParamSpec("b", "float", 0.0, 1.0, 0.5))
+    pbt = make_proposer("pbt", batch=4, exploit=1)
+    champ = champion(space)
+    rng = np.random.default_rng(3)
+    cands = [pbt.propose(champ, History(1, (), (champ,)), space, rng) for _ in range(4)]
+    diffs = [0.5, -0.2, 0.1, -0.4]
+    pbt.observe(
+        [
+            Feedback(1, c, False, "screened", fake_dev(c, d))
+            for c, d in zip(cands, diffs, strict=True)
+        ]
+    )
+    members = pbt.state()["members"]
+    best = [cands[0].params[p.name] for p in space]
+    assert [round(x, 9) for x in members[0]["u"]] == [round(x, 9) for x in best]
+    assert members[0]["score"] == 0.5 and members[2]["score"] == 0.1
+    assert members[1]["score"] == 0.0  # a dev loss leaves the member where it was
+    assert members[3]["u"] == members[0]["u"] and members[3]["score"] == 0.5
+    assert members[3]["sigma"] in (pytest.approx(0.15 * 0.8), pytest.approx(0.15 * 1.25))
+
+
+def test_pbt_scores_follow_the_new_champion_after_an_accept() -> None:
+    space = (ParamSpec("a", "float", 0.0, 1.0, 0.5),)
+    pbt = make_proposer("pbt", batch=2, exploit=1)
+    champ = champion(space)
+    rng = np.random.default_rng(0)
+    cands = [pbt.propose(champ, History(1, (), (champ,)), space, rng) for _ in range(2)]
+    pbt.observe(
+        [
+            Feedback(1, cands[0], True, "holdout", fake_dev(cands[0], 0.6)),
+            Feedback(1, cands[1], False, "screened", fake_dev(cands[1], 0.2)),
+        ]
+    )
+    members = pbt.state()["members"]
+    accepted_u = pytest.approx([cands[0].params["a"]])
+    # the accepted point is now the champion, so it scores 0; the other member, 0.4 behind
+    # it, is the worst and copies it
+    assert [m["score"] for m in members] == [pytest.approx(0.0)] * 2
+    assert members[0]["u"] == accepted_u and members[1]["u"] == accepted_u
+
+
+def test_pbt_rejects_a_population_too_small_to_exploit() -> None:
+    with pytest.raises(ValueError):
+        make_proposer("pbt", batch=1)
+    with pytest.raises(ValueError):
+        make_proposer("pbt", batch=4, exploit=3)

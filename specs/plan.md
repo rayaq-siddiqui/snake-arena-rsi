@@ -333,7 +333,15 @@ Behaviour table (100 matches, all five together, 5,000-tick episodes on 100 × 1
   [−0.233, +0.806]. So the improver measured itself and found no significant improvement
   over its hand-set defaults; nothing was changed in `GaussianHillClimb`.
 - `[ ]` 5.2 MAP-Elites over the behaviour grid (aggression × caution).
-- `[ ]` 5.3 PBT-style parallel candidates per lineage.
+- `[x]` 5.3 PBT-style parallel candidates per lineage. Built as the generic
+  `PopulationHillClimb` proposer (`--proposer pbt` for `rsi-demo` and `evolve`): 4
+  members, each with its own position and σ, propose one candidate each per generation;
+  the worst member copies a top member and rescales σ (exploit / explore). Measured in
+  `experiments/2026-11-13-pbt` at equal episode budgets on 40 toy problems: a tie with
+  the hill climber (5-D: +0.054, 95% CI [−0.218, +0.381]; 10-D: −0.101 [−2.634, +3.175]),
+  so the hill climber stays the default. On the snakes, `evolve --quick --proposer pbt`
+  was checked for one generation (4 candidates screened per lineage, the population
+  checkpointed); a measured snake comparison has not been run.
 - `[ ]` 5.4 Exploiter snakes trained to beat current champions (AlphaStar-style league).
 - `[x]` 5.5 Optional `LLMProposer` (numbers-only, bounded, budgeted, audit-logged, never
   sees holdout/final seeds); compare against `GaussianHillClimb` under equal episode

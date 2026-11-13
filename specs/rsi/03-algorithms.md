@@ -103,14 +103,16 @@ can go in circles ([Example F](02-worked-examples.md#example-f--rock-paper-sciss
 **In Snake Arena:** opponent mixtures with halls of fame and a fixed reference portfolio
 ✅; dedicated exploiter snakes 🔜.
 
-### Population Based Training (PBT) 🔜
+### Population Based Training (PBT) ✅
 
 **Idea:** train many copies at once. Every so often, poor performers **copy** the
 settings of good performers ("exploit") and then **nudge** them randomly ("explore").
 The hyperparameters improve *while* training runs.
 **Source:** Jaderberg et al. (DeepMind), 2017.
-**In Snake Arena:** a stretch goal — run several candidates per lineage in parallel and
-let them copy from each other.
+**In Snake Arena:** the `pbt` proposer runs 4 hill climbers per lineage; each generation
+the worst copies one of the best and changes its step size. On toy problems at an equal
+game budget it tied the single hill climber
+([experiment](../../experiments/2026-11-13-pbt/README.md)).
 
 ---
 

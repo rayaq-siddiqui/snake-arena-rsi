@@ -306,9 +306,121 @@ class ArchiveCrossover:
         pass
 
 
+class PopulationHillClimb:
+    """PBT-style parallel hill climbers (Jaderberg et al. 2017, plan step 5.3).
+
+    ``batch`` members each keep their own position and step size and propose one
+    candidate per generation, so a generation screens ``batch`` candidates on dev.
+    A member moves to its candidate when the candidate's dev score (its paired
+    difference against the champion) is at least the member's current score. Then the
+    population trains itself: the bottom ``exploit`` members copy the position, step
+    size and score of a random top member ("exploit") and multiply the copied step size
+    by 0.8 or 1.25 ("explore"). When a candidate is accepted the champion moves, so
+    every score is shifted by that candidate's dev difference to stay comparable.
+    """
+
+    name = "pbt"
+
+    def __init__(
+        self,
+        batch: int = 4,
+        sigma: float = 0.15,
+        sigma_min: float = 0.01,
+        sigma_max: float = 0.5,
+        exploit: int = 1,
+        max_params: int = 3,
+    ) -> None:
+        if batch < 2 or not 1 <= exploit <= batch // 2:
+            raise ValueError("pbt needs batch >= 2 and 1 <= exploit <= batch // 2")
+        self.batch = batch
+        self.sigma0, self.sigma_min, self.sigma_max = sigma, sigma_min, sigma_max
+        self.exploit = exploit
+        self.max_params = max_params
+        self.members: list[dict[str, Any]] = []
+        self._turn = 0
+        self._pending: dict[str, tuple[int, list[float]]] = {}
+        self._rng_draws: list[float] = []
+
+    def propose(
+        self,
+        champion: Candidate,
+        history: History,
+        space: Sequence[ParamSpec],
+        rng: np.random.Generator,
+    ) -> Candidate:
+        if not self.members:
+            start = to_unit(champion.params, space).tolist()
+            self.members = [
+                {"u": list(start), "sigma": self.sigma0, "score": 0.0} for _ in range(self.batch)
+            ]
+        i = self._turn % self.batch
+        self._turn += 1
+        member = self.members[i]
+        u = np.array(member["u"], dtype=float)
+        k = int(rng.integers(1, min(self.max_params, len(space)) + 1))
+        for j in rng.choice(len(space), size=k, replace=False):
+            u[j] += rng.normal(0.0, member["sigma"])
+        params = from_unit(u, space)
+        self._rng_draws.append(float(rng.random()))
+        note = f"member {i} sigma {member['sigma']:.3g}: " + describe_change(
+            champion.params, params, space
+        )
+        cand = _child(self.name, champion, params, history, note)
+        self._pending[cand.id] = (i, to_unit(params, space).tolist())
+        return cand
+
+    def observe(self, feedback: Sequence[Feedback]) -> None:
+        shift = 0.0
+        for f in feedback:
+            pending = self._pending.get(f.candidate.id)
+            if pending is None or f.dev is None:
+                continue
+            i, u = pending
+            member = self.members[i]
+            if f.dev.mean_diff >= member["score"]:
+                member["u"], member["score"] = u, f.dev.mean_diff
+            if f.accepted:
+                shift = f.dev.mean_diff
+        draws, self._rng_draws = self._rng_draws, []
+        self._pending.clear()
+        self._turn = 0
+        if not self.members or not draws:
+            return
+        for m in self.members:
+            m["score"] -= shift
+        order = sorted(range(self.batch), key=lambda j: (-self.members[j]["score"], j))
+        top, bottom = order[: self.exploit], order[-self.exploit :]
+        for n, j in enumerate(bottom):
+            draw = draws[n % len(draws)]
+            src = self.members[top[int(draw * len(top)) % len(top)]]
+            factor = 1.25 if draw * 2 % 1 >= 0.5 else 0.8
+            sigma = min(self.sigma_max, max(self.sigma_min, src["sigma"] * factor))
+            self.members[j] = {"u": list(src["u"]), "sigma": sigma, "score": src["score"]}
+
+    def state(self) -> dict[str, Any]:
+        return {"members": [dict(m) for m in self.members]}
+
+    def load_state(self, state: Mapping[str, Any]) -> None:
+        self.members = [
+            {
+                "u": [float(x) for x in m["u"]],
+                "sigma": float(m["sigma"]),
+                "score": float(m["score"]),
+            }
+            for m in state["members"]
+        ]
+
+
 PROPOSERS: dict[str, Callable[..., Proposer]] = {
     p.name: p
-    for p in (RandomRestart, GaussianHillClimb, CoordinateSearch, CrossEntropy, ArchiveCrossover)
+    for p in (
+        RandomRestart,
+        GaussianHillClimb,
+        CoordinateSearch,
+        CrossEntropy,
+        ArchiveCrossover,
+        PopulationHillClimb,
+    )
 }
 
 

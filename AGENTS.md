@@ -78,7 +78,7 @@ arena/
     types.py     ParamSpec, Candidate, PairedResult, Decision, Feedback, Budget, protocols.
     seeds.py     Disjoint dev / holdout / final seed pools; rng_for(seed, gen, purpose).
     accept.py    PairedBootstrapRule and guard metrics.
-    proposers.py Five built-in proposers working in normalised parameter space.
+    proposers.py Six built-in proposers (incl. PBT-style `pbt`) in normalised parameter space.
     llm.py       Optional, opt-in LLMProposer (numbers only, budgeted, audit-logged).
     meta.py      Meta-run: an outer Run tunes GaussianHillClimb's settings on toys.
     loop.py      Run: propose -> dev screen -> holdout -> accept; budgets, resume.

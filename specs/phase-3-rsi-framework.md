@@ -137,6 +137,7 @@ map back and clip to bounds.
 | `CoordinateSearch` | Try +δ / −δ on one parameter at a time, cycling | δ halves after a full cycle with no accept |
 | `CrossEntropy` | Keep a Gaussian over parameters; sample `k` on dev, refit to the best few | mean and spread update every generation |
 | `ArchiveCrossover` | Mix parameters of two archive members, then mutate lightly | parent choice favours members that beat more opponents |
+| `PopulationHillClimb` (`pbt`) | `k` hill climbers, each with its own position and σ, propose one candidate each per generation (PBT-style, plan step 5.3) | a member moves to its candidate when it does at least as well on dev; the worst members copy a top member's position and σ (exploit) and scale σ by 0.8 or 1.25 (explore) |
 | `LLMProposer` *(optional, off by default)* | Show an LLM the param schema and dev diagnostics, ask for a new param set + rationale | none; budgeted by tokens and cost |
 
 The `LLMProposer` only ever returns **numbers within declared bounds** — never code — so
@@ -237,6 +238,14 @@ above, the code is the reference:
   problem. Inner scores are cached per (settings, seed) and can run in worker
   processes. The committed run (`experiments/2026-11-13-meta`) found no significant gain
   over the defaults on final seeds (+0.240, 95% CI [−0.233, +0.806]).
+- **PBT-style population** (plan step 5.3) is `PopulationHillClimb` (`--proposer pbt`).
+  `experiments/2026-11-13-pbt` compares it with the hill climber at equal *episode*
+  budgets (a 4-member population screens 4 candidates a generation, so it gets fewer
+  generations), 40 toy problems each, paired by problem: it ties. Differences in mean
+  true score (pbt − hill climb, 95% CI): 5-D, 12,000 episodes +0.054 [−0.218, +0.381];
+  5-D, 3,000 episodes −0.301 [−2.254, +1.608]; 10-D, 12,000 episodes −0.101
+  [−2.634, +3.175]. `cross_entropy` and `random_restart` were significantly worse in all
+  three. The hill climber stays the default.
 
 Measured (cloud container, Python 3.13, 5-D quadratic, 60 generations, 10 run seeds; time
 is for all 10 runs):

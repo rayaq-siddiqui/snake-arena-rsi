@@ -345,7 +345,7 @@ flowchart TB
   subgraph RSI["arena/rsi: generic loop"]
     rtypes["rsi/types.py<br/>ParamSpec · Candidate · PairedResult<br/>Evaluator / Proposer / AcceptanceRule protocols"]
     seeds["rsi/seeds.py<br/>disjoint dev / holdout / final pools"]
-    proposers["rsi/proposers.py<br/>random restart · hill climb · coordinate<br/>cross-entropy · archive crossover (dev results only)"]
+    proposers["rsi/proposers.py<br/>random restart · hill climb · coordinate<br/>cross-entropy · archive crossover · pbt (dev results only)"]
     accept["rsi/accept.py<br/>PairedBootstrapRule + guards"]
     loop["rsi/loop.py<br/>Run: propose → dev screen → holdout → decide"]
     store["rsi/store.py<br/>run dir · atomic writes · immutable archive"]
