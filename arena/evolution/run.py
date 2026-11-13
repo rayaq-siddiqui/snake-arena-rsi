@@ -269,11 +269,11 @@ class Evolution:
         return with_league(ctx, league_halls(self.dir, upto))
 
     def _set_context(self, upto: int) -> None:
-        ctx = self.context(upto)
-        for lin in self.lineages.values():
+        halls = {name: lin.hall(upto) for name, lin in self.lineages.items()}
+        ctx = with_league(make_context(halls), league_halls(self.dir, upto))
+        for name, lin in self.lineages.items():
             lin.evaluator.context = ctx
-            hall = lin.hall(upto)
-            lin.evaluator.version = {c.id: v for v, c in enumerate(hall, start=1)}
+            lin.evaluator.version = {c.id: v for v, c in enumerate(halls[name], start=1)}
 
     def _write_params(self, lin: Lineage, hall: list[Candidate]) -> None:
         space = personality_class(lin.name).param_space
