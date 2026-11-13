@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import multiprocessing
 import platform
 import random
 import time
@@ -49,6 +50,54 @@ def run_bench(config: GameConfig, ticks: int, seed: int, names: Sequence[str]) -
             f"match ({','.join(sorted(set(names)))}): {match_rate:>10,.0f} ticks/s",
             f"kills per 1,000 ticks (all snakes): {1000 * kills / result.ticks:.3f}",
             f"deaths per 1,000 ticks (all snakes): {1000 * deaths / result.ticks:.3f}",
+        ]
+    )
+
+
+def _match_ticks(task: tuple[GameConfig, int, tuple[str, ...]]) -> int:
+    config, seed, names = task
+    return Match([make_policy(n) for n in names], seed, config).run().ticks
+
+
+def _engine_ticks(task: tuple[GameConfig, int, tuple[str, ...]]) -> int:
+    config, seed, _ = task
+    engine_ticks_per_second(config, config.max_ticks, seed)
+    return config.max_ticks
+
+
+def _warm(_: int) -> None:
+    return None
+
+
+def parallel_rates(
+    config: GameConfig, ticks: int, seed: int, names: Sequence[str], workers: int
+) -> tuple[float, float]:
+    """Total ticks/s across ``workers`` processes, as a tournament runs matches.
+
+    Each process plays ``ticks``-tick games with its own seed; two games per worker even out
+    the finish times. Worker start-up is excluded so the figure is steady-state throughput.
+    """
+    capped = GameConfig.from_dict({**config.to_dict(), "max_ticks": ticks, "score_target": 10**9})
+    tasks = [(capped, seed + i, tuple(names)) for i in range(2 * workers)]
+    rates = []
+    with multiprocessing.get_context("spawn").Pool(workers) as pool:
+        pool.map(_warm, range(workers))
+        for work in (_engine_ticks, _match_ticks):
+            started = time.perf_counter()
+            total = sum(pool.map(work, tasks, chunksize=1))
+            rates.append(total / (time.perf_counter() - started))
+    return rates[0], rates[1]
+
+
+def parallel_report(
+    config: GameConfig, ticks: int, seed: int, names: Sequence[str], workers: int
+) -> str:
+    engine_rate, match_rate = parallel_rates(config, ticks, seed, names, workers)
+    return "\n".join(
+        [
+            f"{workers} worker processes, {2 * workers} games of {ticks:,} ticks each",
+            f"engine only, total:  {engine_rate:>10,.0f} ticks/s",
+            f"match ({','.join(sorted(set(names)))}), total: {match_rate:>10,.0f} ticks/s",
         ]
     )
 

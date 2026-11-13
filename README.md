@@ -190,12 +190,13 @@ Chromium smoke test of the viewer (skipped when Node + Playwright aren't install
 
 ## Measured so far
 
-On this project's cloud container (Python 3.13, x86_64, single process):
+On this project's cloud container (Python 3.13, x86_64, 4 cores; single process unless a row says otherwise):
 
 | What | Result |
 |---|---|
-| Engine only, 100 × 100, 5 snakes | ~50,000 ticks/s (median of 7 runs of 50,000 ticks; the vision's aspirational 100,000 is not reached) |
-| Full match with `RandomSafe` policies | ~26,000–30,000 ticks/s (a 100,000-tick match in ~3.5 s) |
+| Engine only, 100 × 100, 5 snakes | ~50,000 ticks/s in one process (median of 7 runs of 50,000 ticks) |
+| Full match with `RandomSafe` policies | ~28,000–31,500 ticks/s in one process (median of 5 matches of 50,000 ticks: 31,622) |
+| Total over 4 worker processes (`bench --workers 4 --ticks 50000`, 3 runs) | engine only 190,000–194,000 ticks/s; full `RandomSafe` matches 117,000–124,400 ticks/s. This meets the vision's 100,000 ticks/s with simple heuristic agents when the cores are used, as tournaments and `evolve` do; one process does not reach it |
 | `RandomSafe` kills per 1,000 ticks, 100 × 100 (all snakes, 100 matches) | 0.049 |
 | Default 100-match tournament (100 × 100, cap 100,000) | all 100 hit the cap; ~1 kill per snake per match; 10M ticks in 148 s on 4 workers; after the step rewrite, 20 matches ran at ~70,000 ticks/s on 4 workers |
 | Median ticks to 10 kills, `RandomSafe`, 20 × 20 (8 seeds) | ~14,700 |

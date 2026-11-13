@@ -57,6 +57,14 @@ def test_bench_reports_rates(capsys: pytest.CaptureFixture[str]) -> None:
     assert "engine only" in out and "kills per 1,000 ticks" in out
 
 
+def test_bench_measures_total_throughput_over_workers(capsys: pytest.CaptureFixture[str]) -> None:
+    args = ["bench", "--ticks", "300", "--width", "20", "--height", "20", "--workers", "2"]
+    assert main(args) == 0
+    out = capsys.readouterr().out
+    assert "2 worker processes, 4 games of 300 ticks each" in out
+    assert "engine only, total:" in out and "match (random_safe), total:" in out
+
+
 def test_bench_times_every_personality(capsys: pytest.CaptureFixture[str]) -> None:
     main(["bench", "--policies", "all", "--ticks", "60", "--width", "30", "--height", "30"])
     out = capsys.readouterr().out

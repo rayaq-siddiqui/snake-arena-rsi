@@ -123,6 +123,7 @@ uv run ruff check . && uv run ruff format --check . && uv run mypy   # lint, for
 uv run python -m arena.cli run-match --seed 42                     # one headless match
 uv run python -m arena.cli run-tournament --matches 100 --workers 4 --out out/t
 uv run python -m arena.cli bench                                  # speed + kill rates
+uv run python -m arena.cli bench --workers 4                      # + total ticks/s over 4 processes
 uv run python -m arena.cli bench --policies all                   # personality decision times
 uv run python -m arena.cli check-personalities --workers 4        # phase 2 acceptance (slow)
 uv run python -m arena.cli watch                                  # browser viewer

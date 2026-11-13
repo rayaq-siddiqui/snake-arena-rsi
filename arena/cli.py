@@ -164,7 +164,7 @@ def cmd_run_tournament(args: argparse.Namespace) -> int:
 
 
 def cmd_bench(args: argparse.Namespace) -> int:
-    from arena.sim.bench import decision_report, decision_times, run_bench
+    from arena.sim.bench import decision_report, decision_times, parallel_report, run_bench
 
     config = config_from(args)
     if args.policies:
@@ -173,7 +173,10 @@ def cmd_bench(args: argparse.Namespace) -> int:
         report, ok = decision_report(decision_times(config, args.ticks, args.seed, names))
         print(report)
         return 0 if ok else 1
-    print(run_bench(config, args.ticks, args.seed, policy_names(args.policy, config.num_snakes)))
+    names = policy_names(args.policy, config.num_snakes)
+    print(run_bench(config, args.ticks, args.seed, names))
+    if args.workers > 1:
+        print(parallel_report(config, args.ticks, args.seed, names, args.workers))
     return 0
 
 
@@ -378,6 +381,12 @@ def build_parser() -> argparse.ArgumentParser:
     add_game_options(p)
     p.add_argument("--ticks", type=int, default=20_000)
     p.add_argument("--seed", type=int, default=0)
+    p.add_argument(
+        "--workers",
+        type=int,
+        default=1,
+        help="also measure total throughput over this many processes (as tournaments run)",
+    )
     p.add_argument(
         "--policies",
         help="time each policy's decisions instead: 'all' for the five personalities, "
