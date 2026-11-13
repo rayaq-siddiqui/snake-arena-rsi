@@ -81,6 +81,7 @@ arena/
     proposers.py Seven built-in proposers (incl. PBT-style `pbt`, `cma_es`) in normalised space.
     llm.py       Optional, opt-in LLMProposer (numbers only, budgeted, audit-logged).
     harness.py   AdaptiveHarness: UCB over the proposers, learned parameter weights, batch.
+    coach.py     Opt-in HarnessCoach: a model rewrites a harness's own settings (clipped).
     meta.py      Meta-run: an outer Run tunes GaussianHillClimb's settings on toys.
     map_elites.py  MAP-Elites archive over a behaviour grid; holdout re-score at the end.
     loop.py      Run: propose -> dev screen -> holdout -> accept; budgets, resume.
@@ -151,6 +152,7 @@ uv run python -m arena.cli exploit runs/demo hunter --generations 4     # exploi
 uv run python -m arena.cli evolve --quick --generations 3 --run-id demo   # snakes tune themselves
 uv run python -m arena.cli evolve --generations 10 --max-hours 12 --run-id long  # capped long run
 uv run python -m arena.cli evolve --profile arena --generations 1000 --until-wins 100 --run-id cup  # self-tuning harness + cup
+uv run python -m arena.cli evolve --profile arena --generations 1000 --until-wins 200 --coach-every 1 --llm-provider openrouter --run-id cup  # opt-in: a model coaches each harness
 uv run python -m arena.cli index experiments runs out --db arena.db   # SQLite index (+ --sql)
 uv run python -m arena.cli report runs/demo                       # report.md + progress.svg
 uv run python -m arena.cli watch --run runs/demo --vs-generation 0   # evolved vs original

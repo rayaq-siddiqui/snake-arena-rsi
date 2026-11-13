@@ -210,6 +210,20 @@ The dollar cap applies to each lineage:
 uv run python -m arena.cli evolve --quick --proposer llm --llm-provider openrouter --llm-model deepseek/deepseek-v4.1-flash --max-llm-dollars 0.4 --run-id llm
 ```
 
+**Optional: a model that rewrites the harness.** With the arena profile's `harness`
+proposer, `--coach-every N` adds a coach (`arena/rsi/coach.py`): every N generations a
+model reads what each snake's harness has learned (operator rewards, parameter weights,
+which candidates won or lost on dev) and that snake's strategy brief, and returns a patch
+to the harness's own settings: operator biases, the parameter priors it searches around,
+its exploration constant and its largest batch. Patches are numbers only and clipped,
+land in the harness journal and `lineages/<snake>/coach_audit.jsonl`, and
+`--max-coach-dollars` caps the spend over all snakes. The coach changes how candidates
+are proposed, never how they are judged:
+
+```bash
+uv run python -m arena.cli evolve --profile arena --generations 1000 --until-wins 200 --coach-every 1 --llm-provider openrouter --run-id arena-cup
+```
+
 **Optional: code proposals, review only.** `propose-code` asks the model for a whole new
 version of one snake's strategy file (`arena/agents/<snake>.py`), showing it the file,
 the snake's parameters and, with `--run`, its lineage's dev-screen results (never holdout
@@ -368,6 +382,9 @@ flowchart TB
     loop --> proposers
     harness["rsi/harness.py<br/>AdaptiveHarness: a UCB bandit over the proposers<br/>+ learned parameter weights, guard penalties,<br/>batch size (dev feedback only)"]
     harness --> proposers
+    coach["rsi/coach.py<br/>opt-in HarnessCoach: every N generations a model<br/>reads the harness's learned state and rewrites its<br/>operator biases, priors, explore, max batch (clipped)"]
+    harness -- "--coach-every N (dev feedback only)" --> coach
+    coach -- "Complete, prices; coach_audit.jsonl" --> llm
     meta["rsi/meta.py<br/>meta-run: an outer Run tunes the hill climb's<br/>sigma · grow · shrink; each score = an inner Run on a toy"]
     meta --> loop
     meta --> toys
@@ -404,7 +421,7 @@ flowchart TB
     exploit["evolution/exploit.py<br/>exploiter: a Run vs the frozen champions<br/>exploit gap on final seeds"]
     cupm["evolution/cup.py<br/>arena cup: champions + a random snake play<br/>full matches each generation; wins in cup.jsonl"]
     run -- "after each generation; --until-wins" --> cupm
-    run -- "profile arena: harness + strategy prior" --> harness
+    run -- "profile arena: harness + strategy prior<br/>+ strategy_brief for the coach" --> harness
     league["evolution/league.py<br/>league.json: exploiters join halls of fame<br/>after the generation they were registered"]
     emap --> evaluator
     exploit --> evaluator

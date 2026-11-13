@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import json
 import platform
+import sys
 import time
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import asdict, dataclass, field
@@ -39,6 +40,7 @@ from arena.evolution.entrants import Entrant, hand_set, param_specs, personality
 from arena.evolution.evaluator import Context, EvalSettings, SnakeEvaluator, Workers
 from arena.evolution.league import league_halls, with_league
 from arena.rsi.accept import GuardMetric, PairedBootstrapRule
+from arena.rsi.coach import HarnessCoach
 from arena.rsi.harness import AdaptiveHarness
 from arena.rsi.loop import Pending, Run, RunConfig, RunResult
 from arena.rsi.proposers import make_proposer
@@ -179,13 +181,29 @@ personality's objective (phase 2 spec) get picked more often at first. The harne
 moves these weights by what its candidates did in play, and decays them back to here."""
 
 
-def lineage_proposer(profile: Profile, name: str) -> Proposer:
+def strategy_brief(name: str) -> str:
+    """What a lineage is for, in words, for a harness coach: the personality's module
+    docstring and its objective in the arena profile."""
+    module = sys.modules[personality_class(name).__module__]
+    doc = " ".join((module.__doc__ or name).split())
+    return (
+        f"Snake personality '{name}': {doc} It plays 2,000-tick games on a 30 x 30 board "
+        "against four other snakes and is scored by points: kills minus deaths it causes "
+        "itself (walls, its own body). Candidates that crash more are penalised."
+    )
+
+
+def lineage_proposer(
+    profile: Profile, name: str, coach: Callable[[str], HarnessCoach] | None = None
+) -> Proposer:
     """The proposer for one lineage; ``harness`` gets the lineage's strategy prior and
-    learns to avoid candidates that crash into walls or themselves more."""
+    learns to avoid candidates that crash into walls or themselves more. ``coach`` makes
+    the lineage's harness coach for the opt-in model-steered harness."""
     if profile.proposer == "harness":
         return AdaptiveHarness(
             priors=STRATEGY_PRIORS.get(name, {}),
             penalties={"self_wall_deaths": 0.5, "deaths_per_1k_alive": 0.25},
+            coach=coach(name) if coach is not None else None,
         )
     return make_proposer(profile.proposer)
 

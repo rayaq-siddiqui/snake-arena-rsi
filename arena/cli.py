@@ -18,6 +18,7 @@ from arena.engine import GameConfig
 from arena.sim.match import Match, MatchResult
 
 if TYPE_CHECKING:
+    from arena.rsi.coach import HarnessCoach
     from arena.rsi.types import Proposer
 
 
@@ -353,9 +354,28 @@ def cmd_evolve(args: argparse.Namespace) -> int:
     out = Path(args.runs_dir) / (args.run_id or f"{profile.name}-{args.run_seed}")
     args.proposer = profile.proposer
 
+    def make_coach(name: str) -> HarnessCoach:
+        from arena.agents.registry import PERSONALITIES
+        from arena.evolution.run import strategy_brief
+        from arena.rsi.coach import HarnessCoach
+        from arena.rsi.llm import DEFAULT_PRICES
+
+        return HarnessCoach(
+            strategy_brief(name),
+            every=args.coach_every,
+            provider=args.llm_provider,
+            model=args.llm_model or "deepseek/deepseek-v4.1-flash",
+            max_dollars=args.max_coach_dollars / len(PERSONALITIES),
+            audit_path=out / "lineages" / name / "coach_audit.jsonl",
+            label=name,
+            prices=(args.llm_prices[0], args.llm_prices[1]) if args.llm_prices else DEFAULT_PRICES,
+        )
+
     def make_lineage_proposer(name: str) -> Proposer:
         if profile.proposer == "harness":
-            return lineage_proposer(profile, name)
+            return lineage_proposer(
+                profile, name, make_coach if args.coach_every is not None else None
+            )
         return make_proposer(profile.proposer, **proposer_options(args, out / "lineages" / name))
 
     evo = Evolution(
@@ -633,6 +653,21 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("--proposer", help="override the profile's proposer, e.g. llm (opt-in)")
     add_llm_options(p)
+    g = p.add_argument_group(
+        "harness coach (opt-in; a language model rewrites each harness's own search "
+        "settings; uses the --llm-provider, --llm-model and --llm-prices options)"
+    )
+    g.add_argument(
+        "--coach-every",
+        type=int,
+        help="ask the coach every N generations (harness proposer only; off when unset)",
+    )
+    g.add_argument(
+        "--max-coach-dollars",
+        type=float,
+        default=0.5,
+        help="dollar cap over all lineages' coaches (default 0.5)",
+    )
     p.set_defaults(func=cmd_evolve)
 
     p = sub.add_parser(

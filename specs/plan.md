@@ -392,7 +392,7 @@ Behaviour table (100 matches, all five together, 5,000-tick episodes on 100 × 1
   by decision, not left out: phase 1 chose a stdlib server and a Canvas page with no web
   dependencies, and the viewer now covers the dashboard's screens (live arena, replay
   browser, `/experiments` with charts and run control, per-run `dashboard.html`).
-- `[~]` 5.8 A self-tuning harness per snake, and a cup to 100 wins. The owner's goal:
+- `[~]` 5.8 A self-tuning harness per snake, and a cup to 100 (then 200) wins. The owner's goal:
   run the improvement loop until one snake has won 100 real matches, and let each snake
   tune its own search from what it learns in play, with its strategy in mind. Built:
   `arena/rsi/harness.py` (`AdaptiveHarness`, `--proposer harness`): a discounted UCB
@@ -408,9 +408,16 @@ Behaviour table (100 matches, all five together, 5,000-tick episodes on 100 × 1
   30 × 30, 10-cell snakes); wins add up in `cup.jsonl`, and `evolve --until-wins N`
   stops once a snake has N. The `arena` profile trains on that same game: 30 × 30,
   2,000-tick episodes, the `score` objective (kills minus self-inflicted deaths), the
-  harness, no patience stop. *Status:* the long run
-  (`evolve --profile arena --until-wins 100`) is in progress; results land in
-  `experiments/` when it ends.
+  harness, no patience stop. The owner then raised the target to 200 wins and asked that
+  a model evolve the harness during the run: `arena/rsi/coach.py` (`HarnessCoach`,
+  `evolve --coach-every N`, opt-in) asks a model every N generations to read each
+  harness's learned state and the snake's strategy brief (`strategy_brief` in
+  `arena/evolution/run.py`) and patch the harness's own settings (operator biases,
+  parameter priors, exploration, largest batch), clipped and audit-logged, from dev
+  feedback only. *Status:* the long run (`evolve --profile arena --until-wins 200`) is in
+  progress; it gained the coach and moved to CPython 3.14 (same games, bit-identical
+  results, about 18% less time on a 4-game benchmark) at a generation boundary. Results
+  land in `experiments/` when it ends.
 
 ---
 
