@@ -10,6 +10,7 @@ The contract for what Snake Arena RSI builds. Read in this order:
 | [`phase-2-personalities.md`](phase-2-personalities.md) | Five parameterized personalities |
 | [`phase-3-rsi-framework.md`](phase-3-rsi-framework.md) | The generic, snake-agnostic RSI framework |
 | [`phase-4-snake-rsi.md`](phase-4-snake-rsi.md) | Each snake runs the framework to tune itself |
+| [`phase-5-big-arena.md`](phase-5-big-arena.md) | Ten snakes on 1000 × 1000, four new personalities and a Learner |
 | [`plan.md`](plan.md) | The ordered build queue with targets — the file to work from |
 | [`vision.md`](vision.md) | The original long-term product vision |
 

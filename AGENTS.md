@@ -30,6 +30,7 @@ specs/
   phase-2-personalities.md  Five snake personalities / objectives
   phase-3-rsi-framework.md  Generic, snake-agnostic RSI framework
   phase-4-snake-rsi.md    Each snake runs the RSI framework to tune itself
+  phase-5-big-arena.md    Ten snakes on 1000 x 1000, four new personalities, a Learner
   plan.md                 The step-by-step build plan with concrete targets
   rsi/                    RSI explained simply, algorithms, examples, glossary
 ```

@@ -432,6 +432,67 @@ Behaviour table (100 matches, all five together, 5,000-tick episodes on 100 × 1
 
 ---
 
+## Step 6 — The big arena (phase 5)
+
+Spec: [phase 5](phase-5-big-arena.md). The goal: ten snakes, each 20 cells long, on a
+1000 × 1000 board. The lineup is the five personalities, four new ones and the random
+snake. One new snake, the Learner, learns from the other snakes' experience. Every
+lineage then improves itself on the big board.
+
+### 6.1 Engine limits `[ ]`
+- Raise the config limits: boards up to 1000, up to 10 snakes, length up to 20. The
+  defaults stay the same.
+- Add the new limits to the fuzz and spawn tests.
+- **Done when:** a 10-snake, length-20 game on 1000 × 1000 runs headless and in the
+  viewer, replays bit-identically, and the engine tests pass.
+
+### 6.2 Big-board speed `[ ]`
+- Profile a 10-snake 1000 × 1000 game and remove the biggest costs. Likely candidates: the
+  per-tick padded grid copy (2 MB), the per-radius diamond tables, and searches that don't
+  need the whole grid.
+- **Targets:** at least 2× the measured 85 ticks/s on 10 snakes, with games bit-identical
+  to before the change.
+- **Done when:** the speed-up is benchmarked before and after and recorded under
+  Measurements.
+
+### 6.3 Four new personalities `[ ]`
+- Scavenger, Herder, Ambusher: each with its new features and golden tests, a
+  `params/<name>.json`, a strategy brief, a viewer style, and `STRATEGY_PRIORS`.
+- The Learner policy: a linear scorer over every feature, with weights from its params file.
+- A `big` lineup in the registry; 10 viewer colours that pass the palette validator.
+- **Done when:**
+  - `check-personalities` passes for the three hand-set new personalities: each beats
+    `random_safe` on kills and shows its role;
+  - the feature tests show existing features unchanged on boards up to 100 × 100.
+
+### 6.4 The Learner learns from the others `[ ]`
+- `arena/evolution/learner.py`:
+  - log every snake's per-move features, its chosen move and the discounted outcome over
+    `H` ticks;
+  - fit ridge-regression Q weights (NumPy), clipped to the Learner's `ParamSpace`;
+  - `LearnerProposer` turns each fit into a candidate. It uses dev and cup games only,
+    and a test checks it never sees holdout or final seeds.
+- The generation-0 fit comes from dev-seed games among the other nine snakes.
+- **Done when:**
+  - on the arena board (30 × 30), the generation-0 Learner beats `random_safe` on kills;
+  - the fit is deterministic for a fixed log, and a test proves it.
+
+### 6.5 The big run `[ ]`
+- Add `evolve --profile big` (spec §4–5): 1000 × 1000, 10 snakes of length 20, all nine
+  lineages on the `AdaptiveHarness`, the Learner with `LearnerProposer`, and the big cup
+  (20,000-tick matches, most points wins).
+- Run at least 10 generations, or stop after 48 hours of evolve time, whichever comes
+  first. Resume after container restarts.
+- **Done when:**
+  - `experiments/<date>-big-arena/README.md` reports cup standings, accepts and
+    final-seed CIs for all nine lineages;
+  - it reports the Learner's generation-0 vs final result, and which features its
+    learned weights favour;
+  - it shows how each harness evolved;
+  - the README GIF shows the big arena.
+
+---
+
 ## Vision coverage
 
 The MVP in [vision.md](vision.md) §2, checked against what is built, as of step 4. Steps
